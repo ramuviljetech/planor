@@ -168,6 +168,29 @@
   text-align: center;
   color: var(--forest-green);
 }
+
+/* contribution chart container */
+.dashboard_Maintenance_contribution_container {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--light-gray);
+  border-radius: 8px;
+  border: 1px solid var(--concrete);
+}
+
+.dashboard_Maintenance_contribution_title {
+  font-family: var(--font-lato-medium);
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--jet-black);
+  margin: 0;
+}
+
 /* bottom container */
 .dashboard_Maintenance_bottom_container {
   width: 100%;

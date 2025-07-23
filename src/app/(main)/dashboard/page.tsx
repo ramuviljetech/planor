@@ -1,12 +1,12 @@
 "use client";
-import { useRouter } from "next/navigation";
-import React, { RefObject, useRef, useState } from "react";
+import React, { RefObject, useRef, useState, useMemo } from "react";
 import styles from "./styles.module.css";
 import PopOver from "@/components/ui/popover";
 import { chevronDownPinkIcon } from "@/resources/images";
 import Image from "next/image";
 import classNames from "classnames";
 import MetricCard from "@/components/ui/metric-card";
+import ContributionChart from "@/components/ui/contribution-chart";
 
 const yearlyMaintenanceSummaryOptions = [
   {
@@ -38,44 +38,15 @@ const filterOptions = [
   },
 ];
 
-const metricCards = [
-  {
-    title: "Doors",
-    value: "900K",
-    percentageChange: 3.4,
-    color: "var(--lavender-sky)",
-  },
-  {
-    title: "Floors",
-    value: "680K",
-    percentageChange: 11.4,
-    color: "var(--aqua-mist)",
-  },
-  {
-    title: "Roof",
-    value: "680K",
-    percentageChange: 3.4,
-    color: "var(--pink-blush)",
-  },
-  {
-    title: "Walls",
-    value: "500K",
-    percentageChange: -1.4,
-    color: "var(--sunbeam)",
-  },
-  {
-    title: "Windows",
-    value: "300K",
-    percentageChange: 7.2,
-    color: "var(--ocean-blue)",
-  },
-  {
-    title: "Area",
-    value: "12,80K",
-    percentageChange: 4.4,
-    color: "var(--neon-mint)",
-  },
-];
+// Fixed colors for metric cards based on title
+const titleColorMap: Record<string, string> = {
+  Doors: "var(--lavender-sky)",
+  Floors: "var(--aqua-mist)",
+  Roof: "var(--pink-blush)",
+  Walls: "var(--sunbeam)",
+  Windows: "var(--royal-indigo)",
+  Area: "var(--neon-mint)",
+};
 
 export default function DashboardPage() {
   const [showFilter, setShowFilter] = useState(false);
@@ -89,6 +60,63 @@ export default function DashboardPage() {
   ] = useState<string>("thisYear");
   const yearlyMaintenanceSummaryRef = useRef<HTMLDivElement>(null);
   const filterRef = useRef<HTMLDivElement>(null);
+
+  // Generate metric cards with fixed colors based on title
+  const metricCards = useMemo(() => {
+    const baseCards = [
+      {
+        title: "Doors",
+        value: 900,
+        percentageChange: 3.4,
+      },
+      {
+        title: "Floors",
+        value: 680,
+        percentageChange: 11.4,
+      },
+      {
+        title: "Roof",
+        value: 680,
+        percentageChange: 3.4,
+      },
+      {
+        title: "Walls",
+        value: 500,
+        percentageChange: -1.4,
+      },
+      {
+        title: "Windows",
+        value: 300,
+        percentageChange: 7.2,
+      },
+      {
+        title: "Area",
+        value: 1280,
+        percentageChange: 4.4,
+      },
+    ];
+
+    // Calculate total value
+    const totalValue = baseCards.reduce((sum, card) => sum + card.value, 0);
+
+    return baseCards.map((card) => ({
+      ...card,
+      color: titleColorMap[card.title] || "var(--lavender-sky)", // fallback color
+      percentage: Math.round((card.value / totalValue) * 100),
+      totalValue: totalValue,
+    }));
+  }, []);
+
+  // Generate contribution data for the chart
+  const contributionData = useMemo(() => {
+    return metricCards.map((card) => ({
+      title: card.title,
+      value: card.value,
+      color: card.color,
+      percentage: card.percentage,
+    }));
+  }, [metricCards]);
+
   const renderMaintenanceSummary = () => {
     return (
       <div className={styles.dashboard_Maintenance_container}>
@@ -150,10 +178,15 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* contribution chart */}
+
+        <ContributionChart items={contributionData} />
+
         {/* bottom container */}
         <div className={styles.dashboard_Maintenance_bottom_container}>
           {metricCards.map((card) => (
             <MetricCard
+              key={card.title}
               title={card.title}
               value={card.value}
               percentageChange={card.percentageChange}

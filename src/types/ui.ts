@@ -21,7 +21,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export interface MetricCardProps {
   title: string;
-  value: string | number;
+  value: number;
   percentageChange?: number;
   showDot?: boolean;
   dotColor?: string;
