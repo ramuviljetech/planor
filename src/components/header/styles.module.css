@@ -1,0 +1,91 @@
+.header_container {
+  width: 100%;
+  height: 76px;
+  background-color: transparent;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  gap: 16px;
+}
+.header_container {
+  font-family: var(--font-lato-bold);
+  font-size: 18px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--black);
+}
+.header_middle_container {
+  width: 488px;
+}
+.search_bar_rightIcon {
+  width: 30px;
+  height: 30px;
+}
+.header_right_container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+.header_right_item {
+  width: 40px;
+  height: 40px;
+}
+.pin_icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--rose-tint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.questionmark_icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.avatar_container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.avatar_name_container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+}
+.avatar_image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.avatar_name {
+  font-family: var(--font-lato-regular);
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--jet-black);
+}
+.avatar_email {
+  font-family: var(--font-lato-regular);
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--dark-slate);
+}

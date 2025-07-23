@@ -1,2 +1,19 @@
 export { default as placeholder } from "@/assets/images/placeholder-icon.svg";
 export { default as checkWhite } from "@/assets/images/check-white-icon.svg";
+export { default as searchIcon } from "@/assets/images/search-gray-icon.svg";
+export { default as searchEnableIcon } from "@/assets/images/search-enable-icon.svg";
+export { default as avatarIcon } from "@/assets/images/avatar.jpg";
+export { default as pinIcon } from "@/assets/images/pin-icon.svg";
+export { default as questionmarkIcon } from "@/assets/images/questionmark-icon.svg";
+export { default as switchIcon } from "@/assets/images/switch-icon.svg";
+
+export { default as dashboardWhiteIcon } from "@/assets/images/dashboard-white-icon.svg";
+export { default as dashboardGraykIcon } from "@/assets/images/dashboard-gray-icon.svg";
+export { default as clientWhiteIcon } from "@/assets/images/clients-white-icon.svg";
+export { default as clientGrayIcon } from "@/assets/images/clients-gray-icon.svg";
+export { default as propertiesWhiteIcon } from "@/assets/images/properties-white-icon.svg";
+export { default as propertiesGrayIcon } from "@/assets/images/properties-gray-icon.svg";
+export { default as priceListWhiteIcon } from "@/assets/images/pricelist-white-icon.svg";
+export { default as priceListGrayIcon } from "@/assets/images/pricelist-gray-icon.svg";
+// export { default as settingsWhiteIcon } from "@/assets/images/settings-white-icon.svg";
+export { default as settingsGrayIcon } from "@/assets/images/settings-gray-icon.svg";

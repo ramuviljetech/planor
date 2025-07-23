@@ -48,3 +48,23 @@ export interface InputProps {
   inputContainerClass?: string;
   [key: string]: any; // for rest props
 }
+
+export interface SearchBarProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  leftIcon?: string;
+  rightIcon?: string;
+  onRightIconClick?: () => void;
+  className?: string;
+  rightIconStyle?: string;
+  leftIconStyle?: string;
+  inputStyle?: string;
+}
+
+export interface MenuItem {
+  label: string;
+  icon: string;
+  active_icon: string;
+  route: string;
+}
