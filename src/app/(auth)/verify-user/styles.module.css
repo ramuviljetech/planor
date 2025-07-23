@@ -1,0 +1,57 @@
+.verifyUserContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.verifyUserSubContainer {
+  width: 442px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+/* Title */
+.verifyUserTitleContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 95%;
+}
+.verifyUserTitle {
+  font-family: var(--font-lato-bold);
+  font-size: 28px;
+  color: var(--dark-slate);
+  text-align: center;
+}
+.verifyUserSubtitle {
+  font-family: var(--font-lato-regular);
+  font-size: 16px;
+  color: var(--ash-gray);
+  text-align: center;
+}
+/* Form */
+.verifyUserFormContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+/* Button */
+.verifyUserSignInButton {
+  width: 100%;
+  height: 40px;
+  font-family: var(--font-lato-bold);
+  font-size: 16px;
+  line-height: 21px;
+  letter-spacing: -0.24px;
+}

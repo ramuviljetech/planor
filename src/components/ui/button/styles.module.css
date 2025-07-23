@@ -1,0 +1,67 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-family: var(--font-lato-bold);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  border: none;
+  padding: 10px 16px;
+  width: fit-content;
+}
+
+.primary {
+  background-color: var(--rose-red);
+  color: var(--white);
+}
+
+.secondary {
+  background-color: var(--dark-slate);
+  color: var(--white);
+  border-radius: 8px;
+}
+
+.outline {
+  background-color: transparent;
+  border: 1px solid var(--silver-cloud);
+  color: var(--dark-slate);
+}
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+}
+.icon {
+  width: 24px;
+  height: 24px;
+}
+.loader {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--white);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.buttonContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,0 +1,97 @@
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+:root {
+  --white: rgba(255, 255, 255, 1);
+  --black: rgba(0, 0, 0, 1);
+  --gray: rgba(214, 214, 214, 1);
+  --light-gray: rgba(248, 248, 248, 1);
+  --dark-slate: rgba(80, 81, 82, 1);
+  --ash-gray: rgba(161, 161, 161, 1);
+  --silver-cloud: rgba(219, 219, 219, 1);
+  --stone-gray: rgba(117, 117, 117, 1);
+  --carbon: rgba(87, 87, 87, 1);
+  --fog-gray: rgba(143, 143, 143, 0.75);
+  --jet-black: rgba(25, 30, 33, 1);
+  --snow-white: rgba(250, 250, 250, 1);
+  --midnight-overlay: rgba(51, 63, 72, 0.5);
+  --pearl-gray: rgba(184, 184, 184, 1);
+  --platinum: rgba(242, 242, 242, 1);
+  --concrete: rgba(232, 232, 232, 1);
+  --rose-tint: rgba(203, 30, 93, 0.08);
+  --rose-red: rgba(203, 30, 93, 1);
+  --mint-cream: rgba(224, 240, 228, 1);
+  --lavender-sky: rgba(151, 143, 237, 1);
+  --aqua-mist: rgba(164, 221, 220, 1);
+  --sunbeam: rgba(246, 207, 125, 1);
+  --royal-indigo: rgba(105, 123, 233, 1);
+  --crimson-deep: rgba(177, 47, 48, 1);
+  --blush-pink: rgba(254, 236, 235, 1);
+  --ocean-blue: rgba(6, 107, 216, 1);
+  --frost-blue: rgba(233, 244, 255, 1);
+  --ice-blue: rgba(229, 242, 255, 1);
+  --shadow-light: rgba(88, 88, 88, 0.05);
+  --forest-green: rgba(55, 126, 54, 1);
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* MUI theme overrides */
+.MuiDataGrid-root {
+  border: none !important;
+}
+
+.MuiDataGrid-cell {
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.MuiDataGrid-columnHeaders {
+  background-color: #f5f5f5 !important;
+  border-bottom: 2px solid #e0e0e0 !important;
+}

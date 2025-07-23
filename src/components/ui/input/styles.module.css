@@ -1,0 +1,85 @@
+.inputContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.label {
+  font-family: var(--font-lato-regular);
+  font-size: 13px;
+  line-height: 19px;
+  letter-spacing: -0.12px;
+  color: rgba(87, 87, 87, 1);
+}
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  position: relative;
+  border-radius: 6px;
+}
+.inputWrapper:focus-within {
+  box-shadow: 0px 0px 4px 0px var(--ash-gray);
+}
+.leftIcon {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  left: 8px;
+  cursor: pointer;
+}
+.rightIcon {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  right: 8px;
+  cursor: pointer;
+}
+.input {
+  width: 100%;
+  height: 38px;
+  font-family: var(--font-lato-regular);
+  font-size: 15px;
+  line-height: 21px;
+  letter-spacing: -0.24px;
+  border-radius: 8px;
+  padding: 8px;
+  outline: none;
+  background: rgba(250, 250, 250, 1);
+  border: 1px solid rgba(219, 219, 219, 1);
+}
+.input::placeholder {
+  color: var(--fog-gray);
+  font-family: var(--font-lato-regular);
+  font-size: 15px;
+  line-height: 21px;
+  letter-spacing: -0.24px;
+}
+.errorBg {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  position: relative;
+  border: 1px solid var(--rose-red-25);
+  border-radius: 8px;
+  border-color: var(--rose-red) !important;
+  outline: 1px solid var(--rose-red);
+  box-shadow: 0px 0px 0px 2px var(--rose-red-25);
+}
+.error {
+  color: var(--rose-red);
+  font-family: var(--font-lato-semi-bold);
+  font-size: 13px;
+}
+.input[type="number"]::-webkit-inner-spin-button,
+.input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

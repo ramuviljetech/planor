@@ -1,0 +1,49 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background-color: #fff;
+  border-radius: 10px;
+  width: fit-content;
+  gap: 8px;
+}
+
+.headerContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.title {
+  font-family: var(--font-inter-font);
+  font-size: 14px;
+  color: var(--dark-slate);
+  font-weight: 400;
+}
+.bodyContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.value {
+  font-family: var(--font-inter-font);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--jet-black);
+}
+.percent {
+  background-color: var(--mint-cream);
+  color: var(--forest-green);
+  font-family: var(--font-inter-font);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 16px;
+}
