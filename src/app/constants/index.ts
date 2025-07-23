@@ -16,7 +16,7 @@ export const MainMenu: MenuItem[] = [
     label: "Dashboard",
     icon: dashboardGraykIcon,
     active_icon: dashboardWhiteIcon,
-    route: "/",
+    route: "/dashboard",
   },
   {
     label: "Clients",

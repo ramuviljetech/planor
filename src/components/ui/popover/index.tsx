@@ -5,19 +5,7 @@ import classNames from "classnames";
 import ResizeObserver from "resize-observer-polyfill";
 import ClickOutside from "@/components/ui/popover/click-outside";
 import styles from "./styles.module.css";
-
-interface PopOverProps {
-  reference: RefObject<HTMLElement>;
-  showOverlay?: boolean;
-  show: boolean;
-  onClose: () => void;
-  overlay_style?: string;
-  container_style?: string;
-  placement?: PopperJS.Placement;
-  relativeWidth?: boolean;
-  offset?: [number, number];
-  children: ReactNode;
-}
+import { PopOverProps } from "@/types/ui";
 
 const PopOver: React.FC<PopOverProps> = ({
   reference,

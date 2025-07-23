@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
-import { theme } from "./theme";
-import { AzureAuthProvider } from "./(auth)/AzureAuthProvider";
 import localFont from "next/font/local";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -68,12 +64,12 @@ export default function RootLayout({
       <body
         className={`${inter.className} ${latoBold.variable} ${latoSemiBold.variable} ${latoMedium.variable} ${latoRegular.variable} ${latoLight.variable} ${interFont.variable}`}
       >
-        <AzureAuthProvider>
+        {/* <AzureAuthProvider>
           <ThemeProvider theme={theme}>
-            <CssBaseline />
-            {children}
-          </ThemeProvider>
-        </AzureAuthProvider>
+            <CssBaseline /> */}
+        {children}
+        {/* </ThemeProvider>
+        </AzureAuthProvider> */}
       </body>
     </html>
   );

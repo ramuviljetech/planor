@@ -25,8 +25,15 @@ const MetricCard: React.FC<MetricCardProps> = ({
       <div className={styles.bodyContainer}>
         <span className={classNames(styles.value, valueStyle)}>{value}</span>
         {percentageChange && (
-          <span className={classNames(styles.percent, percentStyle)}>
-            {percentageChange}
+          <span
+            className={classNames(
+              styles.percent,
+              percentStyle,
+              percentageChange > 0 ? styles.positive : styles.negative
+            )}
+          >
+            {percentageChange > 0 ? "+" : ""}
+            {percentageChange}%
           </span>
         )}
       </div>

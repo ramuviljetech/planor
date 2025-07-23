@@ -4,21 +4,28 @@ import { switchIcon } from "@/resources/images";
 import Image from "next/image";
 import { useState } from "react";
 import { MainMenu } from "@/app/constants";
+import { useRouter } from "next/navigation";
 
 const Sidebar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(true);
   const [activeRoute, setActiveRoute] = useState<string>("Dashboard");
   return (
-    <div className={styles.sidebar_container}>
+    <div
+      className={`${styles.sidebar_container} ${
+        !isOpen ? styles.collapsed : ""
+      }`}
+    >
       {/* header */}
       <div className={styles.sidebar_header}>
-        <p className={styles.sidebar_title}>Menu</p>
+        {isOpen && <p className={styles.sidebar_title}>Menu</p>}
         <Image
           onClick={() => setIsOpen(!isOpen)}
           src={switchIcon}
           alt="switch"
           width={20}
           height={20}
+          className={styles.switch_icon}
         />
       </div>
       {/* content */}
@@ -29,7 +36,10 @@ const Sidebar: React.FC = () => {
             className={`${styles.sidebar_content_item} ${
               activeRoute === item.label ? styles.active : ""
             }`}
-            onClick={() => setActiveRoute(item.label)}
+            onClick={() => {
+              setActiveRoute(item.label);
+              router.push(item.route);
+            }}
           >
             <div
               className={`${styles.sidebar_content_item_icon_container} ${
@@ -43,7 +53,15 @@ const Sidebar: React.FC = () => {
                 height={20}
               />
             </div>
-            <p>{item.label}</p>
+            {isOpen && (
+              <p
+                className={`${styles.sidebar_content_item_label} ${
+                  activeRoute === item.label ? styles.active_label : ""
+                }`}
+              >
+                {item.label}
+              </p>
+            )}
           </div>
         ))}
       </div>

@@ -17,3 +17,4 @@ export { default as priceListWhiteIcon } from "@/assets/images/pricelist-white-i
 export { default as priceListGrayIcon } from "@/assets/images/pricelist-gray-icon.svg";
 // export { default as settingsWhiteIcon } from "@/assets/images/settings-white-icon.svg";
 export { default as settingsGrayIcon } from "@/assets/images/settings-gray-icon.svg";
+export { default as chevronDownPinkIcon } from "@/assets/images/chevron-down-pink-icon.svg";

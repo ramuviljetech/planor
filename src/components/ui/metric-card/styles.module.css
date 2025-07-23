@@ -2,10 +2,12 @@
   display: flex;
   flex-direction: column;
   padding: 12px;
-  background-color: #fff;
+  background-color: var(--white);
   border-radius: 10px;
   width: fit-content;
   gap: 8px;
+  border: 1px solid var(--concrete);
+  box-shadow: 0px 2px 4px 0px var(--black-shadow);
 }
 
 .headerContainer {
@@ -34,7 +36,7 @@
 .value {
   font-family: var(--font-inter-font);
   font-size: 24px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--jet-black);
 }
 .percent {
@@ -46,4 +48,12 @@
   padding: 2px 6px;
   border-radius: 6px;
   line-height: 16px;
+}
+.positive {
+  color: var(--forest-green);
+  background-color: var(--mint-cream);
+}
+.negative {
+  color: var(--crimson-deep);
+  background-color: var(--blush-pink);
 }

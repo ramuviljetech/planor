@@ -1,5 +1,10 @@
-import { ButtonHTMLAttributes, ReactNode, CSSProperties } from "react";
-
+import {
+  ButtonHTMLAttributes,
+  ReactNode,
+  CSSProperties,
+  RefObject,
+} from "react";
+import * as PopperJS from "@popperjs/core";
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   title: string;
   variant?: "primary" | "secondary" | "outline";
@@ -17,7 +22,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export interface MetricCardProps {
   title: string;
   value: string | number;
-  percentageChange?: string;
+  percentageChange?: number;
   showDot?: boolean;
   dotColor?: string;
   className?: string;
@@ -67,4 +72,17 @@ export interface MenuItem {
   icon: string;
   active_icon: string;
   route: string;
+}
+
+export interface PopOverProps {
+  reference: RefObject<HTMLElement>;
+  showOverlay?: boolean;
+  show: boolean;
+  onClose: () => void;
+  overlay_style?: string;
+  container_style?: string;
+  placement?: PopperJS.Placement;
+  relativeWidth?: boolean;
+  offset?: [number, number];
+  children: ReactNode;
 }

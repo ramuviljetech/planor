@@ -37,6 +37,11 @@
   --shadow-light: rgba(88, 88, 88, 0.05);
   --forest-green: rgba(55, 126, 54, 1);
   --urban-fog: rgba(143, 143, 143, 0.75);
+  --deep-charcoal: rgba(36, 36, 36, 1);
+  --granite-gray: rgba(122, 122, 122, 1);
+  --black-shadow: rgba(0, 0, 0, 0.04);
+  --pink-blush: rgba(244, 143, 180, 1);
+  --neon-mint: rgba(96, 244, 101, 1);
 }
 
 html,
