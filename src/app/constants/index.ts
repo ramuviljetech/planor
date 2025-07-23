@@ -43,3 +43,33 @@ export const MainMenu: MenuItem[] = [
     route: "/",
   },
 ];
+
+export const yearlyMaintenanceSummaryOptions = [
+  {
+    label: "This Year",
+    value: "thisYear",
+  },
+  {
+    label: "Next Year",
+    value: "nextYear",
+  },
+  {
+    label: "Select Year",
+    value: "selectYear",
+  },
+];
+
+export const filterOptions = [
+  {
+    label: "Clients",
+    value: "clients",
+  },
+  {
+    label: "Properties",
+    value: "properties",
+  },
+  {
+    label: "Buildings",
+    value: "buildings",
+  },
+];
