@@ -1,4 +1,4 @@
-.loginContainer {
+.login_container {
   width: 100%;
   height: 100%;
   display: flex;
@@ -7,7 +7,7 @@
   justify-content: center;
   position: relative;
 }
-.logoContainer {
+.logo_container {
   position: absolute;
   top: 30px;
   left: 40px;
@@ -24,7 +24,7 @@
   letter-spacing: 0px;
   color: var(--black);
 }
-.subContainer {
+.sub_container {
   width: 442px;
   height: 100%;
   display: flex;
@@ -34,7 +34,7 @@
   gap: 24px;
 }
 /* Title */
-.titleContainer {
+.title_container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -48,14 +48,14 @@
   color: var(--dark-slate);
   text-align: center;
 }
-.subtitle {
+.login_subtitle {
   font-family: var(--font-lato-regular);
   font-size: 16px;
   color: var(--ash-gray);
   text-align: center;
 }
 /* Form */
-.formContainer {
+.login_form_container {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -64,7 +64,7 @@
   gap: 16px;
 }
 /* Checkbox */
-.forgotPasswordContainer {
+.forgot_password_container {
   width: 100%;
   display: flex;
   flex-direction: row;
@@ -72,7 +72,7 @@
   justify-content: flex-end;
   gap: 8px;
 }
-.forgotPassword {
+.forgot_password {
   font-family: var(--font-lato-regular);
   font-weight: 400;
   font-size: 14px;
@@ -83,7 +83,7 @@
   cursor: pointer;
 }
 /* Button */
-.signInButton {
+.sign_in_button {
   width: 100%;
   height: 40px;
   font-family: var(--font-lato-bold);

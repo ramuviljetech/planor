@@ -64,7 +64,7 @@ const ForgotPassword: React.FC = () => {
           handleBlur,
           setFieldValue,
         }) => (
-          <Form className={styles.forgotPasswordFormContainer}>
+          <Form className={styles.forgot_password_form_container}>
             <Input
               label="Enter you email or phone number *"
               placeholder="Enter your email or phone number"
@@ -78,7 +78,7 @@ const ForgotPassword: React.FC = () => {
               title="Send verification code"
               type="submit"
               variant="secondary"
-              className={styles.forgotPasswordSignInButton}
+              className={styles.forgot_password_sign_in_button}
               loading={isSubmitting}
               disabled={isSubmitting}
             />
@@ -88,12 +88,12 @@ const ForgotPassword: React.FC = () => {
     );
   };
   return (
-    <div className={styles.forgotPasswordContainer}>
-      <div className={styles.forgotPasswordSubContainer}>
+    <div className={styles.forgot_password_container}>
+      <div className={styles.forgot_password_sub_container}>
         {/* Title */}
-        <div className={styles.forgotPasswordTitleContainer}>
-          <p className={styles.forgotPasswordTitle}>Forgot password</p>
-          <p className={styles.forgotPasswordSubtitle}>
+        <div className={styles.forgot_password_title_container}>
+          <p className={styles.forgot_password_title}>Forgot password</p>
+          <p className={styles.forgot_password_subtitle}>
             One step away from your dashboard Just a quick login and you’re in!
           </p>
         </div>

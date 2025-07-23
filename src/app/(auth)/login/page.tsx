@@ -74,7 +74,7 @@ const Login: React.FC = () => {
           handleBlur,
           setFieldValue,
         }) => (
-          <Form className={styles.formContainer}>
+          <Form className={styles.login_form_container}>
             <Input
               label="Email*"
               placeholder="Enter your email"
@@ -100,15 +100,15 @@ const Login: React.FC = () => {
               }
             />
 
-            <div className={styles.forgotPasswordContainer}>
-              <p className={styles.forgotPassword}>Forgot password?</p>
+            <div className={styles.forgot_password_container}>
+              <p className={styles.forgot_password}>Forgot password?</p>
             </div>
 
             <Button
               title="Sign in"
               type="submit"
               variant="secondary"
-              className={styles.signInButton}
+              className={styles.sign_in_button}
               loading={isSubmitting}
               disabled={isSubmitting}
             />
@@ -118,15 +118,15 @@ const Login: React.FC = () => {
     );
   };
   return (
-    <div className={styles.loginContainer}>
-      <div className={styles.logoContainer}>
-        <p className={styles.logoText}>Planor</p>
+    <div className={styles.login_container}>
+      <div className={styles.logo_container}>
+        <p className={styles.logo_text}>Planor</p>
       </div>
-      <div className={styles.subContainer}>
+      <div className={styles.sub_container}>
         {/* Title */}
-        <div className={styles.titleContainer}>
+        <div className={styles.title_container}>
           <p className={styles.title}>Login</p>
-          <p className={styles.subtitle}>
+          <p className={styles.login_subtitle}>
             One step away from your dashboard Just a quick login and you're in!
           </p>
         </div>
