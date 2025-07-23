@@ -73,3 +73,22 @@ export const filterOptions = [
     value: "buildings",
   },
 ];
+
+export const clientsStaticCardTitle = [
+  {
+    title: "Total Clients",
+    value: 24,
+  },
+  {
+    title: "New Clients This Month",
+    value: 4,
+  },
+  {
+    title: "Total Files Uploaded",
+    value: 24,
+  },
+  {
+    title: "Total Buildings",
+    value: 1430,
+  },
+];

@@ -18,3 +18,6 @@ export { default as priceListGrayIcon } from "@/assets/images/pricelist-gray-ico
 // export { default as settingsWhiteIcon } from "@/assets/images/settings-white-icon.svg";
 export { default as settingsGrayIcon } from "@/assets/images/settings-gray-icon.svg";
 export { default as chevronDownPinkIcon } from "@/assets/images/chevron-down-pink-icon.svg";
+
+export { default as filterIcon } from "@/assets/images/filter-black-icon.svg";
+export { default as multipleFilterIcon } from "@/assets/images/multi-select-black-icon.svg";

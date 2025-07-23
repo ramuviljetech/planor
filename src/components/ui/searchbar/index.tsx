@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { SearchBarProps } from "@/types/ui";
 import Image from "next/image";
 import classNames from "classnames";
+import { searchIcon } from "@/resources/images";
 
 const SearchBar: React.FC<SearchBarProps> = ({
   value,
@@ -19,15 +20,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
 }) => {
   return (
     <div className={clsx(styles.searchbar_container, className)}>
-      {leftIcon && (
-        <Image
-          src={leftIcon}
-          alt="search"
-          width={20}
-          height={20}
-          className={classNames(styles.searchbar_leftIcon, leftIconStyle)}
-        />
-      )}
+      <Image
+        src={leftIcon || searchIcon}
+        alt="search"
+        width={20}
+        height={20}
+        className={classNames(styles.searchbar_leftIcon, leftIconStyle)}
+      />
       <input
         type="text"
         className={classNames(styles.searchbar_input, inputStyle)}

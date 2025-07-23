@@ -2,6 +2,12 @@
 import React, { useState, useMemo } from "react";
 import styles from "./styles.module.css";
 import MaintenanceSection from "@/sections/dashboard-section/maintenance";
+import SearchBar from "@/components/ui/searchbar";
+import { filterIcon, multipleFilterIcon } from "@/resources/images";
+import Image from "next/image";
+import Button from "@/components/ui/button";
+import MetricCard from "@/components/ui/metric-card";
+import { clientsStaticCardTitle } from "@/app/constants";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -119,6 +125,48 @@ export default function DashboardPage() {
     // fetchMaintenanceData(filter, year);
   };
 
+  const renderClients = () => {
+    return (
+      <div className={styles.dashboard_clients_container}>
+        {/* top container */}
+        <div className={styles.dashboard_clients_top_container}>
+          <p className={styles.dashboard_clients_top_title}>Clients</p>
+          <div className={styles.dashboard_clients_top_right_container}>
+            <SearchBar
+              value={""}
+              onChange={() => {}}
+              placeholder="Search properties..."
+              className={styles.dashboard_clients_search_bar}
+            />
+            <Image
+              src={multipleFilterIcon}
+              alt="multiple filter"
+              width={24}
+              height={24}
+            />
+            <Image src={filterIcon} alt="filter" width={24} height={24} />
+            <Button
+              title="Add  Client"
+              variant="primary"
+              className={styles.dashboard_clients_add_client_button}
+            />
+          </div>
+        </div>
+        {/* middle container */}
+        <div className={styles.dashboard_clients_middle_container}>
+          {clientsStaticCardTitle.map((card) => (
+            <MetricCard
+              title={card.title}
+              value={card.value}
+              className={styles.dashboard_clients_static_card}
+              titleStyle={styles.dashboard_clients_static_card_title}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={styles.dashboard_container}>
       <p className={styles.dashboard_title}>Hey Vivek</p>
@@ -132,6 +180,7 @@ export default function DashboardPage() {
         totalValue={mockApiData.totalValue}
         totalPercentageChange={mockApiData.totalPercentageChange}
       />
+      {renderClients()}
     </div>
   );
 }
