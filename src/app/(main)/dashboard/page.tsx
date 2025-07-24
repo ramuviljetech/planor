@@ -7,11 +7,9 @@ import { filterIcon, multipleFilterIcon } from "@/resources/images";
 import Image from "next/image";
 import Button from "@/components/ui/button";
 import MetricCard from "@/components/ui/metric-card";
-import { clientsStaticCardTitle, filterOptions } from "@/app/constants";
+import { clientsStaticCardTitle } from "@/app/constants";
 import PopOver from "@/components/ui/popover";
-import classNames from "classnames";
-import Checkbox from "@mui/material/Checkbox";
-import CustomCheckbox from "@/components/ui/checkbox";
+import TableFilter from "@/components/ui/table-filter";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -38,14 +36,19 @@ export default function DashboardPage() {
     selectedYearlyMaintenanceSummary,
     setSelectedYearlyMaintenanceSummary,
   ] = useState<string>("thisYear");
-  const [showMultipleFilter, setShowMultipleFilter] = useState<boolean>(false);
-  const multipleFilterRef = useRef<HTMLDivElement>(null);
+  const tableFilterRef = useRef<HTMLDivElement>(null);
+  const [showTableFilter, setShowTableFilter] = useState<boolean>(false);
   const [selectedTableOptions, setSelectedTableOptions] = useState<string[]>([
     "Client Name",
     "Client Id",
     "Properties",
     "Created On",
   ]);
+  const clientsFilterRef = useRef<HTMLDivElement>(null);
+  const [selectedClientsFilters, setSelectedClientsFilters] = useState<
+    string[]
+  >([]);
+  const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
 
   // TODO: Replace this with actual API call data
   // This will be fetched from the database based on selectedFilter and selectedYearlyMaintenanceSummary
@@ -159,10 +162,7 @@ export default function DashboardPage() {
               placeholder="Search properties..."
               className={styles.dashboard_clients_search_bar}
             />
-            <div
-              ref={multipleFilterRef}
-              onClick={() => setShowMultipleFilter(true)}
-            >
+            <div ref={tableFilterRef} onClick={() => setShowTableFilter(true)}>
               <Image
                 src={multipleFilterIcon}
                 alt="multiple filter"
@@ -170,7 +170,12 @@ export default function DashboardPage() {
                 height={24}
               />
             </div>
-            <Image src={filterIcon} alt="filter" width={24} height={24} />
+            <div
+              ref={clientsFilterRef}
+              onClick={() => setShowClientsFilter(true)}
+            >
+              <Image src={filterIcon} alt="filter" width={24} height={24} />
+            </div>
             <Button
               title="Add  Client"
               variant="primary"
@@ -180,8 +185,9 @@ export default function DashboardPage() {
         </div>
         {/* middle container */}
         <div className={styles.dashboard_clients_middle_container}>
-          {clientsStaticCardTitle.map((card) => (
+          {clientsStaticCardTitle.map((card, index) => (
             <MetricCard
+              key={index}
               title={card.title}
               value={card.value}
               className={styles.dashboard_clients_static_card}
@@ -208,48 +214,29 @@ export default function DashboardPage() {
       />
       {renderClients()}
       <PopOver
-        reference={multipleFilterRef}
-        show={showMultipleFilter}
-        onClose={() => setShowMultipleFilter(false)}
+        reference={tableFilterRef}
+        show={showTableFilter}
+        onClose={() => setShowTableFilter(false)}
       >
-        <div className={styles.filter_container}>
-          <div className={styles.filter_title_container}>
-            <p className={styles.filter_title}>Table List</p>
-          </div>
-          {tableOptions.map((option) => (
-            <div
-              key={option}
-              className={styles.filter_content}
-              onClick={() => {
-                if (selectedTableOptions.includes(option)) {
-                  setSelectedTableOptions(
-                    selectedTableOptions.filter((o) => o !== option)
-                  );
-                } else {
-                  setSelectedTableOptions([...selectedTableOptions, option]);
-                }
-              }}
-            >
-              <div className={styles.filter_subcontent}>
-                <CustomCheckbox
-                  checked={selectedTableOptions.includes(option)}
-                  onChange={() => {
-                    if (selectedTableOptions.includes(option)) {
-                      setSelectedTableOptions(
-                        selectedTableOptions.filter((o) => o !== option)
-                      );
-                    } else {
-                      setSelectedTableOptions([
-                        ...selectedTableOptions,
-                        option,
-                      ]);
-                    }
-                  }}
-                  label={option}
-                />
-              </div>
-            </div>
-          ))}
+        <TableFilter
+          title="Table List"
+          options={tableOptions}
+          selectedOptions={selectedTableOptions}
+          onOptionsChange={setSelectedTableOptions}
+        />
+      </PopOver>
+      <PopOver
+        reference={clientsFilterRef}
+        show={showClientsFilter}
+        onClose={() => setShowClientsFilter(false)}
+      >
+        <div className={styles.dashboard_clients_filter_container}>
+          <TableFilter
+            title="Clients"
+            options={tableOptions}
+            selectedOptions={selectedTableOptions}
+            onOptionsChange={setSelectedTableOptions}
+          />
         </div>
       </PopOver>
     </div>
