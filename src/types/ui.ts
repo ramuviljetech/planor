@@ -86,3 +86,16 @@ export interface PopOverProps {
   offset?: [number, number];
   children: ReactNode;
 }
+
+export interface SectionHeaderProps {
+  title: string;
+  searchValue: string;
+  onSearchChange: (value: string) => void;
+  searchPlaceholder?: string;
+  actionButtonTitle: string;
+  onActionButtonClick: () => void;
+  filterComponent?: React.ReactNode;
+  className?: string;
+  searchBarClassName?: string;
+  actionButtonClassName?: string;
+}

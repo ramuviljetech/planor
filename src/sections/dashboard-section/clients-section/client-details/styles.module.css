@@ -48,3 +48,10 @@
   letter-spacing: 0px;
   color: var(--dark-slate);
 }
+.dashboard_clients_search_bar {
+  width: 210px;
+  height: 36px;
+}
+.dashboard_clients_add_client_button {
+  border-radius: 24px;
+}

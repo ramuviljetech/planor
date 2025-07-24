@@ -2,16 +2,15 @@
 import React, { useState, useMemo, useRef } from "react";
 import styles from "./styles.module.css";
 import MaintenanceSection from "@/sections/dashboard-section/maintenance";
-import SearchBar from "@/components/ui/searchbar";
-import { filterIcon, multipleFilterIcon } from "@/resources/images";
-import Image from "next/image";
-import Button from "@/components/ui/button";
 import MetricCard from "@/components/ui/metric-card";
 import { clientsStaticCardTitle } from "@/app/constants";
-import PopOver from "@/components/ui/popover";
-import TableFilter from "@/components/ui/table-filter";
 import BottomSheet from "@/components/ui/bottom-sheet";
 import ClientDetails from "@/sections/dashboard-section/clients-section/client-details";
+import SectionHeader from "@/components/ui/section-header";
+import PopOver from "@/components/ui/popover";
+import TableFilter from "@/components/ui/table-filter";
+import Image from "next/image";
+import { filterIcon } from "@/resources/images";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -39,11 +38,12 @@ export default function DashboardPage() {
     setSelectedYearlyMaintenanceSummary,
   ] = useState<string>("thisYear");
 
-  const clientsFilterRef = useRef<HTMLDivElement>(null);
   const [selectedClientsFilters, setSelectedClientsFilters] =
     useState<string>("Active");
-  const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
   const [showBottomSheet, setShowBottomSheet] = useState<boolean>(false);
+  const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
+  const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
+  const clientsFilterRef = useRef<HTMLDivElement>(null);
   // TODO: Replace this with actual API call data
   // This will be fetched from the database based on selectedFilter and selectedYearlyMaintenanceSummary
   const mockApiData = useMemo(() => {
@@ -147,29 +147,24 @@ export default function DashboardPage() {
     return (
       <div className={styles.dashboard_clients_container}>
         {/* top container */}
-        <div className={styles.dashboard_clients_top_container}>
-          <p className={styles.dashboard_clients_top_title}>Clients</p>
-          <div className={styles.dashboard_clients_top_right_container}>
-            <SearchBar
-              value={""}
-              onChange={() => {}}
-              placeholder="Search properties..."
-              className={styles.dashboard_clients_search_bar}
-            />
+        <SectionHeader
+          title="Clients"
+          searchValue={clientsSearchValue}
+          onSearchChange={setClientsSearchValue}
+          searchPlaceholder="Search properties..."
+          actionButtonTitle="Add Client"
+          onActionButtonClick={() => setShowBottomSheet(true)}
+          filterComponent={
             <div
               ref={clientsFilterRef}
               onClick={() => setShowClientsFilter(true)}
             >
               <Image src={filterIcon} alt="filter" width={24} height={24} />
             </div>
-            <Button
-              title="Add  Client"
-              variant="primary"
-              onClick={() => setShowBottomSheet(true)}
-              className={styles.dashboard_clients_add_client_button}
-            />
-          </div>
-        </div>
+          }
+          searchBarClassName={styles.dashboard_clients_search_bar}
+          actionButtonClassName={styles.dashboard_clients_add_client_button}
+        />
         {/* middle container */}
         <div className={styles.dashboard_clients_middle_container}>
           {clientsStaticCardTitle.map((card, index) => (
