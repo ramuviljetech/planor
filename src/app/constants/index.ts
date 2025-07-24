@@ -92,3 +92,22 @@ export const clientsStaticCardTitle = [
     value: 1430,
   },
 ];
+
+export const clientDetailsCardsData = [
+  {
+    title: "Properties",
+    value: "23",
+  },
+  {
+    title: "Total Area",
+    value: "89,700 m²",
+  },
+  {
+    title: "Maintenance Cost",
+    value: "4,43,433",
+  },
+  {
+    title: "Buildings",
+    value: "190",
+  },
+];

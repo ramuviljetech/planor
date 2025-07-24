@@ -10,6 +10,8 @@ import MetricCard from "@/components/ui/metric-card";
 import { clientsStaticCardTitle } from "@/app/constants";
 import PopOver from "@/components/ui/popover";
 import TableFilter from "@/components/ui/table-filter";
+import BottomSheet from "@/components/ui/bottom-sheet";
+import ClientDetails from "@/sections/dashboard-section/clients-section/client-details";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -49,7 +51,7 @@ export default function DashboardPage() {
     string[]
   >([]);
   const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
-
+  const [showBottomSheet, setShowBottomSheet] = useState<boolean>(false);
   // TODO: Replace this with actual API call data
   // This will be fetched from the database based on selectedFilter and selectedYearlyMaintenanceSummary
   const mockApiData = useMemo(() => {
@@ -179,6 +181,7 @@ export default function DashboardPage() {
             <Button
               title="Add  Client"
               variant="primary"
+              onClick={() => setShowBottomSheet(true)}
               className={styles.dashboard_clients_add_client_button}
             />
           </div>
@@ -239,6 +242,15 @@ export default function DashboardPage() {
           />
         </div>
       </PopOver>
+      <BottomSheet
+        isOpen={showBottomSheet}
+        onClose={() => setShowBottomSheet(false)}
+        title="Brunnfast AB"
+        backButton={true}
+        onBackButton={() => setShowBottomSheet(false)}
+      >
+        <ClientDetails />
+      </BottomSheet>
     </div>
   );
 }

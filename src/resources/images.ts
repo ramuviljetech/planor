@@ -13,6 +13,7 @@ export { default as clientWhiteIcon } from "@/assets/images/clients-white-icon.s
 export { default as clientGrayIcon } from "@/assets/images/clients-gray-icon.svg";
 export { default as propertiesWhiteIcon } from "@/assets/images/properties-white-icon.svg";
 export { default as propertiesGrayIcon } from "@/assets/images/properties-gray-icon.svg";
+export { default as propertiesBlueIcon } from "@/assets/images/properties-blue-icon.svg";
 export { default as priceListWhiteIcon } from "@/assets/images/pricelist-white-icon.svg";
 export { default as priceListGrayIcon } from "@/assets/images/pricelist-gray-icon.svg";
 // export { default as settingsWhiteIcon } from "@/assets/images/settings-white-icon.svg";
@@ -21,3 +22,5 @@ export { default as chevronDownPinkIcon } from "@/assets/images/chevron-down-pin
 
 export { default as filterIcon } from "@/assets/images/filter-black-icon.svg";
 export { default as multipleFilterIcon } from "@/assets/images/multi-select-black-icon.svg";
+export { default as closeRoseIcon } from "@/assets/images/close-rose-icon.svg";
+export { default as backButtonIcon } from "@/assets/images/arrow-left-black-icon.svg";
