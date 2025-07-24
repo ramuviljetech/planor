@@ -24,3 +24,7 @@ export { default as filterIcon } from "@/assets/images/filter-black-icon.svg";
 export { default as multipleFilterIcon } from "@/assets/images/multi-select-black-icon.svg";
 export { default as closeRoseIcon } from "@/assets/images/close-rose-icon.svg";
 export { default as backButtonIcon } from "@/assets/images/arrow-left-black-icon.svg";
+
+export { default as rightArrowPinkIcon } from "@/assets/images/right-arrow-pink-icon.svg";
+export { default as leftArrowGrayIcon } from "@/assets/images/left-arrow-gray-icon.svg";
+

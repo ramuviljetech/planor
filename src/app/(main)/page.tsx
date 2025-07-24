@@ -1,7 +1,13 @@
-import React from 'react';
+"use client";
+import CommonTableExample from "@/components/ui/common-table/example";
+import React from "react";
 
 const Home = () => {
-  return <div>Home</div>;
+  return (
+    <div>
+      <CommonTableExample />
+    </div>
+  );
 };
 
 export default Home;
