@@ -162,8 +162,8 @@ export default function DashboardPage() {
               <Image src={filterIcon} alt="filter" width={24} height={24} />
             </div>
           }
-          searchBarClassName={styles.dashboard_clients_search_bar}
-          actionButtonClassName={styles.dashboard_clients_add_client_button}
+          searchBarStyle={styles.dashboard_clients_search_bar}
+          actionButtonStyle={styles.dashboard_clients_add_client_button}
         />
         {/* middle container */}
         <div className={styles.dashboard_clients_middle_container}>

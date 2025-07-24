@@ -1,0 +1,29 @@
+.breadcrumb_container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.breadcrumb_item {
+  font-family: var(--font-lato-regular);
+  font-size: 18px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb_item.active {
+  color: var(--jet-black);
+}
+
+.breadcrumb_item.inactive {
+  color: var(--ash-gray);
+}
+
+.breadcrumb_separator {
+  font-family: var(--font-lato-regular);
+  font-size: 18px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--ash-gray);
+}

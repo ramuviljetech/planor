@@ -5,6 +5,7 @@ import {
   RefObject,
 } from "react";
 import * as PopperJS from "@popperjs/core";
+import { StaticImageData } from "next/image";
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   title: string;
   variant?: "primary" | "secondary" | "outline";
@@ -98,4 +99,13 @@ export interface SectionHeaderProps {
   className?: string;
   searchBarClassName?: string;
   actionButtonClassName?: string;
+}
+export interface AvatarProps {
+  image?: StaticImageData;
+  alt?: string;
+  fallback?: string; // like initials or icon
+  size?: "sm" | "md" | "lg";
+  avatarStyle?: string;
+  className?: string;
+  onClick?: () => void;
 }

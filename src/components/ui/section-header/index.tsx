@@ -2,18 +2,21 @@ import React from "react";
 import styles from "./styles.module.css";
 import SearchBar from "@/components/ui/searchbar";
 import Button from "@/components/ui/button";
+import classNames from "classnames";
 
 export interface SectionHeaderProps {
   title: string;
   searchValue: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
-  actionButtonTitle: string;
-  onActionButtonClick: () => void;
+  actionButtonTitle?: string;
+  onActionButtonClick?: () => void;
   filterComponent?: React.ReactNode;
   className?: string;
-  searchBarClassName?: string;
-  actionButtonClassName?: string;
+  searchBarStyle?: string;
+  actionButtonStyle?: string;
+  rightContainerStyle?: string;
+  titleStyle?: string;
 }
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({
@@ -25,34 +28,47 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   onActionButtonClick,
   filterComponent,
   className,
-  searchBarClassName,
-  actionButtonClassName,
+  searchBarStyle,
+  actionButtonStyle,
+  rightContainerStyle,
+  titleStyle,
 }) => {
   return (
     <div className={`${styles.section_header_container} ${className || ""}`}>
-      <p className={styles.section_header_title}>{title}</p>
-      <div className={styles.section_header_right_container}>
+      <p className={classNames(styles.section_header_title, titleStyle)}>
+        {title}
+      </p>
+      <div
+        className={classNames(
+          styles.section_header_right_container,
+          rightContainerStyle
+        )}
+      >
         <SearchBar
           value={searchValue}
           onChange={onSearchChange}
           placeholder={searchPlaceholder}
-          className={`${styles.section_header_search_bar} ${
-            searchBarClassName || ""
-          }`}
+          className={classNames(
+            styles.section_header_search_bar,
+            searchBarStyle
+          )}
         />
         {filterComponent && (
           <div className={styles.section_header_filter_container}>
             {filterComponent}
           </div>
         )}
-        <Button
-          title={actionButtonTitle}
-          variant="primary"
-          onClick={onActionButtonClick}
-          className={`${styles.section_header_action_button} ${
-            actionButtonClassName || ""
-          }`}
-        />
+        {actionButtonTitle && (
+          <Button
+            title={actionButtonTitle}
+            variant="primary"
+            onClick={onActionButtonClick}
+            className={classNames(
+              styles.section_header_action_button,
+              actionButtonStyle
+            )}
+          />
+        )}
       </div>
     </div>
   );

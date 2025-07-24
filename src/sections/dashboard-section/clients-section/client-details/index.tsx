@@ -6,7 +6,9 @@ import { filterIcon, propertiesBlueIcon } from "@/resources/images";
 import { clientDetailsCardsData } from "@/app/constants";
 import SectionHeader from "@/components/ui/section-header";
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 const ClientDetails: React.FC = () => {
+  const router = useRouter();
   const clientsFilterRef = useRef<HTMLDivElement>(null);
   const [searchValue, setSearchValue] = useState<string>("");
 
@@ -42,14 +44,14 @@ const ClientDetails: React.FC = () => {
         onSearchChange={setSearchValue}
         searchPlaceholder="Search properties..."
         actionButtonTitle="Add  Property"
-        onActionButtonClick={() => {}}
+        onActionButtonClick={() => router.push("/property-details")}
         filterComponent={
           <div ref={clientsFilterRef} onClick={() => {}}>
             <Image src={filterIcon} alt="filter" width={24} height={24} />
           </div>
         }
-        searchBarClassName={styles.client_details_search_bar}
-        actionButtonClassName={styles.client_details_add_property_button}
+        searchBarStyle={styles.client_details_search_bar}
+        actionButtonStyle={styles.client_details_add_property_button}
       />
     </div>
   );

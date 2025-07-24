@@ -14,6 +14,14 @@ const MetricCard: React.FC<MetricCardProps> = ({
   percentStyle,
   titleStyle,
 }) => {
+  // Format value with commas for better readability
+  const formatValue = (val: number) => {
+    if (val < 10) {
+      return `0${val}`;
+    }
+    return val.toLocaleString();
+  };
+
   return (
     <div className={classNames(styles.container, className)}>
       <div className={styles.headerContainer}>
@@ -24,7 +32,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
       </div>
       <div className={styles.bodyContainer}>
         <span className={classNames(styles.value, valueStyle)}>
-          {value < 10 ? `0${value}` : value} {percentageChange ? "K" : ""}
+          {formatValue(value)} {percentageChange ? "K" : ""}
         </span>
         {percentageChange && (
           <span
