@@ -21,3 +21,4 @@ export { default as chevronDownPinkIcon } from "@/assets/images/chevron-down-pin
 
 export { default as filterIcon } from "@/assets/images/filter-black-icon.svg";
 export { default as multipleFilterIcon } from "@/assets/images/multi-select-black-icon.svg";
+export { default as threeDotsIcon } from "@/assets/images/pricelist-threedots-black-icon.svg";
