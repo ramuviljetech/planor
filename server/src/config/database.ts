@@ -1,26 +1,39 @@
 import { CosmosClient, Database, Container } from '@azure/cosmos'
 
-// Cosmos DB Configuration
-const cosmosClient = process.env.COSMOS_DB_ENDPOINT && process.env.COSMOS_DB_KEY 
-  ? new CosmosClient({
-      endpoint: process.env.COSMOS_DB_ENDPOINT,
-      key: process.env.COSMOS_DB_KEY
-    })
-  : null
-
-const databaseId = process.env.COSMOS_DB_NAME || 'planor-portal'
-const containerId = 'users'
-
+// Lazy-loaded Cosmos DB Configuration
+let cosmosClient: CosmosClient | null = null
 let database: Database
 let usersContainer: Container
+const containerId = 'users'
+
+// Initialize Cosmos DB client
+const initializeCosmosClient = () => {
+  const endpoint = process.env.COSMOS_DB_ENDPOINT
+  const key = process.env.COSMOS_DB_KEY
+
+  if (endpoint && key) {
+    cosmosClient = new CosmosClient({
+      endpoint,
+      key
+    })
+    console.log('🔧 Cosmos DB client initialized')
+  } else {
+    console.log('⚠️  Cosmos DB credentials not provided')
+  }
+}
 
 // Initialize database connection
 export const initializeDatabase = async () => {
   try {
+    // Initialize Cosmos client first
+    initializeCosmosClient()
+    
     if (!cosmosClient) {
       console.log('⚠️  Cosmos DB credentials not provided - using mock data for development')
       return
     }
+
+    const databaseId = process.env.COSMOS_DB_NAME || 'planor-portal'
 
     // Create database if it doesn't exist
     const { database: db } = await cosmosClient.databases.createIfNotExists({

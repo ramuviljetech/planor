@@ -12,9 +12,19 @@ import { maintenanceRoutes } from './src/routes/maintenance';
 import { errorHandler } from './src/middleware/errorHandler';
 import { authMiddleware } from './src/middleware/auth';
 import { initializeDatabase } from './src/config/database';
+import path from 'path';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from server/.env
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+// Debug environment variables
+console.log('🔍 Environment variables loaded:');
+console.log('- PORT:', process.env.PORT || '3001 (default)');
+console.log('- FRONTEND_URL:', process.env.FRONTEND_URL || 'http://localhost:3000 (default)');
+console.log('- COSMOS_DB_ENDPOINT:', process.env.COSMOS_DB_ENDPOINT ? 'Set' : 'Not set');
+console.log('- COSMOS_DB_KEY:', process.env.COSMOS_DB_KEY ? 'Set' : 'Not set');
+console.log('- COSMOS_DB_NAME:', process.env.COSMOS_DB_NAME || 'planor-portal (default)');
+console.log('');
 
 const app = express();
 const PORT = process.env.PORT || 3001;

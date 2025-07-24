@@ -1,6 +1,11 @@
 const { CosmosClient } = require('@azure/cosmos');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
+const dotenv = require('dotenv');
+const path = require('path');
+
+// Load environment variables from server/.env
+dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 
 // Cosmos DB Configuration
 const cosmosClient = new CosmosClient({
@@ -13,6 +18,13 @@ const containerId = 'users';
 
 async function createAdminUser() {
   try {
+    // Check if Cosmos DB credentials are provided
+    if (!process.env.COSMOS_DB_ENDPOINT || !process.env.COSMOS_DB_KEY) {
+      console.log('❌ Cosmos DB credentials not provided!');
+      console.log('Please set COSMOS_DB_ENDPOINT and COSMOS_DB_KEY in your .env file');
+      return;
+    }
+
     // Get database and container
     const { database } = await cosmosClient.databases.createIfNotExists({
       id: databaseId
@@ -46,12 +58,10 @@ async function createAdminUser() {
       email: process.env.ADMIN_EMAIL || 'admin@planor.com',
       name: process.env.ADMIN_NAME || 'System Administrator',
       role: 'admin',
-      clientId: null,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
       lastLoginAt: null,
-      azureAdId: null,
       password: hashedPassword
     };
 
