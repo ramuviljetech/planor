@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import styles from "./styles.module.css";
 import MaintenanceSection from "@/sections/dashboard-section/maintenance";
 import SearchBar from "@/components/ui/searchbar";
@@ -7,7 +7,11 @@ import { filterIcon, multipleFilterIcon } from "@/resources/images";
 import Image from "next/image";
 import Button from "@/components/ui/button";
 import MetricCard from "@/components/ui/metric-card";
-import { clientsStaticCardTitle } from "@/app/constants";
+import { clientsStaticCardTitle, filterOptions } from "@/app/constants";
+import PopOver from "@/components/ui/popover";
+import classNames from "classnames";
+import Checkbox from "@mui/material/Checkbox";
+import CustomCheckbox from "@/components/ui/checkbox";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -19,12 +23,29 @@ const titleColorMap: Record<string, string> = {
   Area: "var(--neon-mint)",
 };
 
+const tableOptions = [
+  "Client Name",
+  "Client Id",
+  "Properties",
+  "Created On",
+  "Maintenance Cost",
+  "Status",
+];
+
 export default function DashboardPage() {
   const [selectedFilter, setSelectedFilter] = useState<string>("clients");
   const [
     selectedYearlyMaintenanceSummary,
     setSelectedYearlyMaintenanceSummary,
   ] = useState<string>("thisYear");
+  const [showMultipleFilter, setShowMultipleFilter] = useState<boolean>(false);
+  const multipleFilterRef = useRef<HTMLDivElement>(null);
+  const [selectedTableOptions, setSelectedTableOptions] = useState<string[]>([
+    "Client Name",
+    "Client Id",
+    "Properties",
+    "Created On",
+  ]);
 
   // TODO: Replace this with actual API call data
   // This will be fetched from the database based on selectedFilter and selectedYearlyMaintenanceSummary
@@ -138,12 +159,17 @@ export default function DashboardPage() {
               placeholder="Search properties..."
               className={styles.dashboard_clients_search_bar}
             />
-            <Image
-              src={multipleFilterIcon}
-              alt="multiple filter"
-              width={24}
-              height={24}
-            />
+            <div
+              ref={multipleFilterRef}
+              onClick={() => setShowMultipleFilter(true)}
+            >
+              <Image
+                src={multipleFilterIcon}
+                alt="multiple filter"
+                width={24}
+                height={24}
+              />
+            </div>
             <Image src={filterIcon} alt="filter" width={24} height={24} />
             <Button
               title="Add  Client"
@@ -181,6 +207,51 @@ export default function DashboardPage() {
         totalPercentageChange={mockApiData.totalPercentageChange}
       />
       {renderClients()}
+      <PopOver
+        reference={multipleFilterRef}
+        show={showMultipleFilter}
+        onClose={() => setShowMultipleFilter(false)}
+      >
+        <div className={styles.filter_container}>
+          <div className={styles.filter_title_container}>
+            <p className={styles.filter_title}>Table List</p>
+          </div>
+          {tableOptions.map((option) => (
+            <div
+              key={option}
+              className={styles.filter_content}
+              onClick={() => {
+                if (selectedTableOptions.includes(option)) {
+                  setSelectedTableOptions(
+                    selectedTableOptions.filter((o) => o !== option)
+                  );
+                } else {
+                  setSelectedTableOptions([...selectedTableOptions, option]);
+                }
+              }}
+            >
+              <div className={styles.filter_subcontent}>
+                <CustomCheckbox
+                  checked={selectedTableOptions.includes(option)}
+                  onChange={() => {
+                    if (selectedTableOptions.includes(option)) {
+                      setSelectedTableOptions(
+                        selectedTableOptions.filter((o) => o !== option)
+                      );
+                    } else {
+                      setSelectedTableOptions([
+                        ...selectedTableOptions,
+                        option,
+                      ]);
+                    }
+                  }}
+                  label={option}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </PopOver>
     </div>
   );
 }
