@@ -24,7 +24,9 @@ console.log('- FRONTEND_URL:', process.env.FRONTEND_URL || 'http://localhost:300
 console.log('- COSMOS_DB_ENDPOINT:', process.env.COSMOS_DB_ENDPOINT ? 'Set' : 'Not set');
 console.log('- COSMOS_DB_KEY:', process.env.COSMOS_DB_KEY ? 'Set' : 'Not set');
 console.log('- COSMOS_DB_NAME:', process.env.COSMOS_DB_NAME || 'planor-portal (default)');
-console.log('');
+console.log('- MAILJET_API_KEY:', process.env.MAILJET_API_KEY ? 'Set' : 'Not set');
+console.log('- MAILJET_SECRET_KEY:', process.env.MAILJET_SECRET_KEY ? 'Set' : 'Not set');
+console.log('- MAILJET_SENDER_EMAIL:', process.env.MAILJET_SENDER_EMAIL || 'no-reply (default)');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
