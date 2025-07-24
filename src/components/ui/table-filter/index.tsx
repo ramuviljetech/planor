@@ -5,8 +5,9 @@ import CustomCheckbox from "@/components/ui/checkbox";
 interface TableFilterProps {
   title: string;
   options: string[];
-  selectedOptions: string[];
-  onOptionsChange: (options: string[]) => void;
+  selectedOptions: string;
+  onOptionsChange: (options: string) => void;
+  checkbox?: boolean;
 }
 
 const TableFilter: React.FC<TableFilterProps> = ({
@@ -14,12 +15,13 @@ const TableFilter: React.FC<TableFilterProps> = ({
   options,
   selectedOptions,
   onOptionsChange,
+  checkbox = false,
 }) => {
   const handleOptionToggle = (option: string) => {
-    if (selectedOptions.includes(option)) {
-      onOptionsChange(selectedOptions.filter((o) => o !== option));
+    if (selectedOptions === option) {
+      onOptionsChange("");
     } else {
-      onOptionsChange([...selectedOptions, option]);
+      onOptionsChange(option);
     }
   };
 
@@ -35,11 +37,15 @@ const TableFilter: React.FC<TableFilterProps> = ({
           onClick={() => handleOptionToggle(option)}
         >
           <div className={styles.filter_subcontent}>
-            <CustomCheckbox
-              checked={selectedOptions.includes(option)}
-              onChange={() => handleOptionToggle(option)}
-              label={option}
-            />
+            <p
+              className={`${styles.filter_subcontent_text} ${
+                selectedOptions === option
+                  ? styles.filter_subcontent_text_active
+                  : ""
+              }`}
+            >
+              {option}
+            </p>
           </div>
         </div>
       ))}

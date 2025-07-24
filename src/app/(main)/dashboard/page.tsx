@@ -38,18 +38,10 @@ export default function DashboardPage() {
     selectedYearlyMaintenanceSummary,
     setSelectedYearlyMaintenanceSummary,
   ] = useState<string>("thisYear");
-  const tableFilterRef = useRef<HTMLDivElement>(null);
-  const [showTableFilter, setShowTableFilter] = useState<boolean>(false);
-  const [selectedTableOptions, setSelectedTableOptions] = useState<string[]>([
-    "Client Name",
-    "Client Id",
-    "Properties",
-    "Created On",
-  ]);
+
   const clientsFilterRef = useRef<HTMLDivElement>(null);
-  const [selectedClientsFilters, setSelectedClientsFilters] = useState<
-    string[]
-  >([]);
+  const [selectedClientsFilters, setSelectedClientsFilters] =
+    useState<string>("Active");
   const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
   const [showBottomSheet, setShowBottomSheet] = useState<boolean>(false);
   // TODO: Replace this with actual API call data
@@ -164,14 +156,6 @@ export default function DashboardPage() {
               placeholder="Search properties..."
               className={styles.dashboard_clients_search_bar}
             />
-            <div ref={tableFilterRef} onClick={() => setShowTableFilter(true)}>
-              <Image
-                src={multipleFilterIcon}
-                alt="multiple filter"
-                width={24}
-                height={24}
-              />
-            </div>
             <div
               ref={clientsFilterRef}
               onClick={() => setShowClientsFilter(true)}
@@ -217,30 +201,19 @@ export default function DashboardPage() {
       />
       {renderClients()}
       <PopOver
-        reference={tableFilterRef}
-        show={showTableFilter}
-        onClose={() => setShowTableFilter(false)}
-      >
-        <TableFilter
-          title="Table List"
-          options={tableOptions}
-          selectedOptions={selectedTableOptions}
-          onOptionsChange={setSelectedTableOptions}
-        />
-      </PopOver>
-      <PopOver
         reference={clientsFilterRef}
         show={showClientsFilter}
         onClose={() => setShowClientsFilter(false)}
       >
-        <div className={styles.dashboard_clients_filter_container}>
-          <TableFilter
-            title="Clients"
-            options={tableOptions}
-            selectedOptions={selectedTableOptions}
-            onOptionsChange={setSelectedTableOptions}
-          />
-        </div>
+        <TableFilter
+          title="Filters"
+          options={["Active", "Inactive"]}
+          selectedOptions={selectedClientsFilters}
+          onOptionsChange={(option) => {
+            setSelectedClientsFilters(option);
+            setShowClientsFilter(false);
+          }}
+        />
       </PopOver>
       <BottomSheet
         isOpen={showBottomSheet}

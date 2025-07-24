@@ -84,3 +84,11 @@
   flex-direction: column;
   gap: 16px;
 }
+.dashboard_clients_filter_header {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
