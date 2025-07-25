@@ -39,3 +39,9 @@ export { default as building3 } from "@/assets/images/building3.png";
 export { default as building4 } from "@/assets/images/building4.png";
 
 export { default as downloadIcon } from "@/assets/images/download-rose-icon.svg";
+export { default as threeDotsIcon } from "@/assets/images/pricelist-threedots-black-icon.svg";
+export { default as accordianDownBlackIcon } from "@/assets/images/pricelist-accordian-black-down-icon.svg";
+export { default as accordianOpenIcon } from "@/assets/images/pricelist-accordian-up-icon.svg";
+export { default as accordianDownPinkIcon } from "@/assets/images/pricelist-accordian-pinkishred-down-icon.svg";
+
+export { default as uploadBlackIcon } from "@/assets/images/upload-black-icon.svg";

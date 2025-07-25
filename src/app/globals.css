@@ -46,6 +46,9 @@
   --midnight-overlay-light: rgba(28, 47, 58, 0.27);
   --soft-white: rgba(247, 247, 247, 1);
   --ruby-red: rgba(136, 18, 60, 1);
+  --pinkish-red: rgba(136, 18, 60, 1);
+  --siren-red: rgba(158, 46, 86, 1);
+  --dark-maroon: rgba(136, 18, 60, 1);
 }
 
 html,

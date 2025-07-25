@@ -34,8 +34,8 @@ export const MainMenu: MenuItem[] = [
     label: "Price List",
     icon: priceListGrayIcon,
     active_icon: priceListWhiteIcon,
-    route: "/",
-  },
+    route: "/price-list",
+  }, 
   {
     label: "Settings",
     icon: settingsGrayIcon,
