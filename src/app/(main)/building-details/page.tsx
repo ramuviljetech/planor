@@ -13,10 +13,10 @@ import Button from "@/components/ui/button";
 import Avatar from "@/components/ui/avatar";
 import classNames from "classnames";
 import CustomTabs, { TabItem } from "@/components/ui/tabs";
-import Overview from "@/sections/dashboard-section/building-section/overview";
-import Maintenance from "@/sections/dashboard-section/building-section/maintenance";
+import Overview from "@/sections/building-section/overview";
+import Maintenance from "@/sections/building-section/maintenance";
 import styles from "./styles.module.css";
-import ActivityHistory from "@/sections/dashboard-section/building-section/activity-history";
+import ActivityHistory from "@/sections/building-section/activity-history";
 import { useRouter } from "next/navigation";
 
 const BuildingDetails: React.FC = () => {
