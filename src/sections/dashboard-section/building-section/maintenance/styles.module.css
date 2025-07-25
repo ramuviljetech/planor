@@ -6,7 +6,6 @@
   align-items: flex-start;
   justify-content: flex-start;
   gap: 16px;
-  margin-top: 16px;
 }
 .building_maintenance_top_section {
   width: 100%;
@@ -81,4 +80,27 @@
   align-items: flex-start;
   justify-content: flex-start;
   gap: 16px;
+}
+/* middle container */
+.dashboard_clients_middle_container {
+  width: 100%;
+  /* height: 100%; */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.dashboard_clients_static_card {
+  width: calc((100% - 48px) / 4);
+  height: auto;
+}
+.actionIconContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  cursor: pointer;
 }

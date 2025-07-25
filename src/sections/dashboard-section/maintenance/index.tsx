@@ -122,6 +122,7 @@ export default function MaintenanceSection({
             showDot={true}
             dotColor={card.color}
             className={styles.metric_card}
+            showK={true}
           />
         ))}
       </div>

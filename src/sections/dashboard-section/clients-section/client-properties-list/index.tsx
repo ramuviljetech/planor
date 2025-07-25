@@ -17,7 +17,7 @@ import CommonTable, {
 import PopOver from "@/components/ui/popover";
 import styles from "./styles.module.css";
 
-const ClientDetails: React.FC = () => {
+const ClientPropertiesList: React.FC = () => {
   const router = useRouter();
   const clientsFilterRef = useRef<HTMLDivElement>(null);
   const [searchValue, setSearchValue] = useState<string>("");
@@ -217,4 +217,4 @@ const ClientDetails: React.FC = () => {
   );
 };
 
-export default ClientDetails;
+export default ClientPropertiesList;

@@ -91,7 +91,7 @@ const CommonTable: React.FC<CommonTableProps> = ({
                   [styles.clickable_row]: !!onRowClick && !disabled,
                   [styles.disabled_row]: disabled,
                 })}
-                onClick={() => handleRowClick(row, rowIndex)}
+                onClick={() => handleRowClick && handleRowClick(row, rowIndex)}
               >
                 {columns.map((column) => (
                   <td
@@ -111,7 +111,7 @@ const CommonTable: React.FC<CommonTableProps> = ({
       </div>
 
       {/* Pagination */}
-      {pagination && (
+      {pagination && pagination.totalItems > pagination.itemsPerPage && (
         <Pagination
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}

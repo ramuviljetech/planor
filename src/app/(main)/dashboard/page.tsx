@@ -5,7 +5,7 @@ import MaintenanceSection from "@/sections/dashboard-section/maintenance";
 import MetricCard from "@/components/ui/metric-card";
 import { clientsStaticCardTitle } from "@/app/constants";
 import BottomSheet from "@/components/ui/bottom-sheet";
-import ClientDetails from "@/sections/dashboard-section/clients-section/client-details";
+import ClientPropertiesList from "@/sections/dashboard-section/clients-section/client-properties-list";
 import SectionHeader from "@/components/ui/section-header";
 import PopOver from "@/components/ui/popover";
 import TableFilter from "@/components/ui/table-filter";
@@ -572,7 +572,7 @@ export default function DashboardPage() {
         backButton={true}
         onBackButton={() => setShowBottomSheet(false)}
       >
-        <ClientDetails />
+        <ClientPropertiesList />
       </BottomSheet>
     </div>
   );

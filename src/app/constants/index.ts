@@ -22,7 +22,7 @@ export const MainMenu: MenuItem[] = [
     label: "Clients",
     icon: clientGrayIcon,
     active_icon: clientWhiteIcon,
-    route: "/",
+    route: "/clients",
   },
   {
     label: "Properties",
@@ -148,6 +148,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Active",
   },
   {
     id: 2,
@@ -157,6 +158,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Inactive",
   },
   {
     id: 3,
@@ -166,6 +168,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Active",
   },
   {
     id: 4,
@@ -175,6 +178,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Inactive",
   },
   {
     id: 5,
@@ -184,6 +188,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Active",
   },
   {
     id: 6,
@@ -193,6 +198,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Active",
   },
   {
     id: 7,
@@ -201,6 +207,7 @@ export const rowsData = [
     properties: 40,
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
+    status: "Inactive",
   },
   {
     id: 8,
@@ -210,6 +217,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Active",
   },
   {
     id: 9,
@@ -218,6 +226,7 @@ export const rowsData = [
     properties: 12,
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
+    status: "Inactive",
   },
   {
     id: 10,
@@ -227,6 +236,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Active",
   },
   {
     id: 11,
@@ -236,6 +246,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Inactive",
   },
   {
     id: 12,
@@ -245,6 +256,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Inactive",
   },
   {
     id: 13,
@@ -254,6 +266,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Active",
   },
   {
     id: 14,
@@ -263,6 +276,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Inactive",
   },
   {
     id: 15,
@@ -272,6 +286,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Inactive",
   },
   {
     id: 16,
@@ -281,6 +296,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Active",
   },
   {
     id: 17,
@@ -290,6 +306,7 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Inactive",
   },
   {
     id: 18,
@@ -319,5 +336,123 @@ export const rowsData = [
     createdOn: "12 Jun, 2025",
     maintenanceCost: 23450,
     grossArea: "1200 m²",
+    status: "Inactive",
+  },
+];
+
+export const buildingMaintenancePlanRowsData = [
+  {
+    id: 1,
+    objectName: "Doore 1",
+    year1: "100SEK",
+    year5: "200SEK",
+    year10: "300SEK",
+  },
+  {
+    id: 2,
+    objectName: "Floor ",
+    year1: "100SEK",
+    year5: "200SEK",
+    year10: "300SEK",
+  },
+  {
+    id: 3,
+    objectName: "Window D",
+    year1: "100SEK",
+    year5: "200SEK",
+    year10: "300SEK",
+  },
+  {
+    id: 4,
+    objectName: "Window A",
+    year1: "100SEK",
+    year5: "200SEK",
+    year10: "300SEK",
+  },
+  {
+    id: 5,
+    objectName: "Block A",
+    year1: "100SEK",
+    year5: "200SEK",
+    year10: "300SEK",
+  },
+  {
+    id: 6,
+    objectName: "Block B",
+    year1: "100SEK",
+    year5: "200SEK",
+    year10: "300SEK",
+  },
+  {
+    id: 7,
+    objectName: "Block C",
+    year1: "100SEK",
+    year5: "200SEK",
+    year10: "300SEK",
+  },
+  {
+    id: 8,
+    objectName: "Block D",
+    year1: "100SEK",
+    year5: "200SEK",
+    year10: "300SEK",
+  },
+];
+
+export const clientInfoItems = [
+  { label: "Name", value: "Brunnfast AB" },
+  { label: "Primary Contact Name", value: "John stwien" },
+  { label: "Client ID", value: "98088" },
+  { label: "Role", value: "CEO" },
+  { label: "Organization Number", value: "Stora Nygatan" },
+  { label: "Phone", value: "+ 56 287 342 343" },
+  { label: "Industry Type", value: "Akrivia Infratech Solutions" },
+  { label: "Email", value: "Akrstwien@gmail.com" },
+  { label: "Website Url", value: "Brunnfast AB .In" },
+  { label: "Description", value: "A Property Management Organizations" },
+];
+
+export const clientInfoUsersRowsData = [
+  {
+    id: 1,
+    userName: "John Doe",
+    phoneNumber: "+1234567890",
+    email: "john.doe@example.com",
+  },
+  {
+    id: 2,
+    userName: "John Doe",
+    phoneNumber: "+1234567890",
+    email: "john.doe@example.com",
+  },
+  {
+    id: 3,
+    userName: "John Doe",
+    phoneNumber: "+1234567890",
+    email: "john.doe@example.com",
+  },
+  {
+    id: 4,
+    userName: "John Doe",
+    phoneNumber: "+1234567890",
+    email: "john.doe@example.com",
+  },
+  {
+    id: 5,
+    userName: "John Doe",
+    phoneNumber: "+1234567890",
+    email: "john.doe@example.com",
+  },
+  {
+    id: 6,
+    userName: "John Doe",
+    phoneNumber: "+1234567890",
+    email: "john.doe@example.com",
+  },
+  {
+    id: 7,
+    userName: "John Doe",
+    phoneNumber: "+1234567890",
+    email: "john.doe@example.com",
   },
 ];

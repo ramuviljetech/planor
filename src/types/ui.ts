@@ -30,6 +30,7 @@ export interface MetricCardProps {
   valueStyle?: string;
   percentStyle?: string;
   titleStyle?: string;
+  showK?: boolean;
 }
 
 export interface InputProps {

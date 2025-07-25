@@ -2,30 +2,27 @@
 
 import React, { useState } from "react";
 import {
-  avatarIcon,
-  backButtonIcon,
   i3DGrayIcon,
   imageRoseIcon,
   locationBlackIcon,
-  building1,
-  building2,
-  building3,
-  building4,
 } from "@/resources/images";
+import { building1, building2, building3, building4 } from "@/resources/images";
 import Image from "next/image";
 import Breadcrumb from "@/components/ui/breadcrumb";
 import Button from "@/components/ui/button";
 import Avatar from "@/components/ui/avatar";
 import classNames from "classnames";
-import { StaticImageData } from "next/image";
 import CustomTabs, { TabItem } from "@/components/ui/tabs";
 import Overview from "@/sections/dashboard-section/building-section/overview";
-import Maintenance from "@/sections/dashboard-section/building-section/maintenance ";
+import Maintenance from "@/sections/dashboard-section/building-section/maintenance";
 import styles from "./styles.module.css";
+import ActivityHistory from "@/sections/dashboard-section/building-section/activity-history";
+import { useRouter } from "next/navigation";
 
 const BuildingDetails: React.FC = () => {
   const [activeImageTab, setActiveImageTab] = useState("image");
   const [activeTab, setActiveTab] = useState("overview");
+  const router = useRouter();
   const breadcrumbItems = [
     { label: "Brunnfast AB", isActive: false },
     { label: "Kvarter Skatan", isActive: false },
@@ -59,9 +56,7 @@ const BuildingDetails: React.FC = () => {
   ];
 
   const handleTabChange = (value: string) => {
-    console.log("Active tab:", value);
     setActiveTab(value);
-    // Handle tab change logic here
   };
 
   const renderHeaderSection = (): React.ReactNode => {
@@ -164,7 +159,7 @@ const BuildingDetails: React.FC = () => {
         {activeTab === "overview" && <Overview />}
         {activeTab === "maintenance" && <Maintenance />}
         {activeTab === "files" && <div>Files</div>}
-        {activeTab === "activity" && <div>Activity</div>}
+        {activeTab === "activity" && <ActivityHistory />}
       </div>
     );
   };
@@ -172,8 +167,11 @@ const BuildingDetails: React.FC = () => {
   return (
     <section className={styles.building_details_container}>
       <div className={styles.building_details_breadcrumb_container}>
-        <Image src={backButtonIcon} alt="property" width={24} height={24} />
-        <Breadcrumb items={breadcrumbItems} />
+        <Breadcrumb
+          items={breadcrumbItems}
+          showBackArrow={true}
+          onBackClick={() => router.back()}
+        />
       </div>
       {/* Building Info */}
       <div className={styles.building_details_sub_container}>

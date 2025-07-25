@@ -158,10 +158,11 @@ const PropertyDetails: React.FC = () => {
   const renderTopContainer = () => {
     return (
       <section className={styles.property_details_top_container}>
-        <div className={styles.property_details_top_container_left}>
-          <Image src={backButtonIcon} alt="property" width={24} height={24} />
-          <Breadcrumb items={breadcrumbItems} />
-        </div>
+        <Breadcrumb
+          items={breadcrumbItems}
+          showBackArrow={true}
+          onBackClick={() => router.back()}
+        />
         <Button
           title="Add Building"
           onClick={() => router.push("/building-details")}
