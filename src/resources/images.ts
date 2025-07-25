@@ -22,3 +22,6 @@ export { default as chevronDownPinkIcon } from "@/assets/images/chevron-down-pin
 export { default as filterIcon } from "@/assets/images/filter-black-icon.svg";
 export { default as multipleFilterIcon } from "@/assets/images/multi-select-black-icon.svg";
 export { default as threeDotsIcon } from "@/assets/images/pricelist-threedots-black-icon.svg";
+export { default as accordianDownBlackIcon } from "@/assets/images/pricelist-accordian-black-down-icon.svg";
+export { default as accordianOpenIcon } from "@/assets/images/pricelist-accordian-up-icon.svg";
+export { default as accordianDownPinkIcon } from "@/assets/images/pricelist-accordian-pinkishred-down-icon.svg";
