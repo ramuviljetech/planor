@@ -370,6 +370,114 @@
     gap: 4px;
 }
 
+
+
+/* client modal styling */
+.client_modal_container_style{
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 756px;
+  /* height: 684px; */
+  background-color: var(--white);
+  border-radius: 12px;
+}
+.client_modal_content{
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+.client_modal_header{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.client_modal_header_left{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+.client_modal_close_btn img{
+  width: 20px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.client_modal_title{
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -0.36px;
+}
+.client_modal_header_right{
+  justify-content: center;
+  align-items: center;
+  border-radius: 24px;
+  padding: 12px;
+  backdrop-filter: blur(4px);
+  background-color: var(--rose-tint);
+  gap: 4px;
+}
+.client_modal_dismiss_btn{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.client_modal_dismiss_btn img{
+  height: 20px;
+  width: 20px;
+}
+.client_modal_grid_section{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.client_modal_cancel_button {
+  font-family: var(--font-lato-regular);
+  color: var(--dark-maroon);
+  padding: 12px 16px;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.16px;
+  max-width: 66px;
+  height: 36px;
+  border: none;
+}
+
+.client_modal_submit_button {
+  font-family: var(--font-lato-bold);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--white);
+  padding: 12px 16px;
+  min-width: 74px;
+  height: 42px;
+  background-color: var(--rose-red);
+  border-radius: 24px;
+}
+.client_modal_content_body{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+
+
+/* accordian styling */
 .accordion_table_full{
     width: 100%;
     display: flex;
