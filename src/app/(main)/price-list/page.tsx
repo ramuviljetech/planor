@@ -1,11 +1,12 @@
 'use client';
-
 import React, { useState } from 'react';
 import Image from 'next/image';
-import styles from './styles.module.css';
 import { accordianDownBlackIcon, accordianDownPinkIcon, threeDotsIcon } from '@/resources/images';
 import MetricCard from '@/components/ui/metric-card';
 import { clientsStaticCardTitle } from '@/app/constants';
+import Input from '@/components/ui/input';
+import Button from '@/components/ui/button';
+import styles from './styles.module.css';
 
 type TabType = 'all' | 'new';
 
@@ -15,6 +16,17 @@ type TableRow = {
   unit: string;
   interval: string;
 };
+
+
+
+interface NewObjectRow {
+  id: string;
+  object: string;
+  type: string;
+  price: string;
+  unit: string;
+  intervals: string;
+}
 
 const PriceListPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('all');
@@ -49,6 +61,58 @@ const PriceListPage: React.FC = () => {
       return newState;
     });
   };
+
+  const [newObjectsData, setNewObjectsData] = useState<NewObjectRow[]>([
+    { id: '1', object: 'Door', type: 'Door W', price: '1200 SEK', unit: 'ST', intervals: '1 Year' },
+    { id: '2', object: 'Door', type: 'Door W1', price: '', unit: 'ST', intervals: '' },
+    { id: '3', object: 'Door', type: 'Door W2', price: '', unit: 'ST', intervals: '' },
+    { id: '4', object: 'Door', type: 'Door W3', price: '', unit: 'ST', intervals: '' },
+    { id: '5', object: 'Door', type: 'Door W4', price: '', unit: 'ST', intervals: '' },
+    { id: '6', object: 'Door', type: 'Door W5', price: '', unit: 'ST', intervals: '' },
+  ]);
+
+  const handleInputChange = (id: string, field: 'price' | 'intervals', value: string) => {
+    setNewObjectsData(prev => 
+      prev.map(row => 
+        row.id === id ? { ...row, [field]: value } : row
+      )
+    );
+  };
+
+  const handleSubmit = () => {
+    console.log('Submitting data:', newObjectsData);
+    console.log('All table values:', {
+      totalRows: newObjectsData.length,
+      filledRows: newObjectsData.filter(row => row.price && row.intervals).length,
+      data: newObjectsData.map(row => ({
+        object: row.object,
+        type: row.type,
+        price: row.price || 'Not entered',
+        unit: row.unit,
+        intervals: row.intervals || 'Not entered'
+      }))
+    });
+  };
+
+  const handleCancel = () => {
+    // Reset to initial state or close modal
+    setNewObjectsData([
+      { id: '1', object: 'Door', type: 'Door W', price: '1200 SEK', unit: 'ST', intervals: '1 Year' },
+      { id: '2', object: 'Door', type: 'Door W1', price: '', unit: 'ST', intervals: '' },
+      { id: '3', object: 'Door', type: 'Door W2', price: '', unit: 'ST', intervals: '' },
+      { id: '4', object: 'Door', type: 'Door W3', price: '', unit: 'ST', intervals: '' },
+      { id: '5', object: 'Door', type: 'Door W4', price: '', unit: 'ST', intervals: '' },
+      { id: '6', object: 'Door', type: 'Door W5', price: '', unit: 'ST', intervals: '' },
+    ]);
+  };
+
+  const tableHeadings = [
+    { heading: 'Object', key: 'object' },
+    { heading: 'Type', key: 'type' },
+    { heading: 'Price', key: 'price' },
+    { heading: 'Unit', key: 'unit' },
+    { heading: 'Intervals', key: 'intervals' }
+  ];
 
   const renderTabs = () => {
     return (
@@ -172,8 +236,9 @@ const PriceListPage: React.FC = () => {
     return (
       <>
         <div className={styles.price_list_content_middle_section}>
-          {clientsStaticCardTitle.map((card) => (
+          {clientsStaticCardTitle.map((card,index) => (
             <MetricCard
+              key={index}
               title={card.title}
               value={card.value}
               className={styles.price_list_content_middle_section_card}
@@ -198,12 +263,63 @@ const PriceListPage: React.FC = () => {
     )
   }
 
-  const renderNewObjects = () => {
-    return (
-      <div className={styles.price_list_content_header_item_section_new_objects_content}>
-        <p className={styles.price_list_content_header_item_section_new_objects_content_text}>
-          New Objects
-        </p>
+  const renderNewObjectsTable = () => {
+    return(
+      <div className={styles.price_list_new_objects_section}>
+        <table className={styles.new_objects_table}>
+          <thead className={styles.table_header}>
+            <tr>
+              {tableHeadings.map((heading, index) => (
+                <th key={index} className={`${styles.table_header_cell_object} `}>{heading.heading}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className={styles.table_body}>
+            {newObjectsData.map((row) => (
+              <tr key={row.id} className={styles.table_row}>
+                <td className={styles.table_cell_object}>{row.object}</td>
+                <td className={styles.table_cell_type}>{row.type}</td>
+                <td className={styles.table_cell_price}>
+                  <Input
+                    label=""
+                    value={row.price}
+                    onChange={(e) => handleInputChange(row.id, 'price', e.target.value)}
+                    placeholder="Enter Price"
+                    inputStyle={styles.inputContainerClass}
+                    inputContainerClass={styles.inputContainerWrapper}
+                  />
+                </td>
+                <td className={styles.table_cell_unit}>{row.unit}</td>
+                <td className={styles.table_cell_intervals}>
+                  <Input
+                    label=""
+                    value={row.intervals}
+                    onChange={(e) => handleInputChange(row.id, 'intervals', e.target.value)}
+                    placeholder='Enter Intervals'
+                    inputStyle={styles.inputContainerClass}
+                    inputContainerClass={styles.inputContainerWrapper}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Action Buttons */}
+        <div className={styles.action_buttons}>
+          <Button
+            title="Cancel"
+            variant="outline"
+            onClick={handleCancel}  
+            className={styles.cancel_button}
+          />
+          <Button
+            title="Submit"
+            variant="primary"
+            onClick={handleSubmit}
+            className={styles.submit_button}
+          />
+        </div>
       </div>
     )
   }
@@ -228,7 +344,7 @@ const PriceListPage: React.FC = () => {
         {activeTab === 'all' ? (
           renderAllObjects()
         ) : (
-          renderNewObjects()
+          renderNewObjectsTable()
         )}
       </section>
     </div>
