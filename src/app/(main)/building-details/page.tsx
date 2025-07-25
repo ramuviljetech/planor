@@ -19,9 +19,9 @@ import Avatar from "@/components/ui/avatar";
 import classNames from "classnames";
 import { StaticImageData } from "next/image";
 import CustomTabs, { TabItem } from "@/components/ui/tabs";
-import styles from "./styles.module.css";
 import Overview from "@/sections/dashboard-section/building-section/overview";
 import Maintenance from "@/sections/dashboard-section/building-section/maintenance ";
+import styles from "./styles.module.css";
 
 const BuildingDetails: React.FC = () => {
   const [activeImageTab, setActiveImageTab] = useState("image");

@@ -23,6 +23,7 @@ export interface CommonTableProps {
   selectedRowId?: string | number;
   className?: string;
   containerClassName?: string;
+  disabled?: boolean;
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -42,12 +43,14 @@ const CommonTable: React.FC<CommonTableProps> = ({
   selectedRowId,
   className,
   containerClassName,
+  disabled = false,
   pagination,
 }) => {
   const handleRowClick = (row: TableRow, index: number) => {
-    if (onRowClick) {
-      onRowClick(row, index);
+    if (disabled || !onRowClick) {
+      return;
     }
+    onRowClick(row, index);
   };
 
   const getColumnStyle = (column: TableColumn) => {
@@ -85,7 +88,8 @@ const CommonTable: React.FC<CommonTableProps> = ({
                 key={row.id}
                 className={classNames(styles.table_row, {
                   [styles.selected_row]: selectedRowId === row.id,
-                  [styles.clickable_row]: !!onRowClick,
+                  [styles.clickable_row]: !!onRowClick && !disabled,
+                  [styles.disabled_row]: disabled,
                 })}
                 onClick={() => handleRowClick(row, rowIndex)}
               >

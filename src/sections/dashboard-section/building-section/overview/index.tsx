@@ -1,13 +1,13 @@
 "use client";
 
 import React from "react";
-import styles from "./styles.module.css";
 import Info from "@/components/ui/info";
 import {
   buildingContact,
   buildingInfo,
   buildingPhysicalAttributes,
 } from "@/app/constants";
+import styles from "./styles.module.css";
 
 const Overview = () => {
   return (

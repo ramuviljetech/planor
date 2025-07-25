@@ -6,7 +6,7 @@ import {
   propertiesBlueIcon,
   rightArrowPinkIcon,
 } from "@/resources/images";
-import { clientDetailsCardsData } from "@/app/constants";
+import { clientDetailsCardsData, rowsData } from "@/app/constants";
 import SectionHeader from "@/components/ui/section-header";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -88,198 +88,20 @@ const ClientDetails: React.FC = () => {
     },
   ];
 
-  const rowsData = [
-    {
-      id: 1,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 2,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 3,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 4,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 5,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 6,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 7,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 40,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-    },
-    {
-      id: 8,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 9,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-    },
-    {
-      id: 10,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 9,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 11,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 12,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 77,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 13,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 89,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 14,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 15,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 16,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 17,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-    {
-      id: 18,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-      grossArea: "1200 m²",
-    },
-    {
-      id: 19,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-      grossArea: "1200 m²",
-    },
-    {
-      id: 20,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      grossArea: "1200 m²",
-    },
-  ];
-
-  const totalItems = rowsData.length;
+  const totalItems = rowsData?.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   // Get current page data
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentRows = rowsData.slice(startIndex, endIndex);
+  const currentRows = rowsData?.slice(startIndex, endIndex) || [];
 
   const handleRowClick = (row: TableRow, index: number) => {
+    // Disable row click when popover is active
+    if (popoverState.show) {
+      return;
+    }
+
     console.log("Row clicked:", {
       id: row.id,
       clientName: row.clientName,
@@ -358,6 +180,7 @@ const ClientDetails: React.FC = () => {
         rows={currentRows}
         onRowClick={handleRowClick}
         selectedRowId={selectedRowId}
+        disabled={popoverState.show}
         pagination={{
           currentPage,
           totalPages,
@@ -368,25 +191,27 @@ const ClientDetails: React.FC = () => {
         }}
       />
       {popoverState.show && popoverState.rowId && (
-        <PopOver
-          reference={{ current: actionIconRefs.current[popoverState.rowId] }}
-          show={popoverState.show}
-          onClose={handlePopoverClose}
-          placement="bottom-end"
-          offset={[0, 8]}
-        >
-          <div className={styles.action_popoverMenu}>
-            <div
-              className={styles.action_popoverMenuItem}
-              onClick={handleViewDetails}
-            >
-              View Details
+        <>
+          <PopOver
+            reference={{ current: actionIconRefs.current[popoverState.rowId] }}
+            show={popoverState.show}
+            onClose={handlePopoverClose}
+            placement="bottom-end"
+            offset={[0, 8]}
+          >
+            <div className={styles.action_popoverMenu}>
+              <div
+                className={styles.action_popoverMenuItem}
+                onClick={handleViewDetails}
+              >
+                View Details
+              </div>
+              <div className={styles.action_popoverMenuItem} onClick={() => {}}>
+                Add Property
+              </div>
             </div>
-            <div className={styles.action_popoverMenuItem} onClick={() => {}}>
-              Add Property
-            </div>
-          </div>
-        </PopOver>
+          </PopOver>
+        </>
       )}
     </div>
   );

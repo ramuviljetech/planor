@@ -44,6 +44,8 @@
   --neon-mint: rgba(96, 244, 101, 1);
   --onyx-black: rgba(26, 26, 26, 1);
   --midnight-overlay-light: rgba(28, 47, 58, 0.27);
+  --soft-white: rgba(247, 247, 247, 1);
+  --ruby-red: rgba(136, 18, 60, 1);
 }
 
 html,
