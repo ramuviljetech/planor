@@ -3,7 +3,7 @@
 import React, { useRef, useState } from "react";
 import Button from "@/components/ui/button";
 import styles from "./styles.module.css";
-import ClientDetails from "@/sections/client-properties-list";
+import ClientDetails from "@/sections/clients-section/client-properties-list";
 import SectionHeader from "@/components/ui/section-header";
 import { filterIcon } from "@/resources/images";
 import Image from "next/image";

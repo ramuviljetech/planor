@@ -114,7 +114,7 @@ const ClientInfo: React.FC = () => {
   };
 
   const handleViewDetails = () => {
-    router.push("/building-details");
+    // router.push("/building-details");
     handlePopoverClose();
   };
 
@@ -199,13 +199,13 @@ const ClientInfo: React.FC = () => {
                       className={styles.action_popoverMenuItem}
                       onClick={handleViewDetails}
                     >
-                      View Details
+                      Edit User
                     </div>
                     <div
                       className={styles.action_popoverMenuItem}
                       onClick={() => {}}
                     >
-                      Add Property
+                      Delete User
                     </div>
                   </div>
                 </PopOver>
