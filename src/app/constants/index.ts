@@ -111,3 +111,5 @@ export const clientDetailsCardsData = [
     value: "190",
   },
 ];
+
+
