@@ -21,6 +21,11 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow-y: scroll;
+}
+
+.imageCarousel_mainContainer::-webkit-scrollbar {
+  display: none;
 }
 
 /* Close Button */
@@ -209,7 +214,11 @@
   gap: 8px;
   align-items: center;
   justify-content: space-around;
-  overflow: hidden;
+  overflow-x: scroll;
+}
+
+.imageCarousel_thumbnailStrip::-webkit-scrollbar {
+  display: none;
 }
 
 /* Individual Thumbnail */
