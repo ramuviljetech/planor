@@ -28,6 +28,9 @@ export { default as backButtonIcon } from "@/assets/images/arrow-left-black-icon
 export { default as rightArrowPinkIcon } from "@/assets/images/right-arrow-pink-icon.svg";
 export { default as leftArrowGrayIcon } from "@/assets/images/left-arrow-gray-icon.svg";
 
+export { default as zoomInPinkIcon } from "@/assets/images/zoom-in-pink-icon.svg";
+export { default as zoomOutPinkIcon } from "@/assets/images/zoom-out-pink-icon.svg";
+
 export { default as imageRoseIcon } from "@/assets/images/image-rose-icon.svg";
 export { default as locationBlackIcon } from "@/assets/images/location-black-icon.svg";
 export { default as i3DGrayIcon } from "@/assets/images/3d-gray-icon.svg";

@@ -5,14 +5,45 @@ import {
   searchEnableIcon,
   searchIcon,
   avatarIcon,
+  building1,
+  building2,
+  building3,
+  building4,
 } from "@/resources/images";
 import SearchBar from "../ui/searchbar";
-import styles from "./styles.module.css";
 import { useState } from "react";
 import Image from "next/image";
+import { ImageCarousel } from "@/components/ui/image-carousel";
+import styles from "./styles.module.css";
 
 const Header: React.FC = () => {
   const [search, setSearch] = useState("");
+
+  const [isCarouselOpen, setIsCarouselOpen] = useState(false);
+  const images = [
+    building3,
+    building4,
+    building2,
+    building1,
+    building2,
+    building3,
+    building4,
+    building1,
+    building2,
+    building3,
+    building4,
+    building2,
+    building3,
+    building4,
+  ];
+
+  const openCarousel = () => {
+    setIsCarouselOpen(true);
+  };
+
+  const closeCarousel = () => {
+    setIsCarouselOpen(false);
+  };
 
   return (
     <div className={styles.header_container}>
@@ -32,8 +63,21 @@ const Header: React.FC = () => {
       {/* pfofile and notification */}
       <div className={styles.header_right_container}>
         <div className={styles.pin_icon}>
-          <Image src={pinIcon} alt="pin" width={20} height={20} />
+          <Image
+            src={pinIcon}
+            alt="pin"
+            width={20}
+            height={20}
+            onClick={openCarousel}
+          />
         </div>
+
+        {/* // TODO: IMAGE CAROUSEL IMPLEMENTATION */}
+        <ImageCarousel
+          images={images}
+          isOpen={isCarouselOpen}
+          onClose={closeCarousel}
+        />
         <div className={styles.questionmark_icon}>
           <Image
             src={questionmarkIcon}
