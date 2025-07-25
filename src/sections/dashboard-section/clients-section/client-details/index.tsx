@@ -1,16 +1,316 @@
 "use client";
 
-import styles from "./styles.module.css";
 import Image from "next/image";
-import { filterIcon, propertiesBlueIcon } from "@/resources/images";
+import {
+  filterIcon,
+  propertiesBlueIcon,
+  rightArrowPinkIcon,
+} from "@/resources/images";
 import { clientDetailsCardsData } from "@/app/constants";
 import SectionHeader from "@/components/ui/section-header";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import CommonTable, {
+  TableColumn,
+  TableRow,
+} from "@/components/ui/common-table";
+import PopOver from "@/components/ui/popover";
+import styles from "./styles.module.css";
+
 const ClientDetails: React.FC = () => {
   const router = useRouter();
   const clientsFilterRef = useRef<HTMLDivElement>(null);
   const [searchValue, setSearchValue] = useState<string>("");
+  const [selectedRowId, setSelectedRowId] = useState<string | number>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [popoverState, setPopoverState] = useState<{
+    show: boolean;
+    rowId: string | number | null;
+  }>({ show: false, rowId: null });
+  const actionIconRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const itemsPerPage = 10;
+
+  // Table data and handlers
+  const columns: TableColumn[] = [
+    {
+      key: "clientName",
+      title: "Client Name",
+      width: 200,
+    },
+    {
+      key: "clientId",
+      title: "Client ID",
+      width: 120,
+    },
+    {
+      key: "properties",
+      title: "Properties",
+      width: 100,
+    },
+    {
+      key: "createdOn",
+      title: "Created On",
+      width: 150,
+    },
+    {
+      key: "maintenanceCost",
+      title: "Maintenance Cost",
+      width: 150,
+    },
+    {
+      key: "grossArea",
+      title: "Gross Area",
+      width: 150,
+    },
+    {
+      key: "actions",
+      title: "",
+      width: 60,
+      render: (value, row, index) => (
+        <div
+          className={styles.actionIcon}
+          ref={(el) => {
+            actionIconRefs.current[row.id] = el;
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setPopoverState({ show: true, rowId: row.id });
+          }}
+        >
+          <Image
+            src={rightArrowPinkIcon}
+            alt="menu-dot"
+            width={16}
+            height={16}
+          />
+        </div>
+      ),
+    },
+  ];
+
+  const rowsData = [
+    {
+      id: 1,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 12,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 2,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 12,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 3,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 12,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 4,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 12,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 5,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 0,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 6,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 12,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 7,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 40,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+    },
+    {
+      id: 8,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 12,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 9,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 12,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+    },
+    {
+      id: 10,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 9,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 11,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 0,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 12,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 77,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 13,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 89,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 14,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 0,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 15,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 0,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 16,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 0,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 17,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 0,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+    {
+      id: 18,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 0,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      status: "Active",
+      grossArea: "1200 m²",
+    },
+    {
+      id: 19,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 0,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      status: "Active",
+      grossArea: "1200 m²",
+    },
+    {
+      id: 20,
+      clientName: "Brunnfast AB",
+      clientId: "945422",
+      properties: 0,
+      createdOn: "12 Jun, 2025",
+      maintenanceCost: 23450,
+      grossArea: "1200 m²",
+    },
+  ];
+
+  const totalItems = rowsData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // Get current page data
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentRows = rowsData.slice(startIndex, endIndex);
+
+  const handleRowClick = (row: TableRow, index: number) => {
+    console.log("Row clicked:", {
+      id: row.id,
+      clientName: row.clientName,
+      clientId: row.clientId,
+      properties: row.properties,
+      createdOn: row.createdOn,
+      maintenanceCost: row.maintenanceCost,
+      status: row.status,
+    });
+    setSelectedRowId(row.id);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedRowId("");
+  };
+
+  const handlePopoverClose = () => {
+    setPopoverState({ show: false, rowId: null });
+  };
+
+  const handleViewDetails = () => {
+    router.push("/property-details");
+    handlePopoverClose();
+  };
+
+  const handleAddBuilding = () => {
+    console.log("Add Building clicked for row:", popoverState.rowId);
+    // Add your add building logic here
+    handlePopoverClose();
+  };
 
   const renderCard = () => {
     return (
@@ -53,6 +353,41 @@ const ClientDetails: React.FC = () => {
         searchBarStyle={styles.client_details_search_bar}
         actionButtonStyle={styles.client_details_add_property_button}
       />
+      <CommonTable
+        columns={columns}
+        rows={currentRows}
+        onRowClick={handleRowClick}
+        selectedRowId={selectedRowId}
+        pagination={{
+          currentPage,
+          totalPages,
+          totalItems,
+          itemsPerPage,
+          onPageChange: handlePageChange,
+          showItemCount: true,
+        }}
+      />
+      {popoverState.show && popoverState.rowId && (
+        <PopOver
+          reference={{ current: actionIconRefs.current[popoverState.rowId] }}
+          show={popoverState.show}
+          onClose={handlePopoverClose}
+          placement="bottom-end"
+          offset={[0, 8]}
+        >
+          <div className={styles.action_popoverMenu}>
+            <div
+              className={styles.action_popoverMenuItem}
+              onClick={handleViewDetails}
+            >
+              View Details
+            </div>
+            <div className={styles.action_popoverMenuItem} onClick={() => {}}>
+              Add Property
+            </div>
+          </div>
+        </PopOver>
+      )}
     </div>
   );
 };

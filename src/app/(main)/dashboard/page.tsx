@@ -15,6 +15,7 @@ import CommonTable, {
   TableColumn,
   TableRow,
 } from "@/components/ui/common-table";
+import { useRouter } from "next/navigation";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -55,8 +56,8 @@ export default function DashboardPage() {
     rowId: string | number | null;
   }>({ show: false, rowId: null });
   const actionIconRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const itemsPerPage = 5;
-
+  const itemsPerPage = 10;
+  const router = useRouter();
   // TODO: Replace this with actual API call data
   // This will be fetched from the database based on selectedFilter and selectedYearlyMaintenanceSummary
   const mockApiData = useMemo(() => {
@@ -416,15 +417,16 @@ export default function DashboardPage() {
   const currentRows = rowsData.slice(startIndex, endIndex);
 
   const handleRowClick = (row: TableRow, index: number) => {
-    console.log("Row clicked:", {
-      id: row.id,
-      clientName: row.clientName,
-      clientId: row.clientId,
-      properties: row.properties,
-      createdOn: row.createdOn,
-      maintenanceCost: row.maintenanceCost,
-      status: row.status,
-    });
+    setShowBottomSheet(true);
+    // console.log("Row clicked:", {
+    //   id: row.id,
+    //   clientName: row.clientName,
+    //   clientId: row.clientId,
+    //   properties: row.properties,
+    //   createdOn: row.createdOn,
+    //   maintenanceCost: row.maintenanceCost,
+    //   status: row.status,
+    // });
     setSelectedRowId(row.id);
   };
 
@@ -438,7 +440,7 @@ export default function DashboardPage() {
   };
 
   const handleViewDetails = () => {
-    console.log("View Details clicked for row:", popoverState.rowId);
+    router.push("/property-details");
     // Add your view details logic here
     handlePopoverClose();
   };
@@ -467,7 +469,7 @@ export default function DashboardPage() {
           onSearchChange={setClientsSearchValue}
           searchPlaceholder="Search properties..."
           actionButtonTitle="Add Client"
-          onActionButtonClick={() => setShowBottomSheet(true)}
+          onActionButtonClick={() => {}}
           filterComponent={
             <div
               ref={clientsFilterRef}
@@ -519,13 +521,13 @@ export default function DashboardPage() {
                 className={styles.action_popoverMenuItem}
                 onClick={handleViewDetails}
               >
-                View Details
+                View Properties
               </div>
               <div
                 className={styles.action_popoverMenuItem}
                 onClick={handleAddBuilding}
               >
-                Add Building
+                Add Property
               </div>
             </div>
           </PopOver>

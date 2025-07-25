@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "./styles.module.css";
 import {
   avatarIcon,
   backButtonIcon,
@@ -18,16 +17,52 @@ import Breadcrumb from "@/components/ui/breadcrumb";
 import Button from "@/components/ui/button";
 import Avatar from "@/components/ui/avatar";
 import classNames from "classnames";
-import Grid from "@mui/material/Grid";
-import Box from "@mui/material/Box";
+import { StaticImageData } from "next/image";
+import CustomTabs, { TabItem } from "@/components/ui/tabs";
+import styles from "./styles.module.css";
+import Overview from "@/sections/dashboard-section/building-section/overview";
+import Maintenance from "@/sections/dashboard-section/building-section/maintenance ";
 
 const BuildingDetails: React.FC = () => {
   const [activeImageTab, setActiveImageTab] = useState("image");
+  const [activeTab, setActiveTab] = useState("overview");
   const breadcrumbItems = [
     { label: "Brunnfast AB", isActive: false },
     { label: "Kvarter Skatan", isActive: false },
     { label: "Building 1", isActive: true },
   ];
+
+  const tabs: TabItem[] = [
+    { label: "Overview", value: "overview" },
+    { label: "Maintenance", value: "maintenance" },
+    { label: "Files", value: "files" },
+    { label: "Activity History", value: "activity" },
+  ];
+
+  let images = [
+    {
+      src: building1,
+      alt: "Main",
+    },
+    {
+      src: building2,
+      alt: "Main",
+    },
+    {
+      src: building3,
+      alt: "Main",
+    },
+    {
+      src: building4,
+      alt: "Main",
+    },
+  ];
+
+  const handleTabChange = (value: string) => {
+    console.log("Active tab:", value);
+    setActiveTab(value);
+    // Handle tab change logic here
+  };
 
   const renderHeaderSection = (): React.ReactNode => {
     return (
@@ -67,68 +102,69 @@ const BuildingDetails: React.FC = () => {
     );
   };
 
-  let images = [
-    {
-      src: building1,
-      alt: "Main",
-    },
-    {
-      src: building2,
-      alt: "Main",
-    },
-    {
-      src: building3,
-      alt: "Main",
-    },
-    {
-      src: building4,
-      alt: "Main",
-    },
-  ];
-
   const renderImagesSection = (): React.ReactNode => {
     return (
       <div className={styles.building_details_images_section}>
-        <Grid
-          container
-          spacing={2}
-          sx={{ borderRadius: 2, overflow: "hidden", width: "100%" }}
-        >
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Image
-              src={images[0].src}
-              alt="Main"
-              width={600}
-              height={400}
-              style={{
-                width: "100%",
-                height: 400,
-                objectFit: "cover",
-                borderRadius: 8,
-              }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Grid container spacing={2} sx={{ height: "100%" }}>
-              {images.slice(1).map((img, i) => (
-                <Grid size={{ xs: 6 }} key={i}>
-                  <Image
-                    src={img.src}
-                    alt={img.alt}
-                    width={300}
-                    height={190}
-                    style={{
-                      width: "100%",
-                      height: 190,
-                      objectFit: "cover",
-                      borderRadius: 8,
-                    }}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          </Grid>
-        </Grid>
+        <div className={styles.gallery}>
+          <div className={styles.mainImage}>
+            <Image src={images[0].src} alt="Main" fill objectFit="cover" />
+          </div>
+          <div className={styles.sideImages}>
+            <div className={styles.topImage}>
+              <Image src={images[1].src} alt="Side 1" fill objectFit="cover" />
+            </div>
+            <div className={styles.bottomImages}>
+              <div className={styles.bottomLeft}>
+                <Image
+                  src={images[2].src}
+                  alt="Side 2"
+                  fill
+                  objectFit="cover"
+                />
+              </div>
+              <div className={styles.bottomRight}>
+                <Image
+                  src={images[3].src}
+                  alt="Side 3"
+                  fill
+                  objectFit="cover"
+                />
+                <div className={styles.overlay}>
+                  <span>10+</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTabsSection = (): React.ReactNode => {
+    return (
+      <div className={styles.building_details_tabs_section}>
+        <CustomTabs
+          tabs={tabs}
+          defaultTab="overview"
+          onTabChange={handleTabChange}
+        />
+        <Button
+          title="Add Revit"
+          variant="outline"
+          size="sm"
+          className={styles.building_details_revit_button}
+        />
+      </div>
+    );
+  };
+
+  const renderTabContent = (): React.ReactNode => {
+    return (
+      <div className={styles.building_details_tab_content}>
+        {activeTab === "overview" && <Overview />}
+        {activeTab === "maintenance" && <Maintenance />}
+        {activeTab === "files" && <div>Files</div>}
+        {activeTab === "activity" && <div>Activity</div>}
       </div>
     );
   };
@@ -144,6 +180,8 @@ const BuildingDetails: React.FC = () => {
         {/* Header section */}
         {renderHeaderSection()}
         {renderImagesSection()}
+        {renderTabsSection()}
+        {renderTabContent()}
       </div>
     </section>
   );

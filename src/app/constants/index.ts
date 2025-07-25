@@ -112,4 +112,29 @@ export const clientDetailsCardsData = [
   },
 ];
 
+export const buildingInfo = [
+  { label: "Name", value: "Tower A" },
+  { label: "Construction Year", value: "2011" },
+  { label: "Building ID", value: "BLD-TO-00A" },
+  { label: "Buildings Status", value: "Active" },
+  { label: "Property Linked", value: "Stora Nygatan" },
+  { label: "Location", value: "random street , nswe  ds-22 , maoes" },
+  { label: "Client Name", value: "Akrivia Infratech Solutions" },
+  { label: "Description", value: "Main tower for the community" },
+  { label: "Building Type", value: "Residential" },
+];
 
+export const buildingPhysicalAttributes = [
+  { label: "Number of floors", value: "12" },
+  { label: "Total floor area", value: "4,500 m²" },
+  { label: "Building Height", value: "45 m" },
+  { label: "Basement", value: "Yes" },
+  { label: "Roof Type", value: "Flat / pitched" },
+  { label: "Facade material", value: "Glass & Steel" },
+];
+
+export const buildingContact = [
+  { label: "Responsible Person", value: "John stwien" },
+  { label: "Email", value: "Akrstwien@gmail.com" },
+  { label: "Phone", value: "+46 70 123 45 67" },
+];
