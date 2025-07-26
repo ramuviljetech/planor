@@ -53,6 +53,7 @@ export interface InputProps {
   inputStyle?: string;
   error?: string;
   inputContainerClass?: string;
+  inputWrapperClass?: string;
   [key: string]: any; // for rest props
 }
 

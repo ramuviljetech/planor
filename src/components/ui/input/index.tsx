@@ -1,8 +1,8 @@
 import React from "react";
 import classNames from "classnames";
 import Image from "next/image";
-import styles from "./styles.module.css";
 import { InputProps } from "@/types/ui";
+import styles from "./styles.module.css";
 
 const Input: React.FC<InputProps> = ({
   label = "Label",
@@ -24,6 +24,7 @@ const Input: React.FC<InputProps> = ({
   inputStyle,
   error,
   inputContainerClass,
+  inputWrapperClass,
   ...rest
 }) => {
   // Filter out React-specific props that shouldn't be passed to DOM elements
@@ -31,7 +32,12 @@ const Input: React.FC<InputProps> = ({
   return (
     <div className={classNames(styles.inputContainer, inputContainerClass)}>
       <label className={styles.label}>{label}</label>
-      <div className={classNames(error ? styles.errorBg : styles.inputWrapper)}>
+      <div
+        className={classNames(
+          error ? styles.errorBg : styles.inputWrapper,
+          inputWrapperClass
+        )}
+      >
         {leftIcon && (
           <div
             className={classNames(styles.leftIcon, leftIconStyle)}

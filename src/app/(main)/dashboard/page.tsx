@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useMemo, useRef } from "react";
-import styles from "./styles.module.css";
 import MaintenanceSection from "@/sections/dashboard-section/maintenance";
 import MetricCard from "@/components/ui/metric-card";
 import { clientsStaticCardTitle } from "@/app/constants";
@@ -16,6 +15,9 @@ import CommonTable, {
   TableRow,
 } from "@/components/ui/common-table";
 import { useRouter } from "next/navigation";
+import TextArea from "@/components/ui/textarea";
+import styles from "./styles.module.css";
+import SelectDropDown from "@/components/ui/select-dropdown";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -482,6 +484,20 @@ export default function DashboardPage() {
           actionButtonStyle={styles.dashboard_clients_add_client_button}
         />
         {/* middle container */}
+        <SelectDropDown
+          label="Client Status"
+          options={[
+            "Active",
+            "Inactive",
+            "Pending",
+            "Cancelled",
+            "hghg",
+            "hffffghfhf",
+            "khgjhgjj",
+          ]}
+          onSelect={(value) => console.log(value)}
+          multiSelect={true}
+        />
         <div className={styles.dashboard_clients_middle_container}>
           {clientsStaticCardTitle.map((card, index) => (
             <MetricCard

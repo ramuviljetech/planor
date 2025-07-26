@@ -1,8 +1,9 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import classNames from "classnames";
-import { locationBlackIcon } from "@/resources/images";
+import { locationBlackIcon, searchIcon } from "@/resources/images";
 import Image from "next/image";
 import PopOver from "../popover";
+import Input from "../input";
 import styles from "./styles.module.css";
 
 interface SelectOption {
@@ -16,9 +17,9 @@ interface SelectDropDownProps {
   options?: SelectOptionType[];
   placeholder?: string;
   label?: string;
-  selected?: string;
-  defaultSelected?: string;
-  onSelect?: (value: string) => void;
+  selected?: string | string[];
+  defaultSelected?: string | string[];
+  onSelect?: (value: string | string[]) => void;
   showAddProject?: boolean;
   addProjectText?: string;
   onPlusIconClick?: () => void;
@@ -35,6 +36,8 @@ interface SelectDropDownProps {
   selectedTextClass?: string;
   errorMessage?: string;
   showError?: boolean;
+  multiSelect?: boolean;
+  searchPlaceholder?: string;
 }
 
 const SelectDropDown: React.FC<SelectDropDownProps> = ({
@@ -62,21 +65,79 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
   selectedTextClass = "",
   errorMessage = "",
   showError = false,
+  multiSelect = false,
+  searchPlaceholder = "Search options...",
 }) => {
-  const [internalSelected, setInternalSelected] = useState(defaultSelected);
+  const [internalSelected, setInternalSelected] = useState<string | string[]>(
+    multiSelect
+      ? Array.isArray(defaultSelected)
+        ? defaultSelected
+        : []
+      : defaultSelected
+  );
   const selected =
     controlledSelected !== undefined ? controlledSelected : internalSelected;
 
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [showPopover, setShowPopover] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const referenceRef = useRef<HTMLDivElement>(null);
+
+  // Convert selected to array for multi-select
+  const selectedArray = Array.isArray(selected)
+    ? selected
+    : [selected].filter(Boolean);
+
+  // Filter options based on search term
+  const filteredOptions = useMemo(() => {
+    if (!searchTerm) return options;
+    return options.filter((option) => {
+      const label = typeof option === "string" ? option : option.label;
+      return label.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+  }, [options, searchTerm]);
 
   const handleOptionClick = (option: SelectOptionType) => {
     const value = typeof option === "string" ? option : option.label;
-    if (controlledSelected === undefined) setInternalSelected(value);
-    onSelect(value);
+
+    if (multiSelect) {
+      const currentSelected = Array.isArray(selected) ? selected : [];
+      const newSelected = currentSelected.includes(value)
+        ? currentSelected.filter((item) => item !== value)
+        : [...currentSelected, value];
+
+      if (controlledSelected === undefined) setInternalSelected(newSelected);
+      onSelect(newSelected);
+    } else {
+      if (controlledSelected === undefined) setInternalSelected(value);
+      onSelect(value);
+    }
+
     setHasUserInteracted(true);
-    setShowPopover(false);
+    if (!multiSelect) {
+      setShowPopover(false);
+    }
+  };
+
+  const removeSelectedItem = (itemToRemove: string) => {
+    if (multiSelect) {
+      const currentSelected = Array.isArray(selected) ? selected : [];
+      const newSelected = currentSelected.filter(
+        (item) => item !== itemToRemove
+      );
+
+      if (controlledSelected === undefined) setInternalSelected(newSelected);
+      onSelect(newSelected);
+    }
+  };
+
+  const getDisplayText = () => {
+    if (multiSelect) {
+      if (selectedArray.length === 0) return placeholder;
+      if (selectedArray.length === 1) return selectedArray[0];
+      return `${selectedArray.length} items selected`;
+    }
+    return selected || placeholder;
   };
 
   return (
@@ -103,7 +164,7 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
             selected && selectedTextClass
           )}
         >
-          {selected || placeholder}
+          {getDisplayText()}
         </span>
         <Image
           src={locationBlackIcon}
@@ -131,11 +192,26 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
         onClose={() => setShowPopover(false)}
       >
         <div className={styles.dropdownMenuWrapper}>
+          {/* Search Input */}
+          {/* <div className={styles.searchContainer}> */}
+          <Input
+            type="text"
+            label=""
+            leftIcon={searchIcon}
+            placeholder={searchPlaceholder}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            inputStyle={styles.searchInput}
+            inputWrapperClass={styles.searchInputWrapper}
+          />
+          {/* </div> */}
+
+          {/* Options List */}
           <div className={classNames(styles.dropdownMenu, menuClass)}>
-            {options.map((option, index) => {
+            {filteredOptions.map((option, index) => {
               const value = typeof option === "string" ? option : option.label;
               const avatar = typeof option === "object" ? option.avatar : null;
-              const isSelected = selected === value;
+              const isSelected = selectedArray.includes(value);
 
               return (
                 <div
@@ -152,7 +228,9 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
                     {avatar && (
                       <Image
                         src={avatar}
-                        alt={value}
+                        alt="avatar"
+                        width={20}
+                        height={20}
                         className={styles.optionAvatar}
                       />
                     )}
@@ -174,6 +252,28 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
               );
             })}
           </div>
+
+          {/* Selected Items Display */}
+          {multiSelect && selectedArray.length > 0 && (
+            <div className={styles.selectedItemsContainer}>
+              <div className={styles.selectedItemsHeader}>
+                <span>Selected Items:</span>
+              </div>
+              <div className={styles.selectedItemsList}>
+                {selectedArray.map((item, index) => (
+                  <div key={index} className={styles.selectedItemChip}>
+                    <span>{item}</span>
+                    <button
+                      onClick={() => removeSelectedItem(item)}
+                      className={styles.removeButton}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </PopOver>
     </div>
