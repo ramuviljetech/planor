@@ -15,6 +15,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import { ImageViewer } from "@/components/ui/image-viewer";
+import { CustomDatePicker } from "@/components/ui/date-picker";
 import styles from "./styles.module.css";
 
 const Header: React.FC = () => {
@@ -45,6 +46,10 @@ const Header: React.FC = () => {
 
   const closeCarousel = () => {
     setIsCarouselOpen(false);
+  };
+
+  const handleDateChange = (date: Date) => {
+    console.log("Selected date:", date);
   };
 
   return (
@@ -80,6 +85,7 @@ const Header: React.FC = () => {
           isOpen={isCarouselOpen}
           onClose={closeCarousel}
         />
+        {/* //TODO: IMAGE 3D CAROUSEL IMPLEMENTATION */}
         <div className={styles.questionmark_icon}>
           <Image
             src={questionmarkIcon}
@@ -97,6 +103,15 @@ const Header: React.FC = () => {
             />
           )}
         </div>
+
+        {/* //TODO: DATE PICKER IMPLEMENTATION */}
+
+        <CustomDatePicker
+          label="Set new Maintenance date*"
+          placeholder="Select Maintenance date"
+          onChange={handleDateChange}
+        />
+
         <div className={styles.avatar_container}>
           <Image
             src={avatarIcon}

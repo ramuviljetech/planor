@@ -48,6 +48,7 @@ export { default as accordianOpenIcon } from "@/assets/images/pricelist-accordia
 export { default as accordianDownPinkIcon } from "@/assets/images/pricelist-accordian-pinkishred-down-icon.svg";
 
 export { default as uploadBlackIcon } from "@/assets/images/upload-black-icon.svg";
+export { default as calenderBlackIcon } from "@/assets/images/calender-black-icon.svg";
 
 export { default as rightRotateWhiteIcon } from "@/assets/images/right-rotate-white-icon.svg";
 export { default as leftRotateWhiteIcon } from "@/assets/images/left-rotate-white-icon.svg";
