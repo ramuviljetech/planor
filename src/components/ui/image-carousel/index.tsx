@@ -7,10 +7,22 @@ import {
 } from "@/resources/images";
 import styles from "./styles.module.css";
 
-const ImageCarousel = (props) => {
-  // PROPS
-  const { images, isOpen, onClose } = props;
+interface ImageType {
+  src: string;
+  alt?: string;
+}
 
+interface ImageCarouselProps {
+  images: ImageType[];
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const ImageCarousel: React.FC<ImageCarouselProps> = ({
+  images,
+  isOpen,
+  onClose,
+}) => {
   // STATES
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
@@ -42,7 +54,7 @@ const ImageCarousel = (props) => {
     }, 150);
   };
 
-  const handleThumbnailClick = (index) => {
+  const handleThumbnailClick = (index: number) => {
     if (isSliding || index === currentImageIndex) return;
     setIsSliding(true);
     setTimeout(() => {
@@ -73,12 +85,11 @@ const ImageCarousel = (props) => {
   if (!isOpen) return null;
 
   // RENDERS
-
   const renderMainImage = () => {
     return (
       <div className={styles.imageCarousel_imageContainer}>
         <div className={styles.imageCarousel_closeButton} onClick={onClose}>
-          <img src={closeRoseIcon.src} />
+          <img src={closeRoseIcon.src} alt="Close" />
         </div>
         <div
           className={`${styles.imageCarousel_navButton} ${styles["imageCarousel_navButton--prev"]}`}
@@ -86,6 +97,7 @@ const ImageCarousel = (props) => {
         >
           <img
             src={rightArrowPinkIcon.src}
+            alt="Previous"
             className={styles.imageCarousel_prevArrowIcon}
           />
         </div>
@@ -96,7 +108,9 @@ const ImageCarousel = (props) => {
         >
           <img
             src={images[currentImageIndex].src}
-            alt={`Image ${currentImageIndex + 1}`}
+            alt={
+              images[currentImageIndex].alt || `Image ${currentImageIndex + 1}`
+            }
             className={styles.imageCarousel_mainImage}
             style={{ transform: `scale(${zoomLevel})` }}
           />
@@ -105,20 +119,20 @@ const ImageCarousel = (props) => {
           className={`${styles.imageCarousel_navButton} ${styles["imageCarousel_navButton--next"]}`}
           onClick={handleNext}
         >
-          <img src={rightArrowPinkIcon.src} />
+          <img src={rightArrowPinkIcon.src} alt="Next" />
         </div>
         <div className={styles.imageCarousel_controlButtons}>
           <div
             className={styles.imageCarousel_controlButton}
             onClick={handleZoomIn}
           >
-            <img src={zoomInPinkIcon.src} />
+            <img src={zoomInPinkIcon.src} alt="Zoom In" />
           </div>
           <div
             className={styles.imageCarousel_controlButton}
             onClick={handleZoomOut}
           >
-            <img src={zoomOutPinkIcon.src} />
+            <img src={zoomOutPinkIcon.src} alt="Zoom Out" />
           </div>
         </div>
       </div>
@@ -152,7 +166,7 @@ const ImageCarousel = (props) => {
               >
                 <img
                   src={image?.src}
-                  alt={`Thumbnail ${actualIndex + 1}`}
+                  alt={image?.alt || `Thumbnail ${actualIndex + 1}`}
                   className={styles.imageCarousel_thumbnailImage}
                 />
               </div>
