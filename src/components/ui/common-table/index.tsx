@@ -8,6 +8,7 @@ export interface TableColumn {
   title: string;
   width?: string | number;
   render?: (value: any, row: any, index: number) => React.ReactNode;
+  headerRender?: () => React.ReactNode;
 }
 
 export interface TableRow {
@@ -77,7 +78,7 @@ const CommonTable: React.FC<CommonTableProps> = ({
                   className={styles.table_header_cell}
                   style={getColumnStyle(column)}
                 >
-                  {column.title}
+                  {column.headerRender ? column.headerRender() : column.title}
                 </th>
               ))}
             </tr>
