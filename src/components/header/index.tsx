@@ -14,10 +14,12 @@ import SearchBar from "../ui/searchbar";
 import { useState } from "react";
 import Image from "next/image";
 import { ImageCarousel } from "@/components/ui/image-carousel";
+import { ImageViewer } from "@/components/ui/image-viewer";
 import styles from "./styles.module.css";
 
 const Header: React.FC = () => {
   const [search, setSearch] = useState("");
+  const [showViewer, setShowViewer] = useState(false);
 
   const [isCarouselOpen, setIsCarouselOpen] = useState(false);
   const images = [
@@ -84,7 +86,16 @@ const Header: React.FC = () => {
             alt="questionmark"
             width={20}
             height={20}
+            onClick={() => setShowViewer(true)}
           />
+
+          {showViewer && (
+            <ImageViewer
+              src={building1.src}
+              alt="building one"
+              onClose={() => setShowViewer(false)}
+            />
+          )}
         </div>
         <div className={styles.avatar_container}>
           <Image

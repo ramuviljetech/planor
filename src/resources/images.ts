@@ -48,3 +48,10 @@ export { default as accordianOpenIcon } from "@/assets/images/pricelist-accordia
 export { default as accordianDownPinkIcon } from "@/assets/images/pricelist-accordian-pinkishred-down-icon.svg";
 
 export { default as uploadBlackIcon } from "@/assets/images/upload-black-icon.svg";
+
+export { default as rightRotateWhiteIcon } from "@/assets/images/right-rotate-white-icon.svg";
+export { default as leftRotateWhiteIcon } from "@/assets/images/left-rotate-white-icon.svg";
+export { default as zoomInWhiteIcon } from "@/assets/images/zoom-in-white-icon.svg";
+export { default as zoomOutWhiteIcon } from "@/assets/images/zoom-out-white-icon.svg";
+export { default as palmWhiteIcon } from "@/assets/images/palm-white-icon.svg";
+export { default as closeBlackIcon } from "@/assets/images/close-black-icon.svg";
