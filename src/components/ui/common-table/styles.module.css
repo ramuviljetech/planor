@@ -82,6 +82,15 @@
   border-radius: 24px;
 }
 
+.disabled_row {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.disabled_row:hover {
+  background-color: transparent;
+}
+
 .table_cell {
   padding: 12px 16px 12px 12px;
   text-align: left;

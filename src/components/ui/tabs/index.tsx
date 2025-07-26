@@ -1,0 +1,106 @@
+import React, { useState } from "react";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import styles from "./styles.module.css";
+
+export interface TabItem {
+  label: string;
+  value: string;
+  disabled?: boolean;
+}
+
+interface CustomTabsProps {
+  tabs: TabItem[];
+  defaultTab?: string;
+  onTabChange?: (value: string) => void;
+  className?: string;
+  variant?: "standard" | "fullWidth" | "scrollable";
+  orientation?: "horizontal" | "vertical";
+  showIndicator?: boolean;
+  customStyles?: {
+    tabColor?: string;
+    selectedTabColor?: string;
+    indicatorColor?: string;
+    fontSize?: string;
+    fontFamily?: string;
+  };
+}
+
+const CustomTabs: React.FC<CustomTabsProps> = ({
+  tabs,
+  defaultTab,
+  onTabChange,
+  className,
+  variant = "standard",
+  orientation = "horizontal",
+  showIndicator = true,
+  customStyles = {},
+}) => {
+  const [activeTab, setActiveTab] = useState(
+    defaultTab || tabs[0]?.value || ""
+  );
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+    setActiveTab(newValue);
+    onTabChange?.(newValue);
+  };
+
+  const {
+    tabColor = "var(--granite-gray)",
+    selectedTabColor = "var(--black)",
+    indicatorColor = "var(--black)",
+    fontSize = "14px",
+    fontFamily = "var(--font-lato-regular)",
+  } = customStyles;
+
+  return (
+    <div className={`${styles.customTabsContainer} ${className || ""}`}>
+      <Tabs
+        value={activeTab}
+        onChange={handleTabChange}
+        variant={variant}
+        orientation={orientation}
+        className={styles.customTabs}
+        sx={{
+          "& .MuiTabs-indicator": {
+            backgroundColor: showIndicator ? indicatorColor : "transparent",
+            height: "1px",
+          },
+        }}
+      >
+        {tabs.map((tab) => (
+          <Tab
+            key={tab.value}
+            label={tab.label}
+            value={tab.value}
+            disabled={tab.disabled}
+            className={styles.customTab}
+            sx={{
+              textTransform: "none",
+              fontFamily: fontFamily,
+              fontSize: fontSize,
+              color: tabColor,
+              minWidth: "auto",
+              padding: "12px 16px",
+              borderRadius: "8px 8px 0 0",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                color: selectedTabColor,
+              },
+              "&.Mui-selected": {
+                color: selectedTabColor,
+                fontWeight: 400,
+              },
+              "&.Mui-disabled": {
+                color: "var(--concrete)",
+                opacity: 0.6,
+              },
+            }}
+          />
+        ))}
+      </Tabs>
+    </div>
+  );
+};
+
+export default CustomTabs;

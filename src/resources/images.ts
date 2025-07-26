@@ -27,6 +27,7 @@ export { default as backButtonIcon } from "@/assets/images/arrow-left-black-icon
 
 export { default as rightArrowPinkIcon } from "@/assets/images/right-arrow-pink-icon.svg";
 export { default as leftArrowGrayIcon } from "@/assets/images/left-arrow-gray-icon.svg";
+export { default as leftArrowBlackIcon } from "@/assets/images/left-arrow-black-icon.svg";
 
 export { default as zoomInPinkIcon } from "@/assets/images/zoom-in-pink-icon.svg";
 export { default as zoomOutPinkIcon } from "@/assets/images/zoom-out-pink-icon.svg";
@@ -39,3 +40,11 @@ export { default as building1 } from "@/assets/images/building1.png";
 export { default as building2 } from "@/assets/images/building2.png";
 export { default as building3 } from "@/assets/images/building3.png";
 export { default as building4 } from "@/assets/images/building4.png";
+
+export { default as downloadIcon } from "@/assets/images/download-rose-icon.svg";
+export { default as threeDotsIcon } from "@/assets/images/pricelist-threedots-black-icon.svg";
+export { default as accordianDownBlackIcon } from "@/assets/images/pricelist-accordian-black-down-icon.svg";
+export { default as accordianOpenIcon } from "@/assets/images/pricelist-accordian-up-icon.svg";
+export { default as accordianDownPinkIcon } from "@/assets/images/pricelist-accordian-pinkishred-down-icon.svg";
+
+export { default as uploadBlackIcon } from "@/assets/images/upload-black-icon.svg";

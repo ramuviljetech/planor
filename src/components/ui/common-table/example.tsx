@@ -2,6 +2,8 @@ import React, { useState, useRef } from "react";
 import CommonTable, { TableColumn, TableRow } from "./index";
 import PopOver from "../popover";
 import styles from "./styles.module.css";
+import Image from "next/image";
+import { rightArrowPinkIcon } from "@/resources/images";
 
 // Example usage of CommonTable component with pagination
 const CommonTableExample: React.FC = () => {
@@ -14,7 +16,6 @@ const CommonTableExample: React.FC = () => {
   const actionIconRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const itemsPerPage = 5;
 
-  // Define columns with custom widths and render functions
   const columns: TableColumn[] = [
     {
       key: "clientName",
@@ -40,25 +41,11 @@ const CommonTableExample: React.FC = () => {
       key: "maintenanceCost",
       title: "Maintenance Cost",
       width: 150,
-      render: (value) => (
-        <span>
-          {typeof value === "number" ? value.toLocaleString() : value}
-        </span>
-      ),
     },
     {
       key: "status",
       title: "Status",
       width: 120,
-      render: (value) => (
-        <span
-          className={`${styles.statusBadge} ${
-            styles.statusBadge
-          }--${value.toLowerCase()}`}
-        >
-          {value}
-        </span>
-      ),
     },
     {
       key: "actions",
@@ -75,11 +62,12 @@ const CommonTableExample: React.FC = () => {
             setPopoverState({ show: true, rowId: row.id });
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <circle cx="8" cy="4" r="1.5" />
-            <circle cx="8" cy="8" r="1.5" />
-            <circle cx="8" cy="12" r="1.5" />
-          </svg>
+          <Image
+            src={rightArrowPinkIcon}
+            alt="menu-dot"
+            width={16}
+            height={16}
+          />
         </div>
       ),
     },

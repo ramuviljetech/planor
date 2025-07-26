@@ -44,11 +44,19 @@
   --neon-mint: rgba(96, 244, 101, 1);
   --onyx-black: rgba(26, 26, 26, 1);
   --midnight-overlay-light: rgba(28, 47, 58, 0.27);
+<<<<<<< HEAD
   --slate-blue-gray: rgba(37, 59, 72, 0.3);
   --charcoal-gray: rgba(25, 30, 33, 0.34);
   --transparent-black: rgba(0, 0, 0, 0.3);
   --transparent-white: rgba(255, 255, 255, 0.1);
   --crimson-red: rgba(136, 18, 60, 1);
+=======
+  --soft-white: rgba(247, 247, 247, 1);
+  --ruby-red: rgba(136, 18, 60, 1);
+  --pinkish-red: rgba(136, 18, 60, 1);
+  --siren-red: rgba(158, 46, 86, 1);
+  --dark-maroon: rgba(136, 18, 60, 1);
+>>>>>>> 6975d6a76b289c4034c4d6ecae5db6e361ed2115
 }
 
 html,

@@ -4,6 +4,13 @@
   gap: 4px;
 }
 
+.back_arrow {
+  width: 24px;
+  height: 24px;
+  margin-top: 6px;
+  cursor: pointer;
+}
+
 .breadcrumb_item {
   font-family: var(--font-lato-regular);
   font-size: 18px;
