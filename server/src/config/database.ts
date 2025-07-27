@@ -4,7 +4,9 @@ import { CosmosClient, Database, Container } from '@azure/cosmos'
 let cosmosClient: CosmosClient | null = null
 let database: Database
 let usersContainer: Container
+let otpContainer: Container
 const containerId = 'users'
+const otpContainerId = 'otp'
 
 // Initialize Cosmos DB client
 const initializeCosmosClient = () => {
@@ -48,6 +50,13 @@ export const initializeDatabase = async () => {
     })
     usersContainer = container
 
+    // Create OTP container if it doesn't exist
+    const { container: otpCont } = await database.containers.createIfNotExists({
+      id: otpContainerId,
+      partitionKey: '/email'
+    })
+    otpContainer = otpCont
+
     console.log('✅ Cosmos DB connected successfully')
   } catch (error) {
     console.error('❌ Failed to connect to Cosmos DB:', error)
@@ -61,6 +70,14 @@ export const getUsersContainer = (): Container => {
     throw new Error('Cosmos DB not configured or not initialized. Please set COSMOS_DB_ENDPOINT and COSMOS_DB_KEY environment variables.')
   }
   return usersContainer
+}
+
+// Get OTP container
+export const getOtpContainer = (): Container => {
+  if (!cosmosClient || !otpContainer) {
+    throw new Error('Cosmos DB not configured or not initialized. Please set COSMOS_DB_ENDPOINT and COSMOS_DB_KEY environment variables.')
+  }
+  return otpContainer
 }
 
 // Get database instance

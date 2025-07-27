@@ -44,7 +44,6 @@ Authorization: Bearer <your-jwt-token>
       "createdAt": "2024-01-01T00:00:00.000Z",
       "updatedAt": "2024-01-01T00:00:00.000Z",
       "lastLoginAt": "2024-01-15T00:00:00.000Z",
-      "azureAdId": "azure-ad-id-1"
     }
   ],
   "pagination": {
@@ -81,7 +80,6 @@ curl -X GET "http://localhost:3001/api/users?page=1&limit=5&role=admin" \
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-01T00:00:00.000Z",
   "lastLoginAt": "2024-01-15T00:00:00.000Z",
-  "azureAdId": "azure-ad-id-1"
 }
 ```
 
@@ -101,7 +99,6 @@ curl -X GET "http://localhost:3001/api/users/1" \
   "name": "New User",
   "role": "standard_user",
   "clientId": null,
-  "azureAdId": "azure-ad-id-123"
 }
 ```
 
@@ -123,7 +120,6 @@ curl -X GET "http://localhost:3001/api/users/1" \
   "createdAt": "2024-01-20T10:30:00.000Z",
   "updatedAt": "2024-01-20T10:30:00.000Z",
   "lastLoginAt": null,
-  "azureAdId": "azure-ad-id-123"
 }
 ```
 
@@ -168,7 +164,6 @@ curl -X POST "http://localhost:3001/api/users" \
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-20T10:30:00.000Z",
   "lastLoginAt": "2024-01-15T00:00:00.000Z",
-  "azureAdId": "azure-ad-id-1"
 }
 ```
 
@@ -216,7 +211,6 @@ curl -X DELETE "http://localhost:3001/api/users/3" \
   "createdAt": "2024-01-03T00:00:00.000Z",
   "updatedAt": "2024-01-20T10:30:00.000Z",
   "lastLoginAt": "2024-01-13T00:00:00.000Z",
-  "azureAdId": "azure-ad-id-3"
 }
 ```
 
@@ -241,7 +235,6 @@ curl -X PATCH "http://localhost:3001/api/users/3/activate" \
   "createdAt": "2024-01-02T00:00:00.000Z",
   "updatedAt": "2024-01-02T00:00:00.000Z",
   "lastLoginAt": "2024-01-14T00:00:00.000Z",
-  "azureAdId": "azure-ad-id-2"
 }
 ```
 
@@ -276,7 +269,6 @@ curl -X GET "http://localhost:3001/api/users/me/profile" \
   "createdAt": "2024-01-02T00:00:00.000Z",
   "updatedAt": "2024-01-20T10:30:00.000Z",
   "lastLoginAt": "2024-01-14T00:00:00.000Z",
-  "azureAdId": "azure-ad-id-2"
 }
 ```
 
@@ -374,4 +366,3 @@ The API includes mock data for testing:
 - User deletion is soft delete (sets `isActive` to false)
 - Email addresses must be unique across all users
 - Client users must have a `clientId` assigned
-- Azure AD integration is supported via `azureAdId` field 

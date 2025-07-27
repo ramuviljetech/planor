@@ -41,7 +41,6 @@ Authorization: Bearer <admin-jwt-token>
   "password": "securepassword123",
   "role": "standard_user",
   "clientId": null,
-  "azureAdId": null
 }
 ```
 
@@ -70,7 +69,6 @@ Authorization: Bearer <admin-jwt-token>
       "createdAt": "2024-01-20T10:30:00.000Z",
       "updatedAt": "2024-01-20T10:30:00.000Z",
       "lastLoginAt": null,
-      "azureAdId": null
     }
   }
 }
@@ -132,7 +130,6 @@ curl -X POST "http://localhost:3001/api/auth/register" \
       "createdAt": "2024-01-20T10:30:00.000Z",
       "updatedAt": "2024-01-20T10:30:00.000Z",
       "lastLoginAt": "2024-01-20T10:30:00.000Z",
-      "azureAdId": null
     },
     "token": "jwt-token-here",
     "expiresIn": "24h"
@@ -172,7 +169,6 @@ Authorization: Bearer <jwt-token>
     "createdAt": "2024-01-20T10:30:00.000Z",
     "updatedAt": "2024-01-20T10:30:00.000Z",
     "lastLoginAt": "2024-01-20T10:30:00.000Z",
-    "azureAdId": null
   }
 }
 ```
@@ -214,7 +210,6 @@ Authorization: Bearer <jwt-token>
     "createdAt": "2024-01-20T10:30:00.000Z",
     "updatedAt": "2024-01-20T10:35:00.000Z",
     "lastLoginAt": "2024-01-20T10:30:00.000Z",
-    "azureAdId": null
   }
 }
 ```
@@ -310,7 +305,6 @@ Authorization: Bearer <admin-jwt-token>
     "createdAt": "2024-01-20T10:30:00.000Z",
     "updatedAt": "2024-01-20T10:35:00.000Z",
     "lastLoginAt": "2024-01-20T10:30:00.000Z",
-    "azureAdId": null
   }
 }
 ```
