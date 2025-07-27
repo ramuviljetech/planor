@@ -1,393 +1,398 @@
 import express, { Request, Response } from 'express'
-import { User, UserRole, CreateUserRequest, UpdateUserRequest, UserListResponse } from '../types'
-import { authMiddleware, requireRole, requireAdmin } from '../middleware/auth'
+import { User, UserRole, UserStatus, CreateUserRequest, UpdateUserRequest, UserListResponse } from '../types'
+import { authMiddleware} from '../middleware/auth'
+import { getUsersContainer, getOtpContainer } from '../config/database'
+import { sendMail } from '../services/mail.service';
+import { generateNumericOTP } from '../utils/otp';
 
 const router = express.Router()
 
-// Mock database - replace with actual database operations
-let users: User[] = [
-  {
-    id: '1',
-    email: 'admin@planor.com',
-    name: 'Admin User',
-    role: UserRole.ADMIN,
-    clientId: null,
-    isActive: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-01'),
-    lastLoginAt: new Date('2024-01-15'),
-    azureAdId: 'azure-ad-id-1'
-  },
-  {
-    id: '2',
-    email: 'user@planor.com',
-    name: 'Standard User',
-    role: UserRole.STANDARD_USER,
-    clientId: null,
-    isActive: true,
-    createdAt: new Date('2024-01-02'),
-    updatedAt: new Date('2024-01-02'),
-    lastLoginAt: new Date('2024-01-14'),
-    azureAdId: 'azure-ad-id-2'
-  },
-  {
-    id: '3',
-    email: 'client@example.com',
-    name: 'Client User',
-    role: UserRole.CLIENT,
-    clientId: 'client-1',
-    isActive: true,
-    createdAt: new Date('2024-01-03'),
-    updatedAt: new Date('2024-01-03'),
-    lastLoginAt: new Date('2024-01-13'),
-    azureAdId: 'azure-ad-id-3'
-  }
-]
-
-// GET /api/users - List users (Admin only)
-router.get('/', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
+// GET /api/users/me/auth - Get current user profile (auth version)
+router.get('/profile/:id?', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { page = 1, limit = 10, role, isActive, search } = req.query
-    const pageNum = parseInt(page as string)
-    const limitNum = parseInt(limit as string)
-    const offset = (pageNum - 1) * limitNum
+    const authenticatedUser = (req as any).user
+    const { id } = req.params
+    const usersContainer = getUsersContainer()
 
-    // Filter users based on query parameters
-    let filteredUsers = users
+    let targetUserId: string
 
-    if (role) {
-      filteredUsers = filteredUsers.filter(user => user.role === role)
+    if (authenticatedUser.role === 'admin') {
+      // Admin can fetch any user by ID (from params)
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          error: 'User ID is required for admin access'
+        });
+      }
+      targetUserId = id
+    } else {
+      // Regular user can only access their own profile
+      targetUserId = authenticatedUser.id
     }
 
-    if (isActive !== undefined) {
-      const active = isActive === 'true'
-      filteredUsers = filteredUsers.filter(user => user.isActive === active)
+    // Get user from database
+    const { resource: user } = await usersContainer.item(targetUserId, targetUserId).read()
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found '
+      })
     }
 
-    if (search) {
-      const searchTerm = (search as string).toLowerCase()
-      filteredUsers = filteredUsers.filter(user => 
-        user.name.toLowerCase().includes(searchTerm) ||
-        user.email.toLowerCase().includes(searchTerm)
-      )
+    // Remove password from response
+    const { password, ...userWithoutPassword } = user
+
+    res.json({
+      success: true,
+      data: userWithoutPassword
+    })
+    return
+  } catch (error) {
+    console.error('Get profile error:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    })
+    return
+  }
+})
+
+// PUT /api/users/me/auth - Update current user profile (auth version)
+router.put('/profile', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const authenticatedUser = (req as any).user
+    const updateData: Partial<UpdateUserRequest> = req.body
+    const usersContainer = getUsersContainer()
+
+    // Only allow updating name, email, and status for own profile
+    const allowedFields = ['name', 'email', 'status']
+    const updateKeys = Object.keys(updateData)
+    const hasUnauthorizedFields = updateKeys.some(key => !allowedFields.includes(key))
+
+    if (authenticatedUser.role === UserRole.ADMIN) {
+      return res.status(403).json({
+        success: false,
+        error: 'You are not authorized to update the profile'
+      })
     }
 
-    // Pagination
-    const totalUsers = filteredUsers.length
-    const paginatedUsers = filteredUsers.slice(offset, offset + limitNum)
+    if (updateData.status && !Object.values(UserStatus).includes(updateData.status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid status value. Allowed values are active, deactive'
+      });
+    }
 
-    const response: UserListResponse = {
-      users: paginatedUsers,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total: totalUsers,
-        totalPages: Math.ceil(totalUsers / limitNum)
+    if (hasUnauthorizedFields) {
+      return res.status(403).json({
+        success: false,
+        error: 'You can only update your name, email, and status'
+      })
+    }
+    if (updateData.status === UserStatus.BLOCK) {
+      return res.status(403).json({
+        success: false,
+        error: 'You cannot block your own account'
+      })
+    }
+
+    // Get current user
+    const { resource: currentUser } = await usersContainer.item(authenticatedUser.id, authenticatedUser.id).read()
+
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      })
+    }
+
+    // Validate email if being updated
+    if (updateData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(updateData.email)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid email format'
+        })
+      }
+
+      // Check if email already exists (excluding current user)
+      const existingUserQuery = {
+        query: 'SELECT * FROM c WHERE c.email = @email AND c.id != @userId',
+        parameters: [
+          { name: '@email', value: updateData.email },
+          { name: '@userId', value: authenticatedUser.id }
+        ]
+      }
+
+      const { resources: existingUsers } = await usersContainer.items.query(existingUserQuery).fetchAll()
+
+      if (existingUsers.length > 0) {
+        return res.status(409).json({
+          success: false,
+          error: 'User with this email already exists'
+        })
       }
     }
 
-    res.json(response)
-  } catch (error) {
-    console.error('Error fetching users:', error)
-    res.status(500).json({ error: 'Internal server error' })
-  }
-})
-
-// GET /api/users/:id - Get user by ID
-router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params
-    const user = users.find(u => u.id === id)
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' })
+    // Update user
+    const updatedUser = {
+      ...currentUser,
+      ...updateData,
+      updatedAt: new Date()
     }
 
-    // Check if user has permission to view this user
-    const authenticatedUser = (req as any).user
-    if (authenticatedUser.role !== UserRole.ADMIN && authenticatedUser.id !== id) {
-      return res.status(403).json({ error: 'Access denied' })
-    }
+    await usersContainer.item(authenticatedUser.id, authenticatedUser.id).replace(updatedUser)
 
-    res.json(user)
+    // Remove password from response
+    const { password, ...userWithoutPassword } = updatedUser
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: userWithoutPassword
+    })
     return
   } catch (error) {
-    console.error('Error fetching user:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    console.error('Update profile error:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    })
     return
   }
 })
 
-// POST /api/users - Create new user (Admin only)
-router.post('/', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const userData: CreateUserRequest = req.body
+// POST /api/users/change-password - Change password
+// router.post('/change-password', authMiddleware, async (req: Request, res: Response) => {
+//   try {
+//     const authenticatedUser = (req as any).user
+//     const { currentPassword, newPassword } = req.body
+//     const usersContainer = getUsersContainer()
 
-    // Validate required fields
-    if (!userData.email || !userData.name || !userData.role) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: email, name, role' 
+//     // Validate required fields
+//     if (!currentPassword || !newPassword) {
+//       return res.status(400).json({
+//         success: false,
+//         error: 'Current password and new password are required'
+//       })
+//     }
+
+//     // Validate new password strength
+//     if (newPassword.length < 8) {
+//       return res.status(400).json({
+//         success: false,
+//         error: 'New password must be at least 8 characters long'
+//       })
+//     }
+
+//     // Get current user
+//     const { resource: currentUser } = await usersContainer.item(authenticatedUser.id, authenticatedUser.id).read()
+
+//     if (!currentUser) {
+//       return res.status(404).json({
+//         success: false,
+//         error: 'User not found'
+//       })
+//     }
+
+//     // Verify current password
+//     const isCurrentPasswordValid = await comparePassword(currentPassword, currentUser.password)
+//     if (!isCurrentPasswordValid) {
+//       return res.status(401).json({
+//         success: false,
+//         error: 'Current password is incorrect'
+//       })
+//     }
+
+//     // Hash new password
+//     const hashedNewPassword = await hashPassword(newPassword)
+
+//     // Update user with new password
+//     const updatedUser = {
+//       ...currentUser,
+//       password: hashedNewPassword,
+//       updatedAt: new Date()
+//     }
+
+//     await usersContainer.item(authenticatedUser.id, authenticatedUser.id).replace(updatedUser)
+
+//     res.json({
+//       success: true,
+//       message: 'Password changed successfully'
+//     })
+//     return
+//   } catch (error) {
+//     console.error('Change password error:', error)
+//     res.status(500).json({
+//       success: false,
+//       error: 'Internal server error'
+//     })
+//     return
+//   }
+// })
+
+// POST /api/users/send-otp - Send OTP to email
+router.post('/send-otp', async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email is required'
       })
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(userData.email)) {
-      return res.status(400).json({ error: 'Invalid email format' })
-    }
-
-    // Check if email already exists
-    const existingUser = users.find(u => u.email === userData.email)
-    if (existingUser) {
-      return res.status(409).json({ error: 'User with this email already exists' })
-    }
-
-    // Validate role
-    if (!Object.values(UserRole).includes(userData.role)) {
-      return res.status(400).json({ error: 'Invalid role' })
-    }
-
-    // Validate clientId for CLIENT role
-    if (userData.role === UserRole.CLIENT && !userData.clientId) {
-      return res.status(400).json({ 
-        error: 'Client ID is required for CLIENT role' 
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email format'
       })
     }
 
-    // Create new user
-    const newUser: User = {
-      id: (users.length + 1).toString(), // In real app, use UUID
-      email: userData.email,
-      name: userData.name,
-      role: userData.role,
-      clientId: userData.clientId || null,
-      isActive: true,
+    // Generate OTP
+    const otp = generateNumericOTP()
+    
+    // Set expiration time (5 minutes from now)
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
+
+    // Store OTP in database
+    const otpContainer = getOtpContainer()
+    const otpData = {
+      id: email, // Use email as ID for easy lookup
+      email: email,
+      otp: otp,
+      expiresAt: expiresAt,
       createdAt: new Date(),
-      updatedAt: new Date(),
-      lastLoginAt: null,
-      azureAdId: userData.azureAdId || null
+      used: false
     }
 
-    users.push(newUser)
+    // Check if OTP already exists for this email and delete it
+    try {
+      await otpContainer.item(email, email).delete()
+    } catch (error) {
+      // OTP doesn't exist, which is fine
+      console.log("OTP doesn't exist, which is fine");
+      console.log(error);
+    
+    }
 
-    res.status(201).json(newUser)
+    // Create new OTP record
+    await otpContainer.items.create(otpData)
+
+    // Send OTP via email
+    await sendMail({
+      otp: otp,
+      email: email
+    })
+
+    res.json({
+      success: true,
+      message: 'OTP sent successfully to your email'
+    })
     return
   } catch (error) {
-    console.error('Error creating user:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    console.error('Send OTP error:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to send OTP. Please try again.'
+    })
     return
   }
 })
 
-// PUT /api/users/:id - Update user
-router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
+// POST /api/users/verify-otp - Verify OTP
+router.post('/verify-otp', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params
-    const updateData: UpdateUserRequest = req.body
-    const authenticatedUser = (req as any).user
+    const { email, otp } = req.body
 
-    // Find user to update
-    const userIndex = users.findIndex(u => u.id === id)
-    if (userIndex === -1) {
-      return res.status(404).json({ error: 'User not found' })
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email and OTP are required'
+      })
     }
 
-    const userToUpdate = users[userIndex]
-
-    // Check permissions
-    if (authenticatedUser.role !== UserRole.ADMIN && authenticatedUser.id !== id) {
-      return res.status(403).json({ error: 'Access denied' })
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email format'
+      })
     }
 
-    // Non-admin users can only update their own basic info
-    if (authenticatedUser.role !== UserRole.ADMIN) {
-      const allowedFields = ['name']
-      const updateKeys = Object.keys(updateData)
-      const hasUnauthorizedFields = updateKeys.some(key => !allowedFields.includes(key))
+    // Get OTP from database
+    const otpContainer = getOtpContainer()
+    
+    try {
+      const { resource: otpRecord } = await otpContainer.item(email, email).read()
       
-      if (hasUnauthorizedFields) {
-        return res.status(403).json({ 
-          error: 'You can only update your name' 
+      if (!otpRecord) {
+        return res.status(400).json({
+          success: false,
+          error: 'OTP not found. Please request a new OTP.'
         })
       }
-    }
 
-    // Validate email if being updated
-    if (updateData.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(updateData.email)) {
-        return res.status(400).json({ error: 'Invalid email format' })
+      // Check if OTP is expired
+      if (new Date() > new Date(otpRecord.expiresAt)) {
+        // Delete expired OTP
+        await otpContainer.item(email, email).delete()
+        return res.status(400).json({
+          success: false,
+          error: 'OTP has expired. Please request a new OTP.'
+        })
       }
 
-      // Check if email already exists (excluding current user)
-      const existingUser = users.find(u => u.email === updateData.email && u.id !== id)
-      if (existingUser) {
-        return res.status(409).json({ error: 'User with this email already exists' })
+      // Check if OTP is already used
+      if (otpRecord.used) {
+        return res.status(400).json({
+          success: false,
+          error: 'OTP has already been used. Please request a new OTP.'
+        })
       }
-    }
 
-    // Validate role if being updated (Admin only)
-    if (updateData.role && authenticatedUser.role !== UserRole.ADMIN) {
-      return res.status(403).json({ error: 'Only admins can change user roles' })
-    }
+      // Verify OTP
+      if (otpRecord.otp !== otp) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid OTP. Please check and try again.'
+        })
+      }
 
-    if (updateData.role && !Object.values(UserRole).includes(updateData.role)) {
-      return res.status(400).json({ error: 'Invalid role' })
-    }
+      // Mark OTP as used
+      const updatedOtpRecord = {
+        ...otpRecord,
+        used: true,
+        usedAt: new Date()
+      }
+      await otpContainer.item(email, email).replace(updatedOtpRecord)
 
-    // Validate clientId for CLIENT role
-    if (updateData.role === UserRole.CLIENT && !updateData.clientId) {
-      return res.status(400).json({ 
-        error: 'Client ID is required for CLIENT role' 
+      res.json({
+        success: true,
+        message: 'OTP verified successfully'
+      })
+      return
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        error: 'OTP not found. Please request a new OTP.'
       })
     }
-
-    // Update user
-    const updatedUser: User = {
-      ...userToUpdate,
-      ...updateData,
-      updatedAt: new Date()
-    }
-
-    users[userIndex] = updatedUser
-
-    res.json(updatedUser)
-    return
   } catch (error) {
-    console.error('Error updating user:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    console.error('Verify OTP error:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to verify OTP. Please try again.'
+    })
     return
   }
 })
 
-// DELETE /api/users/:id - Delete user (Admin only)
-router.delete('/:id', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params
-    const authenticatedUser = (req as any).user
 
-    // Prevent admin from deleting themselves
-    if (authenticatedUser.id === id) {
-      return res.status(400).json({ 
-        error: 'Cannot delete your own account' 
-      })
-    }
-
-    const userIndex = users.findIndex(u => u.id === id)
-    if (userIndex === -1) {
-      return res.status(404).json({ error: 'User not found' })
-    }
-
-    // Soft delete - set isActive to false
-    users[userIndex] = {
-      ...users[userIndex],
-      isActive: false,
-      updatedAt: new Date()
-    }
-
-    res.json({ message: 'User deactivated successfully' })
-    return
-  } catch (error) {
-    console.error('Error deleting user:', error)
-    res.status(500).json({ error: 'Internal server error' })
-    return
-  }
-})
-
-// PATCH /api/users/:id/activate - Activate user (Admin only)
-router.patch('/:id/activate', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params
-
-    const userIndex = users.findIndex(u => u.id === id)
-    if (userIndex === -1) {
-      return res.status(404).json({ error: 'User not found' })
-    }
-
-    users[userIndex] = {
-      ...users[userIndex],
-      isActive: true,
-      updatedAt: new Date()
-    }
-
-    res.json(users[userIndex])
-    return
-  } catch (error) {
-    console.error('Error activating user:', error)
-    res.status(500).json({ error: 'Internal server error' })
-    return
-  }
-})
-
-// GET /api/users/me - Get current user profile
-router.get('/me/profile', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const authenticatedUser = (req as any).user
-    const user = users.find(u => u.id === authenticatedUser.id)
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' })
-    }
-
-    res.json(user)
-    return
-  } catch (error) {
-    console.error('Error fetching user profile:', error)
-    res.status(500).json({ error: 'Internal server error' })
-    return
-  }
-})
-
-// PUT /api/users/me/profile - Update current user profile
-router.put('/me/profile', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const updateData: Partial<UpdateUserRequest> = req.body
-    const authenticatedUser = (req as any).user
-
-    // Only allow updating name and email for own profile
-    const allowedFields = ['name', 'email']
-    const updateKeys = Object.keys(updateData)
-    const hasUnauthorizedFields = updateKeys.some(key => !allowedFields.includes(key))
-    
-    if (hasUnauthorizedFields) {
-      return res.status(403).json({ 
-        error: 'You can only update your name and email' 
-      })
-    }
-
-    const userIndex = users.findIndex(u => u.id === authenticatedUser.id)
-    if (userIndex === -1) {
-      return res.status(404).json({ error: 'User not found' })
-    }
-
-    // Validate email if being updated
-    if (updateData.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(updateData.email)) {
-        return res.status(400).json({ error: 'Invalid email format' })
-      }
-
-      // Check if email already exists
-      const existingUser = users.find(u => u.email === updateData.email && u.id !== authenticatedUser.id)
-      if (existingUser) {
-        return res.status(409).json({ error: 'User with this email already exists' })
-      }
-    }
-
-    // Update user
-    users[userIndex] = {
-      ...users[userIndex],
-      ...updateData,
-      updatedAt: new Date()
-    }
-
-    res.json(users[userIndex])
-    return
-  } catch (error) {
-    console.error('Error updating user profile:', error)
-    res.status(500).json({ error: 'Internal server error' })
-    return
-  }
-})
-
-export default router 
+export { router as usersRoutes }

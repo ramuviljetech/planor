@@ -5,6 +5,13 @@ export enum UserRole {
   CLIENT = 'client'
 }
 
+// User Status Enum
+export enum UserStatus {
+  ACTIVE = 'active',
+  DEACTIVE = 'deactive',
+  BLOCK = 'block'
+}
+
 // User Types
 export interface User {
   id: string;
@@ -12,11 +19,10 @@ export interface User {
   name: string;
   role: UserRole;
   clientId?: string | null;
-  isActive: boolean;
+  status: UserStatus;
   createdAt: Date;
   updatedAt: Date;
   lastLoginAt?: Date | null;
-  azureAdId?: string | null;
   password?: string; // Optional for responses, required for database operations
 }
 
@@ -215,7 +221,6 @@ export interface CreateUserRequest {
   name: string
   role: UserRole
   clientId?: string | null
-  azureAdId?: string | null
 }
 
 export interface UpdateUserRequest {
@@ -223,8 +228,7 @@ export interface UpdateUserRequest {
   name?: string
   role?: UserRole
   clientId?: string | null
-  isActive?: boolean
-  azureAdId?: string | null
+  status?: UserStatus
   password?: string // Optional for admin updates
 }
 

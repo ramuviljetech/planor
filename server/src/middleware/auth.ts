@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { AuthenticatedRequest, User } from '../types';
+import { AuthenticatedRequest, User, UserStatus } from '../types';
 import { getUsersContainer } from '../config/database';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -35,10 +35,10 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const usersContainer = getUsersContainer();
     const { resource: user } = await usersContainer.item(decoded.id, decoded.id).read();
 
-    if (!user || !user.isActive) {
+    if (!user || user.status === UserStatus.BLOCK) {
       res.status(401).json({
         success: false,
-        error: 'User not found or inactive'
+        error: 'User not found or blocked'
       });
       return;
     }
