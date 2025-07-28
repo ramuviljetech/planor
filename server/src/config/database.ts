@@ -53,7 +53,8 @@ export const initializeDatabase = async () => {
     // Create OTP container if it doesn't exist
     const { container: otpCont } = await database.containers.createIfNotExists({
       id: otpContainerId,
-      partitionKey: '/email'
+      partitionKey: '/email',
+      defaultTtl: 300 // 5 minutes in seconds
     })
     otpContainer = otpCont
 

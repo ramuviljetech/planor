@@ -6,7 +6,7 @@ import {
   getUserProfile, 
   updateUserProfile, 
   sendOtp, 
-  verifyOtp 
+  verifyOtp
 } from '../controllers/users.controller'
 
 const router = express.Router()

@@ -1,0 +1,128 @@
+.client_info_container {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 24px 24px 0px;
+}
+.client_info_header_section {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.client_info_breadcrumb_container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+.left_arrow_icon {
+  width: 24px;
+  height: 24px;
+  margin-top: 6px;
+}
+.client_info_section {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 20px 20px 20px;
+  background-color: var(--white);
+  border-radius: 16px;
+  border: 1px solid var(--concrete);
+}
+.client_info_overview_section {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.client_info_overview_sub_section {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+}
+.client_info_overview_info_title {
+  font-family: var(--font-lato-bold);
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--jet-black);
+}
+.client_info_overview_info_container {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  column-gap: 64px;
+  row-gap: 0px;
+}
+.client_info_overview_info_item {
+  width: calc((100% - 64px) / 2);
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 0px 12px 0px;
+  border-bottom: 1px solid var(--concrete);
+}
+.client_info_overview_users_list_container {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.client_info_overview_add_user_button {
+  border: none;
+  color: var(--rose-red);
+}
+.client_info_overview_action_icon {
+  cursor: pointer;
+  align-self: flex-end;
+  justify-self: flex-end;
+}
+/* Popover menu styles */
+.action_popoverMenu {
+  background: rgba(255, 255, 255, 1);
+  border-radius: 8px;
+  min-width: 170px;
+  padding: 16px 12px;
+  border: 1px solid rgba(232, 232, 232, 1);
+  box-shadow: 0px 0px 6.4px 0px rgba(193, 193, 193, 0.25);
+}
+
+.action_popoverMenuItem {
+  padding: 8px 12px;
+  font-family: var(--font-lato-regular);
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: rgba(25, 30, 33, 1);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.action_popoverMenuItem:hover {
+  background-color: #f3f4f6;
+}

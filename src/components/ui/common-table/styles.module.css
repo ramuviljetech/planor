@@ -1,0 +1,186 @@
+.table_container {
+  width: 100%;
+  background: rgba(255, 255, 255, 1);
+  border-radius: 8px;
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+  overflow: hidden;
+}
+
+.table_title {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(242, 242, 242, 1);
+  background: rgba(88, 88, 88, 0.05);
+}
+
+.table_title h3 {
+  margin: 0;
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: rgba(80, 81, 82, 1);
+}
+
+.table_wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-lato-regular);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.table_header {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table_header_cell {
+  padding: 12px 16px 12px 12px;
+  text-align: left;
+  font-family: var(--font-lato-bold);
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.table_body {
+  background-color: #ffffff;
+}
+
+.table_row {
+  transition: background-color 0.2s ease;
+  border-radius: 24px;
+}
+
+.table_row:hover {
+  background-color: #f9fafb;
+}
+
+.table_row.clickableRow {
+  cursor: pointer;
+}
+
+/* .tableRow.clickableRow:hover {
+  background-color: #f3f4f6;
+} */
+
+.selected_row {
+  background: rgba(203, 30, 93, 0.08);
+}
+
+.selected_row:hover {
+  background: rgba(203, 30, 93, 0.08);
+  border-radius: 24px;
+}
+
+.disabled_row {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.disabled_row:hover {
+  background-color: transparent;
+}
+
+.table_cell {
+  padding: 12px 16px 12px 12px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+  font-family: var(--font-lato-regular);
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: rgba(25, 30, 33, 1);
+}
+
+/* Status badge styles */
+.status_badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 12px;
+  text-transform: uppercase;
+  font-family: var(--font-lato-regular);
+  font-size: 12px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  vertical-align: middle;
+  color: rgba(6, 107, 216, 1);
+}
+
+.status_badge.active {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status_badge.inactive {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.action_icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.action_icon:hover {
+  background-color: #f3f4f6;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .table_header_cell,
+  .table_cell {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .table_title {
+    padding: 12px 16px;
+  }
+
+  .table_title h3 {
+    font-size: 16px;
+  }
+}
+
+/* Popover menu styles */
+.popoverMenu {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  min-width: 140px;
+  padding: 4px 0;
+}
+
+.popoverMenuItem {
+  padding: 8px 16px;
+  font-family: var(--font-lato-regular);
+  font-size: 14px;
+  line-height: 20px;
+  color: #374151;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.popoverMenuItem:hover {
+  background-color: #f3f4f6;
+}

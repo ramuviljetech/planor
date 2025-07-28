@@ -1,0 +1,93 @@
+.login_container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.logo_container {
+  position: absolute;
+  top: 30px;
+  left: 40px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.logoText {
+  font-family: var(--font-lato-bold);
+  font-size: 18px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--black);
+}
+.sub_container {
+  width: 442px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+/* Title */
+.title_container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 80%;
+}
+.title {
+  font-family: var(--font-lato-bold);
+  font-size: 28px;
+  color: var(--dark-slate);
+  text-align: center;
+}
+.login_subtitle {
+  font-family: var(--font-lato-regular);
+  font-size: 16px;
+  color: var(--ash-gray);
+  text-align: center;
+}
+/* Form */
+.login_form_container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+/* Checkbox */
+.forgot_password_container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.forgot_password {
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-size: 14px;
+  text-decoration: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: 1px;
+  color: var(--jet-black);
+  cursor: pointer;
+}
+/* Button */
+.sign_in_button {
+  width: 100%;
+  height: 40px;
+  font-family: var(--font-lato-bold);
+  font-size: 16px;
+  line-height: 21px;
+  letter-spacing: -0.24px;
+}

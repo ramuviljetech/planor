@@ -12,7 +12,11 @@
     "server:build": "tsc --project server/tsconfig.json",
     "server:start": "node server/dist/index.js",
     "dev:full": "concurrently \"npm run dev\" \"npm run server:dev\"",
-    "create-admin": "node server/src/scripts/createAdmin.js"
+    "create-admin": "node server/src/scripts/createAdmin.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:api": "jest --testPathPattern=tests/api"
   },
   "dependencies": {
     "@azure/cosmos": "^4.5.0",
@@ -27,9 +31,11 @@
     "@mui/x-data-grid": "^8.9.1",
     "@types/joi": "^17.2.2",
     "bcryptjs": "^3.0.2",
+    "classnames": "^2.5.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "formik": "^2.4.6",
     "helmet": "^7.1.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
@@ -38,23 +44,31 @@
     "node-mailjet": "^6.0.9",
     "react": "^18",
     "react-dom": "^18",
-    "uuid": "^11.1.0"
+    "react-otp-input": "^3.1.1",
+    "resize-observer-polyfill": "^1.5.1",
+    "uuid": "^11.1.0",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.9",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/supertest": "^6.0.2",
     "@types/uuid": "^10.0.0",
     "concurrently": "^8.2.2",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
+    "jest": "^29.7.0",
     "nodemon": "^3.0.2",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5"
   }

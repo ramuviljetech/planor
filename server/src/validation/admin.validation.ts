@@ -1,7 +1,106 @@
 import Joi from 'joi'
 
-// User registration validation schema (for admin)
-export const registerUserSchema = Joi.object({
+
+
+// Client-only creation validation schema
+export const createClientOnlySchema = Joi.object({
+  clientName: Joi.string()
+    .min(2)
+    .max(100)
+    .required()
+    .messages({
+      'string.min': 'Client name must be at least 2 characters long',
+      'string.max': 'Client name cannot exceed 100 characters',
+      'any.required': 'Client name is required',
+      'string.empty': 'Client name cannot be empty'
+    }),
+  organizationNumber: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Organization number is required',
+      'string.empty': 'Organization number cannot be empty'
+    }),
+  industryType: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Industry type is required',
+      'string.empty': 'Industry type cannot be empty'
+    }),
+  address: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Address is required',
+      'string.empty': 'Address cannot be empty'
+    }),
+  websiteUrl: Joi.string()
+    .uri()
+    .optional()
+    .allow('')
+    .messages({
+      'string.uri': 'Please provide a valid website URL'
+    }),
+  timezone: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Timezone is required',
+      'string.empty': 'Timezone cannot be empty'
+    }),
+  primaryContactName: Joi.string()
+    .min(2)
+    .max(100)
+    .required()
+    .messages({
+      'string.min': 'Primary contact name must be at least 2 characters long',
+      'string.max': 'Primary contact name cannot exceed 100 characters',
+      'any.required': 'Primary contact name is required',
+      'string.empty': 'Primary contact name cannot be empty'
+    }),
+  primaryContactEmail: Joi.string()
+    .email({ tlds: { allow: false } })
+    .required()
+    .messages({
+      'string.email': 'Please provide a valid primary contact email address',
+      'any.required': 'Primary contact email is required',
+      'string.empty': 'Primary contact email cannot be empty'
+    }),
+  primaryContactRole: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Primary contact role is required',
+      'string.empty': 'Primary contact role cannot be empty'
+    }),
+  primaryContactPhoneNumber: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Primary contact phone number is required',
+      'string.empty': 'Primary contact phone number cannot be empty'
+    }),
+  description: Joi.string()
+    .optional()
+    .allow('')
+    .messages({
+      'string.empty': 'Description cannot be empty if provided'
+    })
+})
+
+// User-only creation validation schema
+export const createUserOnlySchema = Joi.object({
+  username: Joi.string()
+    .min(3)
+    .max(50)
+    .required()
+    .messages({
+      'string.min': 'Username must be at least 3 characters long',
+      'string.max': 'Username cannot exceed 50 characters',
+      'any.required': 'Username is required',
+      'string.empty': 'Username cannot be empty'
+    }),
+  contact: Joi.string()
+    .optional()
+    .allow('')
+    .messages({
+      'string.empty': 'Contact cannot be empty if provided'
+    }),
   email: Joi.string()
     .email({ tlds: { allow: false } })
     .required()
@@ -10,37 +109,121 @@ export const registerUserSchema = Joi.object({
       'any.required': 'Email is required',
       'string.empty': 'Email cannot be empty'
     }),
-  name: Joi.string()
+  clientId: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'ClientId is required when creating a standard user',
+      'string.empty': 'ClientId cannot be empty'
+    })
+})
+
+// Combined client + user creation validation schema
+export const createClientAndUserSchema = Joi.object({
+  // Client fields (all required)
+  clientName: Joi.string()
     .min(2)
     .max(100)
     .required()
     .messages({
-      'string.min': 'Name must be at least 2 characters long',
-      'string.max': 'Name cannot exceed 100 characters',
-      'any.required': 'Name is required',
-      'string.empty': 'Name cannot be empty'
+      'string.min': 'Client name must be at least 2 characters long',
+      'string.max': 'Client name cannot exceed 100 characters',
+      'any.required': 'Client name is required',
+      'string.empty': 'Client name cannot be empty'
     }),
-  password: Joi.string()
-    .min(8)
+  organizationNumber: Joi.string()
     .required()
     .messages({
-      'string.min': 'Password must be at least 8 characters long',
-      'any.required': 'Password is required',
-      'string.empty': 'Password cannot be empty'
+      'any.required': 'Organization number is required',
+      'string.empty': 'Organization number cannot be empty'
     }),
-  role: Joi.string()
-    .valid('standard_user', 'client')
+  industryType: Joi.string()
     .required()
     .messages({
-      'any.only': 'Role must be either standard_user or client',
-      'any.required': 'Role is required'
+      'any.required': 'Industry type is required',
+      'string.empty': 'Industry type cannot be empty'
     }),
-  clientId: Joi.string()
+  address: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Address is required',
+      'string.empty': 'Address cannot be empty'
+    }),
+  websiteUrl: Joi.string()
+    .uri()
     .optional()
-    .allow(null)
+    .allow('')
     .messages({
-      'string.empty': 'Client ID cannot be empty if provided'
-    })
+      'string.uri': 'Please provide a valid website URL'
+    }),
+  timezone: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Timezone is required',
+      'string.empty': 'Timezone cannot be empty'
+    }),
+  primaryContactName: Joi.string()
+    .min(2)
+    .max(100)
+    .required()
+    .messages({
+      'string.min': 'Primary contact name must be at least 2 characters long',
+      'string.max': 'Primary contact name cannot exceed 100 characters',
+      'any.required': 'Primary contact name is required',
+      'string.empty': 'Primary contact name cannot be empty'
+    }),
+  primaryContactEmail: Joi.string()
+    .email({ tlds: { allow: false } })
+    .required()
+    .messages({
+      'string.email': 'Please provide a valid primary contact email address',
+      'any.required': 'Primary contact email is required',
+      'string.empty': 'Primary contact email cannot be empty'
+    }),
+  primaryContactRole: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Primary contact role is required',
+      'string.empty': 'Primary contact role cannot be empty'
+    }),
+  primaryContactPhoneNumber: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Primary contact phone number is required',
+      'string.empty': 'Primary contact phone number cannot be empty'
+    }),
+  description: Joi.string()
+    .optional()
+    .allow('')
+    .messages({
+      'string.empty': 'Description cannot be empty if provided'
+    }),
+  // User fields (all required)
+  user: Joi.object({
+    username: Joi.string()
+      .min(3)
+      .max(50)
+      .required()
+      .messages({
+        'string.min': 'Username must be at least 3 characters long',
+        'string.max': 'Username cannot exceed 50 characters',
+        'any.required': 'Username is required',
+        'string.empty': 'Username cannot be empty'
+      }),
+    contact: Joi.string()
+      .optional()
+      .allow('')
+      .messages({
+        'string.empty': 'Contact cannot be empty if provided'
+      }),
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required()
+      .messages({
+        'string.email': 'Please provide a valid email address',
+        'any.required': 'Email is required',
+        'string.empty': 'Email cannot be empty'
+      })
+  }).required()
 })
 
 // Update user validation schema (for admin)

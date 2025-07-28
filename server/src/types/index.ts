@@ -41,6 +41,79 @@ export interface Client {
   adminId: string;
 }
 
+// New Client Creation Interface
+export interface CreateClientRequest {
+  id: string;
+  type: UserRole.CLIENT;
+  clientName: string;
+  organizationNumber: string;
+  industryType: string;
+  address: string;
+  websiteUrl?: string;
+  timezone: string;
+  primaryContactName: string;
+  primaryContactEmail: string;
+  primaryContactRole: string;
+  primaryContactPhoneNumber: string;
+  description?: string;
+  status: UserStatus.ACTIVE;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt: string;
+  // Optional clientId for creating users for existing clients
+  clientId?: string;
+  // Optional user data for creating standard user along with client
+  user?: {
+    username: string;
+    contact?: string;
+    email: string;
+  };
+}
+
+// New Standard User Creation Interface
+export interface CreateStandardUserRequest {
+  id: string;
+  username: string;
+  type: UserRole.STANDARD_USER;
+  contact: string; // Optional field
+  email: string;
+  clientId: string; // Mandatory field
+  status: UserStatus.ACTIVE;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt: string;
+  password: string;
+}
+
+// Updated User Types
+export interface StandardUser {
+  id: string;
+  username: string;
+  name: string; // Added to match User interface
+  contact?: string; // Optional field
+  email: string;
+  clientId: string;
+  role: UserRole.STANDARD_USER;
+  status: UserStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  lastLoginAt?: Date | null;
+  password?: string;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Property Types
 export interface Property {
   id: string;
