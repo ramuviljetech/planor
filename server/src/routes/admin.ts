@@ -15,13 +15,13 @@ const router = express.Router()
 // Validation is handled inside the controller based on request type
 router.post('/register', authMiddleware, requireAdmin,createNewUsers)
 
-// PUT /api/admin/profile/:id - Update user (Admin only)
+// ?Future Scope: PUT /api/admin/profile/:id - Update user (Admin only)
 router.put('/profile/:id', authMiddleware, requireAdmin, validateRequest(updateUserSchema), updateUser)
 
-// GET /api/admin/standard-users - Get all standard users only
+// ?Future Scope:GET /api/admin/standard-users - Get all standard users only
 router.get('/standard-users', authMiddleware, requireAdmin, getStandardUsers)
 
-// DELETE /api/admin/delete-users/:id - Delete standard user
+// ?Future Scope: DELETE /api/admin/delete-users/:id - Delete standard user
 router.delete('/delete-users/:id', authMiddleware, requireAdmin, deleteStandardUser)
 
 export { router as adminRoutes }

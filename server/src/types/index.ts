@@ -117,21 +117,23 @@ export interface StandardUser {
 // Property Types
 export interface Property {
   id: string;
-  type: 'property';
-  name: string;
+  propertyName: string;
+  propertyCode: string;
+  propertyType: string;
   address: string;
-  clientId: string;
-  contactPerson: string;
-  contactEmail: string;
-  contactPhone: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  city: string;
+  primaryContactName: string;
+  email: string;
+  role: string;
+  phone: string;
+  description: string;
+  inactive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
   adminId: string;
+  clientId: string;
   metadata?: {
-    totalArea?: number;
-    yearBuilt?: number;
-    propertyType?: string;
+    grossArea?: number;
   };
 }
 
@@ -316,16 +318,20 @@ export interface UserListResponse {
 }
 
 export interface CreatePropertyRequest {
-  name: string;
+  propertyName: string;
+  propertyCode: string;
+  propertyType: string;
   address: string;
+  city: string;
+  primaryContactName: string;
+  email: string;
+  role: string;
+  phone: string;
+  description: string;
+  inactive?: boolean;
   clientId: string;
-  contactPerson: string;
-  contactEmail: string;
-  contactPhone: string;
   metadata?: {
-    totalArea?: number;
-    yearBuilt?: number;
-    propertyType?: string;
+    grossArea?: number;
   };
 }
 

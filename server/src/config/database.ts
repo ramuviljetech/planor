@@ -5,8 +5,10 @@ let cosmosClient: CosmosClient | null = null
 let database: Database
 let usersContainer: Container
 let otpContainer: Container
+let propertiesContainer: Container
 const containerId = 'users'
 const otpContainerId = 'otp'
+const propertiesContainerId = 'properties'
 
 // Initialize Cosmos DB client
 const initializeCosmosClient = () => {
@@ -58,6 +60,13 @@ export const initializeDatabase = async () => {
     })
     otpContainer = otpCont
 
+    // Create properties container if it doesn't exist
+    const { container: propCont } = await database.containers.createIfNotExists({
+      id: propertiesContainerId,
+      partitionKey: '/id'
+    })
+    propertiesContainer = propCont
+
     console.log('✅ Cosmos DB connected successfully')
   } catch (error) {
     console.error('❌ Failed to connect to Cosmos DB:', error)
@@ -79,6 +88,14 @@ export const getOtpContainer = (): Container => {
     throw new Error('Cosmos DB not configured or not initialized. Please set COSMOS_DB_ENDPOINT and COSMOS_DB_KEY environment variables.')
   }
   return otpContainer
+}
+
+// Get properties container
+export const getPropertiesContainer = (): Container => {
+  if (!cosmosClient || !propertiesContainer) {
+    throw new Error('Cosmos DB not configured or not initialized. Please set COSMOS_DB_ENDPOINT and COSMOS_DB_KEY environment variables.')
+  }
+  return propertiesContainer
 }
 
 // Get database instance
