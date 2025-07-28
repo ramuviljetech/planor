@@ -1,8 +1,8 @@
 import { Request, Response } from 'express'
 import { UserRole, UserStatus, UpdateUserRequest } from '../types'
-import { 
-  findUserById, 
-  findUserByEmailExcludingId, 
+import {
+  findUserById,
+  findUserByEmailExcludingId,
   updateUser,
   createOtpRecord,
   deleteOtpRecord,
@@ -11,6 +11,8 @@ import {
 } from '../entities/users.entity'
 import { sendMail } from '../services/mail.service'
 import { generateNumericOTP } from '../utils/otp'
+import { hashPassword, comparePassword } from '../utils/common'
+import { getUsersContainer } from '../config/database'
 
 // !Get user profile
 export const getUserProfile = async (req: Request, res: Response) => {
@@ -129,7 +131,7 @@ export const sendOtp = async (req: Request, res: Response) => {
 
     // Generate OTP
     const otp = generateNumericOTP()
-    
+
     // Set expiration time (5 minutes from now)
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
 
@@ -175,7 +177,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
     // Get OTP from database
     const otpRecord = await findOtpByEmail(email)
-    
+
     if (!otpRecord) {
       return res.status(400).json({
         success: false,
@@ -228,4 +230,76 @@ export const verifyOtp = async (req: Request, res: Response) => {
       error: 'Failed to verify OTP. Please try again.'
     })
   }
-} 
+}
+
+
+
+//POST /api/users/change-password - Change password
+//!need clarity
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    // const authenticatedUser = (req as any).user
+    const { email, newPassword } = req.body
+    const usersContainer = getUsersContainer()
+
+    // Validate required fields
+    if ( !newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: ' new password are required'
+      })
+    }
+
+    // Validate new password strength
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be at least 8 characters long'
+      })
+    }
+
+    // Get current user
+    const { resource: currentUser } = await usersContainer.item(email, email).read()
+
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      })
+    }
+
+    // Verify current password
+    // const isCurrentPasswordValid = await comparePassword(currentPassword, currentUser.password)
+    // if (!isCurrentPasswordValid) {
+    //   return res.status(401).json({
+    //     success: false,
+    //     error: 'Current password is incorrect'
+    //   })
+    // }
+
+    // Hash new password
+    const hashedNewPassword = await hashPassword(newPassword)
+
+    // Update user with new password
+    const updatedUser = {
+      ...currentUser,
+      password: hashedNewPassword,
+      updatedAt: new Date()
+    }
+
+    await usersContainer.item(email, email).replace(updatedUser)
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    })
+    return
+  } catch (error) {
+    console.error('Change password error:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    })
+    return
+  }
+}

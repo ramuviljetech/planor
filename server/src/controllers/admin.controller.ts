@@ -6,7 +6,8 @@ import {
   UserRole,
   UserStatus,
   StandardUser,
-  CreateStandardUserRequest
+  CreateStandardUserRequest,
+  ClientFilters
 } from '../types'
 import { 
   findUserByEmail,
@@ -26,9 +27,11 @@ import {
   createUserOnlySchema, 
   createClientAndUserSchema 
 } from '../validation/admin.validation'
+import { getUsersContainer } from '../config/database'
 
 
 // Create new client (Admin only) - can also create standard user if user data is provided
+//!not completed
 export const createNewUsers = async (req: Request, res: Response) => {
   try {
     const clientData: CreateClientRequest = req.body
@@ -420,3 +423,142 @@ export const deleteStandardUser = async (req: Request, res: Response) => {
     })
   }
 } 
+
+
+//!just written need to test
+export const getClients  = async (req: Request, res: Response) => {
+  try {
+    const authenticatedUser = (req as any).user
+    const filters: ClientFilters = req.body
+
+    // Validate user permissions
+    if (authenticatedUser.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied. Admin privileges required.'
+      })
+    }
+
+    const usersContainer = getUsersContainer()
+    
+    // Build query parameters
+    let query = 'SELECT * FROM c WHERE c.type = "client"'
+    const parameters: any[] = []
+    let parameterIndex = 0
+
+    // Filter by client name (partial match)
+    if (filters.clientName) {
+      parameterIndex++
+      query += ` AND CONTAINS(c.clientName, @clientName${parameterIndex})`
+      parameters.push({ name: `@clientName${parameterIndex}`, value: filters.clientName })
+    }
+
+    // Filter by client ID (exact match)
+    if (filters.clientId) {
+      parameterIndex++
+      query += ` AND c.id = @clientId${parameterIndex}`
+      parameters.push({ name: `@clientId${parameterIndex}`, value: filters.clientId })
+    }
+
+    // Filter by status
+    if (filters.status) {
+      parameterIndex++
+      query += ` AND c.status = @status${parameterIndex}`
+      parameters.push({ name: `@status${parameterIndex}`, value: filters.status })
+    }
+
+    // Filter by createdOn date (match date part only, no range)
+    if (filters.createdOn) {
+      parameterIndex++
+      query += ` AND STARTSWITH(c.createdAt, @createdOn${parameterIndex})`
+      parameters.push({ name: `@createdOn${parameterIndex}`, value: filters.createdOn }) // e.g. "2025-08-10"
+    }
+
+    // Filter by maintananceCost
+    if (filters.maintananceCost) {
+      parameterIndex++
+      query += ` AND c.maintananceCost = @maintananceCost${parameterIndex}`
+      parameters.push({ name: `@maintananceCost${parameterIndex}`, value: filters.maintananceCost })
+    }
+
+    // Add ordering
+    query += ' ORDER BY c.createdAt DESC'
+
+    // Execute query
+    const { resources: clients } = await usersContainer.items.query({
+      query,
+      parameters
+    }).fetchAll()
+
+    // Process clients to add properties count and format response
+    const processedClients = await Promise.all(
+      clients.map(async (client) => {
+        // Get properties count for this client
+        const propertiesQuery = {
+          query: 'SELECT VALUE COUNT(1) FROM c WHERE c.type = "property" AND c.clientId = @clientId',
+          parameters: [{ name: '@clientId', value: client.id }]
+        }
+        
+        const { resources: propertiesCount } = await usersContainer.items.query(propertiesQuery).fetchAll()
+        const propertiesCountValue = propertiesCount[0] || 0
+
+        // Filter by properties count if specified (exact number)
+        if (filters.properties !== undefined) {
+          if (propertiesCountValue !== filters.properties) {
+            return null
+          }
+        }
+
+        return {
+          id: client.id,
+          clientName: client.clientName,
+          clientId: client.organizationNumber,
+          properties: propertiesCountValue,
+          createdOn: client.createdAt,
+          status: client.status,
+          primaryContactName: client.primaryContactName,
+          primaryContactEmail: client.primaryContactEmail,
+          address: client.address,
+          industryType: client.industryType,
+          timezone: client.timezone,
+          updatedAt: client.updatedAt
+        }
+      })
+    )
+
+    // Remove null values (filtered out by properties count)
+    const filteredClients = processedClients.filter(client => client !== null)
+
+    // Apply pagination
+    const page = parseInt(filters.page as unknown as string) || 1
+    const limit = parseInt(filters.limit as unknown as string) || 10
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    const paginatedClients = filteredClients.slice(startIndex, endIndex)
+
+    // Calculate pagination metadata
+    const totalClients = filteredClients.length
+    const totalPages = Math.ceil(totalClients / limit)
+
+    return res.json({
+      success: true,
+      data: {
+        clients: paginatedClients,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalClients,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        }
+      }
+    })
+  } catch (error) {
+    console.error('Get clients error:', error)
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    })
+  }
+}

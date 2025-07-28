@@ -58,4 +58,22 @@ export const verifyOtpSchema = Joi.object({
       'any.required': 'OTP is required',
       'string.empty': 'OTP cannot be empty'
     })
+})
+
+// Change password validation schema
+export const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Current password is required',
+      'string.empty': 'Current password cannot be empty'
+    }),
+  newPassword: Joi.string()
+    .min(8)
+    .required()
+    .messages({
+      'string.min': 'New password must be at least 8 characters long',
+      'any.required': 'New password is required',
+      'string.empty': 'New password cannot be empty'
+    })
 }) 

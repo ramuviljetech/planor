@@ -102,8 +102,17 @@ export interface StandardUser {
 }
 
 
-
-
+//client filters
+export interface ClientFilters {
+  maintananceCost: any;
+  page: number | string
+  limit: number | string
+  clientName?: string
+  clientId?: string
+  status?: string
+  createdOn?: string
+  properties?: number
+}
 
 
 

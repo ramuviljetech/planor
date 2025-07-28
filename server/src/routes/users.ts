@@ -1,12 +1,13 @@
 import express from 'express'
 import { authMiddleware } from '../middleware/auth'
 import { validateRequest } from '../middleware/validation.middleware'
-import { updateUserProfileSchema, sendOtpSchema, verifyOtpSchema } from '../validation/users.validation'
+import { updateUserProfileSchema, sendOtpSchema, verifyOtpSchema, changePasswordSchema } from '../validation/users.validation'
 import { 
   getUserProfile, 
   updateUserProfile, 
   sendOtp, 
-  verifyOtp
+  verifyOtp,
+  changePassword
 } from '../controllers/users.controller'
 
 const router = express.Router()
@@ -22,5 +23,8 @@ router.post('/send-otp', validateRequest(sendOtpSchema), sendOtp)
 
 // POST /api/users/verify-otp - Verify OTP
 router.post('/verify-otp', validateRequest(verifyOtpSchema), verifyOtp)
+
+// POST /api/users/change-password - Change password
+router.post('/change-password', validateRequest(changePasswordSchema), changePassword)
 
 export { router as usersRoutes }

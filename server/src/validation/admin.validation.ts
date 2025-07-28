@@ -258,3 +258,43 @@ export const updateUserSchema = Joi.object({
       'string.empty': 'Password cannot be empty'
     })
 })
+
+
+export const unifiedClientUserSchema = Joi.object({
+  // Client fields
+  clientName: Joi.string().min(2).max(100),
+  organizationNumber: Joi.string(),
+  industryType: Joi.string(),
+  address: Joi.string(),
+  websiteUrl: Joi.string().uri().allow(''),
+  timezone: Joi.string(),
+  primaryContactName: Joi.string().min(2).max(100),
+  primaryContactEmail: Joi.string().email({ tlds: { allow: false } }),
+  primaryContactRole: Joi.string(),
+  primaryContactPhoneNumber: Joi.string(),
+  description: Joi.string().allow(''),
+
+  clientId: Joi.string(), // For user-only creation
+
+  // User object (optional)
+  user: Joi.object({
+    username: Joi.string().min(3).max(50).required(),
+    contact: Joi.string().allow(''),
+    email: Joi.string().email({ tlds: { allow: false } }).required()
+  }).optional()
+})
+
+
+export const getClientsSchema = Joi.object({
+  clientName: Joi.string().trim().optional(),
+  clientId: Joi.string().trim().optional(),
+  status: Joi.string().valid('active', 'deactive', 'block').optional(),
+  createdOn: Joi.string()
+    .pattern(/^\d{4}-\d{2}-\d{2}$/) // Matches "YYYY-MM-DD"
+    .optional(),
+  properties: Joi.number().integer().min(0).optional(),
+  maintananceCost: Joi.number().integer().min(0).optional(),
+  page: Joi.number().integer().min(1).optional().default(1),
+  limit: Joi.number().integer().min(1).optional().default(10)
+})
+
