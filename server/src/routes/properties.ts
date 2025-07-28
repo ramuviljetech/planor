@@ -1,48 +1,30 @@
-import { Router } from 'express';
+import express from 'express'
+import { authMiddleware, requireAdmin } from '../middleware/auth'
+import { validateRequest } from '../middleware/validation.middleware'
+import { createPropertySchema, updatePropertySchema } from '../validation/property.validation'
+import {
+  getAllPropertiesController,
+  getPropertyById,
+  createPropertyController,
+  updatePropertyController,
+  deletePropertyController
+} from '../controllers/property.controller'
 
-const router = Router();
+const router = express.Router()
 
-// Get all properties
-router.get('/', (req, res) => {
-  res.json({ 
-    message: 'Get all properties endpoint - implementation pending',
-    status: 'not implemented'
-  });
-});
+// GET /api/properties - Get all properties (Admin only) or properties by client ID
+router.get('/', authMiddleware, getAllPropertiesController)
 
-// Get property by ID
-router.get('/:id', (req, res) => {
-  res.json({ 
-    message: 'Get property by ID endpoint - implementation pending',
-    status: 'not implemented',
-    propertyId: req.params.id
-  });
-});
+// GET /api/properties/:id - Get property by ID (Admin only)
+router.get('/:id', authMiddleware, requireAdmin, getPropertyById)
 
-// Create new property (Admin only)
-router.post('/', (req, res) => {
-  res.json({ 
-    message: 'Create property endpoint - implementation pending',
-    status: 'not implemented'
-  });
-});
+// POST /api/properties - Create new property (Admin only)
+router.post('/', authMiddleware, requireAdmin, validateRequest(createPropertySchema), createPropertyController)
 
-// Update property (Admin only)
-router.put('/:id', (req, res) => {
-  res.json({ 
-    message: 'Update property endpoint - implementation pending',
-    status: 'not implemented',
-    propertyId: req.params.id
-  });
-});
+// ?Future Scope: PUT /api/properties/:id - Update property (Admin only)
+router.put('/:id', authMiddleware, requireAdmin, validateRequest(updatePropertySchema), updatePropertyController)
 
-// Delete property (Admin only)
-router.delete('/:id', (req, res) => {
-  res.json({ 
-    message: 'Delete property endpoint - implementation pending',
-    status: 'not implemented',
-    propertyId: req.params.id
-  });
-});
+// ?Future Scope: DELETE /api/properties/:id - Delete property (Admin only)
+router.delete('/:id', authMiddleware, requireAdmin, deletePropertyController)
 
-export { router as propertyRoutes }; 
+export { router as propertyRoutes }

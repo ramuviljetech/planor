@@ -64,19 +64,15 @@ export const createOtpRecord = async (otpData: {
   id: string;
   email: string;
   otp: string;
-  expiresAt: Date;
   createdAt: Date;
   used: boolean;
 }) => {
   try {
     const otpContainer = getOtpContainer()
     
-    // Calculate TTL in seconds (5 minutes from now)
-    const ttlSeconds = Math.floor((otpData.expiresAt.getTime() - Date.now()) / 1000)
-    
     const otpRecordWithTtl = {
       ...otpData,
-      ttl: ttlSeconds
+      ttl: Number(process.env.OTP_TTL || 300)
     }
     
     const { resource: result } = await otpContainer.items.create(otpRecordWithTtl)
