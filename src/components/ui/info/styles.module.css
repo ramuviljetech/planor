@@ -1,0 +1,25 @@
+.info_container {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 0px 12px 0px;
+  border-bottom: 1px solid var(--concrete);
+}
+.info_title {
+  font-family: var(--font-lato-regular);
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--ash-gray);
+}
+.info_value {
+  font-family: var(--font-lato-regular);
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--jet-black);
+}

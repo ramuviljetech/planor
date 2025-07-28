@@ -1,0 +1,40 @@
+.wrapper {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 4px;
+}
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--concrete);
+  border-radius: 4px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.checkbox_checked {
+  border: 1px solid var(--rose-red);
+  background-color: var(--rose-red);
+}
+.icon {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+}
+
+.label {
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--jet-black);
+}

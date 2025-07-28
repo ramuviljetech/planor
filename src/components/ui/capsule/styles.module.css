@@ -1,0 +1,41 @@
+.capsule_container {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.capsule_item {
+  width: fit-content;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  padding: 8px 16px;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.capsule_item_text {
+  font-family: var(--font-lato-regular);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--granite-gray);
+}
+
+.capsule_item_text:hover {
+  color: var(--ruby-red);
+}
+
+.capsule_item_active {
+  background-color: var(--soft-white);
+}
+
+.capsule_item_text_active {
+  color: var(--ruby-red);
+}

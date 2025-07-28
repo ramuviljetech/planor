@@ -1,0 +1,155 @@
+/* Overlay Background */
+.imageViewer_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  background: rgba(28, 47, 58, 0.27);
+}
+
+/* Main Container */
+.imageViewer_mainContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.imageViewer_closeButton {
+  position: absolute;
+  top: 16px;
+  right: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  background: var(--white);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 3;
+}
+
+/* Image Container */
+.imageViewer_imageContainer {
+  max-width: 800px;
+  width: 100%;
+  max-height: 600px;
+  height: 80vh;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.imageViewer_mainImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+}
+
+.imageViewer_zoomed {
+  cursor: grab;
+}
+
+.imageViewer_zoomed:active {
+  cursor: grabbing;
+}
+
+/* Loader */
+.imageViewer_loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+}
+
+.imageViewer_spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--dark-maroon);
+  border-top: 4px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Control Bar */
+.imageViewer_controlBar {
+  max-width: 680px;
+  width: 100%;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(25, 30, 33, 0.34);
+  border: 1px solid rgba(161, 161, 161, 1);
+  padding: 10px;
+  z-index: 2;
+  border-radius: 34px;
+  backdrop-filter: blur(1px) !important;
+}
+
+.imageViewer_leftControlBar,
+.imageViewer_rightControlBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.imageViewer_controlButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px) !important;
+  background: rgba(0, 0, 0, 0.36);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.imageViewer_controlButton:hover {
+  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.36);
+  transform: translateY(-2px);
+}
+
+.imageViewer_controlButton:active {
+  transform: translateY(0);
+}
+
+.imageViewer_rightControlBar .imageViewer_rightControllerBtn {
+  display: flex;
+  height: 48px;
+  border-radius: 24px;
+  padding: 12px;
+  background-color: rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(4px) !important;
+}

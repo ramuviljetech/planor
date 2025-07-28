@@ -12,7 +12,7 @@ import {
 import { sendMail } from '../services/mail.service'
 import { generateNumericOTP } from '../utils/otp'
 
-// Get user profile
+// !Get user profile
 export const getUserProfile = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user
@@ -60,7 +60,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
   }
 }
 
-// Update user profile
+// !Update user profile
 export const updateUserProfile = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user
@@ -119,6 +119,8 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     })
   }
 }
+
+
 
 // Send OTP to email
 export const sendOtp = async (req: Request, res: Response) => {

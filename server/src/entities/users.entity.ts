@@ -70,7 +70,16 @@ export const createOtpRecord = async (otpData: {
 }) => {
   try {
     const otpContainer = getOtpContainer()
-    const { resource: result } = await otpContainer.items.create(otpData)
+    
+    // Calculate TTL in seconds (5 minutes from now)
+    const ttlSeconds = Math.floor((otpData.expiresAt.getTime() - Date.now()) / 1000)
+    
+    const otpRecordWithTtl = {
+      ...otpData,
+      ttl: ttlSeconds
+    }
+    
+    const { resource: result } = await otpContainer.items.create(otpRecordWithTtl)
     if (!result) {
       throw new Error('Failed to create OTP record')
     }
