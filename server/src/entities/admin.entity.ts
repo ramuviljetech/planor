@@ -132,7 +132,7 @@ export const findClientById = async (id: string): Promise<Client | null> => {
   try {
     const usersContainer = getUsersContainer()
     const query = {
-      query: 'SELECT * FROM c WHERE c.id = @id AND c.type = "client"',
+      query: 'SELECT * FROM c WHERE c.id = @id AND c.role = "client"',
       parameters: [{ name: '@id', value: id }]
     }
 
@@ -144,13 +144,30 @@ export const findClientById = async (id: string): Promise<Client | null> => {
   }
 }
 
+// Find client by email
+export const findClientByEmail = async (email: string): Promise<Client | null> => {
+  try {
+    const usersContainer = getUsersContainer()
+    const query = {
+      query: 'SELECT * FROM c WHERE c.primaryContactEmail = @email AND c.role = "client"',
+      parameters: [{ name: '@email', value: email }]
+    }
+
+    const { resources: clients } = await usersContainer.items.query(query).fetchAll()
+    return clients.length > 0 ? clients[0] : null
+  } catch (error) {
+    console.error('Error finding client by email:', error)
+    throw error
+  }
+}
+
 // Create new client
 export const createClient = async (clientData: CreateClientRequest, adminId: string): Promise<Client> => {
   try {
     const usersContainer = getUsersContainer()
     const newClient: CreateClientRequest = {
       id: uuidv4(), // Using organization number as ID
-      type: UserRole.CLIENT,
+      role: UserRole.CLIENT,
       clientName: clientData.clientName,
       primaryContactName: clientData.primaryContactName,
       primaryContactEmail: clientData.primaryContactEmail,
@@ -196,7 +213,7 @@ export const createStandardUser = async (userData: CreateStandardUserRequest): P
     const newUser: CreateStandardUserRequest = {
       id: uuidv4(),
       username: userData.username,
-      type: UserRole.STANDARD_USER,
+      role: UserRole.STANDARD_USER,
       contact: userData.contact,
       email: userData.email,
       clientId: userData.clientId,
@@ -214,11 +231,15 @@ export const createStandardUser = async (userData: CreateStandardUserRequest): P
     return {
       ...createdUser,
       name: createdUser.username,
-      role: createdUser.type,
+      role: createdUser.role,
       contact: createdUser.contact,
+      email: createdUser.email,
+      status: createdUser.status,
     } as unknown as User
   } catch (error) {
     console.error('Error creating standard user:', error)
     throw error
   }
 }
+
+export { CreateClientRequest }

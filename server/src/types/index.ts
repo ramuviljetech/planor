@@ -29,7 +29,7 @@ export interface User {
 // Client Types
 export interface Client {
   id: string;
-  type: 'client';
+  role: 'client';
   name: string;
   contactPerson: string;
   email: string;
@@ -39,12 +39,14 @@ export interface Client {
   createdAt: string;
   updatedAt: string;
   adminId: string;
+  status: UserStatus;
 }
 
 // New Client Creation Interface
 export interface CreateClientRequest {
+  email(email: any): unknown;
   id: string;
-  type: UserRole.CLIENT;
+  role: UserRole.CLIENT;
   clientName: string;
   organizationNumber: string;
   industryType: string;
@@ -74,7 +76,7 @@ export interface CreateClientRequest {
 export interface CreateStandardUserRequest {
   id: string;
   username: string;
-  type: UserRole.STANDARD_USER;
+  role: UserRole.STANDARD_USER;
   contact: string; // Optional field
   email: string;
   clientId: string; // Mandatory field

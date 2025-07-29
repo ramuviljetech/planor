@@ -19,6 +19,7 @@ import { maintenanceRoutes } from './src/routes/maintenance';
 import { errorHandler } from './src/middleware/errorHandler';
 import { authMiddleware } from './src/middleware/auth';
 import { initializeDatabase } from './src/config/database';
+import { clientRoutes } from './src/routes/clients';
 
 
 
@@ -64,6 +65,7 @@ app.use('/api/properties', authMiddleware, propertyRoutes);
 app.use('/api/buildings', authMiddleware, buildingRoutes);
 app.use('/api/files', authMiddleware, fileRoutes);
 app.use('/api/maintenance', authMiddleware, maintenanceRoutes);
+app.use('/api/clients', authMiddleware, clientRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
