@@ -62,3 +62,4 @@ export { default as closeBlackIcon } from "@/assets/images/close-black-icon.svg"
 export { default as tickBlackIcon } from "@/assets/images/tick-black-icon.svg";
 
 export { default as plusRoseIcon } from "@/assets/images/plus-rose-icon.svg";
+export { default as building3d } from "@/assets/images/building3d.svg";

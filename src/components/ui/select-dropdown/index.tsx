@@ -10,9 +10,11 @@ import Image from "next/image";
 import PopOver from "../popover";
 import Input from "../input";
 import styles from "./styles.module.css";
+import CustomCheckbox from "../checkbox";
 
 interface SelectOption {
   label: string;
+  value: string;
   avatar?: string;
 }
 
@@ -47,8 +49,8 @@ interface SelectDropDownProps {
 
 const SelectDropDown: React.FC<SelectDropDownProps> = ({
   options = [],
-  placeholder = "Select a project",
-  label = "Select Project",
+  placeholder = "Select item",
+  label = "",
   selected: controlledSelected,
   defaultSelected = "",
   onSelect = () => {},
@@ -148,9 +150,9 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
   return (
     <div className={classNames(styles.selectDropDown, containerClass)}>
       {label && (
-        <h5 className={classNames(styles.selectDropDownLabel, labelClass)}>
+        <p className={classNames(styles.selectDropDownLabel, labelClass)}>
           {label}
-        </h5>
+        </p>
       )}
 
       <div
@@ -163,14 +165,14 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
         onClick={() => setShowPopover((prev) => !prev)}
         ref={referenceRef}
       >
-        <span
+        <p
           className={classNames(
             selected ? styles.selectedText : styles.placeholder,
             selected && selectedTextClass
           )}
         >
           {getDisplayText()}
-        </span>
+        </p>
         <Image
           src={chevronDownPinkIcon}
           alt="down-arrow"
@@ -229,56 +231,15 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
                   )}
                   onClick={() => handleOptionClick(option)}
                 >
-                  <div className={styles.optionContent}>
-                    {avatar && (
-                      <Image
-                        src={avatar}
-                        alt="avatar"
-                        width={20}
-                        height={20}
-                        className={styles.optionAvatar}
-                      />
-                    )}
-                    <span>{value}</span>
-                  </div>
-
-                  {isSelected && hasUserInteracted && (
-                    <Image
-                      src={tickBlackIcon}
-                      alt="tick-icon"
-                      className={classNames(
-                        styles.optionIcon,
-                        iconClass,
-                        styles.iconVisible
-                      )}
-                    />
-                  )}
+                  <CustomCheckbox
+                    label={value}
+                    checked={isSelected}
+                    onChange={() => handleOptionClick(option)}
+                  />
                 </div>
               );
             })}
           </div>
-
-          {/* Selected Items Display */}
-          {multiSelect && selectedArray.length > 0 && (
-            <div className={styles.selectedItemsContainer}>
-              <div className={styles.selectedItemsHeader}>
-                <span>Selected Items:</span>
-              </div>
-              <div className={styles.selectedItemsList}>
-                {selectedArray.map((item, index) => (
-                  <div key={index} className={styles.selectedItemChip}>
-                    <span>{item}</span>
-                    <button
-                      onClick={() => removeSelectedItem(item)}
-                      className={styles.removeButton}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </PopOver>
     </div>
