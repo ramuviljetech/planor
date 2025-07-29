@@ -18,8 +18,6 @@ import { useRouter } from "next/navigation";
 import TextArea from "@/components/ui/textarea";
 import styles from "./styles.module.css";
 import SelectDropDown from "@/components/ui/select-dropdown";
-import UploadFile from "@/components/ui/upload-file";
-import FileUpload from "@/components/ui/upload-file";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -467,12 +465,6 @@ export default function DashboardPage() {
   const renderClients = () => {
     return (
       <div className={styles.dashboard_clients_container}>
-        <FileUpload
-          allowDuplicates={true}
-          maxSize={50}
-          onFilesAdded={(files) => console.log(files)}
-        />
-
         {/* top container */}
         <SectionHeader
           title="Clients"

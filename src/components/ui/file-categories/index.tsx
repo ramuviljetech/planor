@@ -1,10 +1,26 @@
 import React, { useState } from "react";
 import styles from "./styles.module.css";
 import Input from "../input";
-import { searchIcon } from "@/resources/images";
+import {
+  downloadIcon,
+  filterIcon,
+  folderIcon,
+  gridGrayIcon,
+  gridPinkIcon,
+  listGrayIcon,
+  listPinkIcon,
+  pdfIcon,
+  recentUploadedFileDummyImg1,
+  recentUploadedFileDummyImg2,
+  searchIcon,
+  threeDotsIcon,
+} from "@/resources/images";
+import Button from "../button";
+import CommonTable from "../common-table";
 
 const FileCategories = () => {
   const [activeTab, setActiveTab] = useState("all");
+  const [layoutType, setLayoutType] = useState("grid");
 
   const fileTabsData = [
     {
@@ -24,6 +40,54 @@ const FileCategories = () => {
       value: "by_files",
     },
   ];
+
+  const switchLayout = [
+    {
+      title: "list",
+      iconGray: listGrayIcon,
+      iconPink: listPinkIcon,
+    },
+    {
+      title: "grid",
+      iconGray: gridGrayIcon,
+      iconPink: gridPinkIcon,
+    },
+  ];
+
+  const renderRecentVisitedFilesTable = () => {
+    const columns = [
+      { key: "filename", title: "Filename" },
+      { key: "uploadedBy", title: "Uploaded By" },
+      { key: "uploadDate", title: "Uploaded Date" },
+      { key: "size", title: "Size" },
+      {
+        key: "actions",
+        title: "Actions",
+        render: () => (
+          <div style={{ display: "flex", gap: "8px" }}>
+            <img src={downloadIcon.src} alt="download" width={16} height={16} />
+            <img src={threeDotsIcon.src} alt="more" width={16} height={16} />
+          </div>
+        ),
+      },
+    ];
+
+    const rows = Array(8)
+      .fill(null)
+      .map((_, index) => ({
+        id: index,
+        filename: "blockc-2.Pdf",
+        uploadedBy: "Kvarter Skatan",
+        uploadDate: "12 Jun, 2025",
+        size: "3 MB",
+      }));
+
+    return (
+      <div style={{ marginTop: "16px" }}>
+        <CommonTable columns={columns} rows={rows} />
+      </div>
+    );
+  };
 
   const renderLeftSection = () => {
     return (
@@ -62,6 +126,129 @@ const FileCategories = () => {
           inputWrapperClass={styles.search_input_wrapper}
           inputContainerClass={styles.search_input_container}
         />
+        <div className={styles.file_rightActions}>
+          <div className={styles.file_switchLayout}>
+            <div className={styles.file_switchLayout}>
+              {switchLayout.map((layout, index) => {
+                const isActive = layoutType === layout.title;
+                return (
+                  <div
+                    key={index}
+                    className={styles.file_switchLayoutItem}
+                    onClick={() => setLayoutType(layout.title)}
+                  >
+                    <img
+                      src={isActive ? layout.iconPink.src : layout.iconGray.src}
+                      alt={layout.title}
+                      className={styles.file_switchIcon}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className={styles.file_filterIcon}>
+            <img
+              src={filterIcon.src}
+              alt="filterIcon"
+              className={styles.file_filterIconImg}
+            />
+          </div>
+          <Button title="Add Folder" />
+        </div>
+      </div>
+    );
+  };
+
+  const renderRecentFolders = () => {
+    return (
+      <div className={styles.file_recentFolderBox}>
+        <div className={styles.file_recentFolderHeader}>
+          <h5 className={styles.file_recentFolderHeading}>Recent Folders</h5>
+          <p className={styles.file_viewAllText}>View all</p>
+        </div>
+        <div className={styles.file_recentFolders}>
+          {Array(4)
+            .fill(null)
+            .map((_, index) => {
+              return (
+                <div key={index} className={styles.file_folderBox}>
+                  <div className={styles.file_folderBoxIconAndInfo}>
+                    <div className={styles.file_folderIcon}>
+                      <img
+                        src={folderIcon.src}
+                        alt="folderIcon"
+                        className={styles.file_folderIconImg}
+                      />
+                    </div>
+                    <label className={styles.file_folderLabelText}>
+                      blockc-1.Pdf
+                    </label>
+                  </div>
+                  <div className={styles.file_verticalMenuIcon}>
+                    <img
+                      src={threeDotsIcon.src}
+                      alt="threeDotsIcon"
+                      className={styles.file_folderIconImg}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderRecentVisitedFiles = () => {
+    return (
+      <div className={styles.file_recentVisitedFileSection}>
+        <div className={styles.file_recentVisitedFileHeader}>
+          <h5 className={styles.file_recentVisitedFilesText}>
+            Recent Visited Files
+          </h5>
+          <p className={styles.file_viewAllText}>View all</p>
+        </div>
+
+        <div className={styles.file_recentVisitedFilesGrid}>
+          {Array(8)
+            .fill(null)
+            .map((_, index) => {
+              return (
+                <div key={index} className={styles.file_recentVisitedFileCard}>
+                  <div className={styles.file_recentVisitedFileCardHeader}>
+                    <div className={styles.file_recentVisitedFileInfo}>
+                      <div className={styles.file_recentVisitedFileIcon}>
+                        <img
+                          src={pdfIcon.src}
+                          alt="pdfIcon"
+                          className={styles.file_recentVisitedFileImg}
+                        />
+                      </div>
+                      <label className={styles.recentVisitedFileLabelText}>
+                        blockc-1.Pdf
+                      </label>
+                    </div>
+                    <div className={styles.file_verticalMenuIcon}>
+                      <img
+                        src={threeDotsIcon.src}
+                        alt="threeDotsIcon"
+                        className={styles.file_folderIconImg}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.file_recentVisitedFilePreview}>
+                    <img
+                      src={recentUploadedFileDummyImg2.src}
+                      alt="recentUploadedImg"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+        </div>
       </div>
     );
   };
@@ -69,7 +256,13 @@ const FileCategories = () => {
   return (
     <div className={styles.file_categories_container}>
       {renderLeftSection()}
-      {renderRightSection()}
+      <div className={styles.file_rightSection}>
+        {renderRightSection()}
+        {renderRecentFolders()}
+        {layoutType === "grid"
+          ? renderRecentVisitedFiles()
+          : renderRecentVisitedFilesTable()}
+      </div>
     </div>
   );
 };

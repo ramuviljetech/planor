@@ -60,3 +60,14 @@ export { default as zoomOutWhiteIcon } from "@/assets/images/zoom-out-white-icon
 export { default as palmWhiteIcon } from "@/assets/images/palm-white-icon.svg";
 export { default as closeBlackIcon } from "@/assets/images/close-black-icon.svg";
 export { default as tickBlackIcon } from "@/assets/images/tick-black-icon.svg";
+
+export { default as listGrayIcon } from "@/assets/images/list-gray-icon.svg";
+export { default as listPinkIcon } from "@/assets/images/list-pink-icon.svg";
+export { default as gridGrayIcon } from "@/assets/images/grid-gray-icon.svg";
+export { default as gridPinkIcon } from "@/assets/images/grid-pink-icon.svg";
+export { default as folderIcon } from "@/assets/images/folder-icon.svg";
+
+//
+
+export { default as recentUploadedFileDummyImg1 } from "@/assets/images/recent-uploaded-file-dummy-img-1.svg";
+export { default as recentUploadedFileDummyImg2 } from "@/assets/images/recent-uploaded-file-dummy-img-2.svg";
