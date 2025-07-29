@@ -66,6 +66,7 @@ export { default as listPinkIcon } from "@/assets/images/list-pink-icon.svg";
 export { default as gridGrayIcon } from "@/assets/images/grid-gray-icon.svg";
 export { default as gridPinkIcon } from "@/assets/images/grid-pink-icon.svg";
 export { default as folderIcon } from "@/assets/images/folder-icon.svg";
+export { default as downloadBlackIcon } from "@/assets/images/download-black-icon.svg";
 
 //
 
