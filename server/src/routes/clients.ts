@@ -4,7 +4,8 @@ import { validateRequest } from '../middleware/validation.middleware'
 import { getClientsSchema } from '../validation/admin.validation'
 import {
   registerClient,
-  getClients
+  getClients,
+  getusersAssociatedWithClient
 } from '../controllers/client.controller'
 
 const router = express.Router()
@@ -14,5 +15,7 @@ router.post('/register', authMiddleware, requireAdmin, registerClient)
 
 // POST /api/clients/get-clients - Get clients with filters (Admin only)
 router.post('/get-clients', authMiddleware, requireAdmin, validateRequest(getClientsSchema), getClients)
+
+router.get('/get-users/:clientId?', authMiddleware, requireAdmin, getusersAssociatedWithClient)
 
 export { router as clientRoutes }
