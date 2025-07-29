@@ -25,6 +25,7 @@ import { downloadIcon, filterIcon } from "@/resources/images";
 import ClientPropertiesList from "@/sections/clients-section/client-properties-list";
 import MetricCard from "@/components/ui/metric-card";
 import styles from "./styles.module.css";
+import AddPropertyModal from "@/components/add-property-modal";
 
 const ClientInfo: React.FC = () => {
   const router = useRouter();
@@ -33,6 +34,7 @@ const ClientInfo: React.FC = () => {
     useState<string>("propertyList");
   const [searchValue, setSearchValue] = useState<string>("");
   const [isSelectAll, setIsSelectAll] = useState<boolean>(false);
+  const [showAddPropertyModal, setShowAddPropertyModal] = useState<boolean>(false);
   const tabs: TabItem[] = [
     { label: "Over View", value: "overview" },
     { label: "Properties", value: "properties" },
@@ -197,7 +199,9 @@ const ClientInfo: React.FC = () => {
             router.back();
           }}
         />
-        <Button title="Add Property" variant="primary" size="sm" />
+        <Button title="Add Property" variant="primary" size="sm" onClick={() => {
+          setShowAddPropertyModal(true);  
+        }}/>
       </div>
     );
   };
@@ -353,6 +357,10 @@ const ClientInfo: React.FC = () => {
     <div className={styles.client_info_container}>
       {renderHeaderSection()}
       {renderInfoSection()}
+      <AddPropertyModal
+        show={showAddPropertyModal}
+        onClose={() => setShowAddPropertyModal(false)}
+      />
     </div>
   );
 };
