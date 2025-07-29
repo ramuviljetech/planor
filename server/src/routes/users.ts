@@ -12,10 +12,10 @@ import {
 
 const router = express.Router()
 
-// GET /api/users/profile/:id? - Get user profile
+// ?Future Scope: GET /api/users/profile/:id? - Get user profile
 router.get('/profile/:id?', authMiddleware, getUserProfile)
 
-// PUT /api/users/profile - Update user profile
+// ?Future Scope: PUT /api/users/profile - Update user profile
 router.put('/profile', authMiddleware, validateRequest(updateUserProfileSchema), updateUserProfile)
 
 // POST /api/users/send-otp - Send OTP to email

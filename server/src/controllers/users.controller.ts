@@ -131,16 +131,12 @@ export const sendOtp = async (req: Request, res: Response) => {
 
     // Generate OTP
     const otp = generateNumericOTP()
-
-    // Set expiration time (5 minutes from now)
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
-
+    
     // Store OTP in database
     const otpData = {
       id: email, // Use email as ID for easy lookup
       email: email,
       otp: otp,
-      expiresAt: expiresAt,
       createdAt: new Date(),
       used: false
     }
