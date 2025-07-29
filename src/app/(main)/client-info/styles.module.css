@@ -73,7 +73,7 @@
   row-gap: 0px;
 }
 .client_info_overview_info_item {
-  width: calc((100% - 64px) / 2);
+  width: calc((100% - 64px) / 2) !important;
   height: auto;
   display: flex;
   flex-direction: row;
@@ -125,4 +125,110 @@
 
 .action_popoverMenuItem:hover {
   background-color: #f3f4f6;
+}
+/* Properties section styles */
+.client_info_properties_section {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.client_info_properties_section_header {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.client_info_properties_section_header_tabs {
+  width: fit-content;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  padding: 8px 16px;
+  background-color: transparent;
+  cursor: pointer;
+}
+.client_info_properties_section_header_tabs_item_text {
+  font-family: var(--font-lato-regular);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--granite-gray);
+  text-wrap: nowrap;
+}
+.client_info_properties_section_header_tabs_item_text:hover {
+  color: var(--ruby-red);
+}
+.client_info_properties_section_header_tabs_item_active {
+  background-color: var(--soft-white);
+}
+.client_info_properties_section_header_tabs_item_text_active {
+  color: var(--ruby-red);
+}
+.client_info_properties_section_header_right {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+.client_info_properties_section_header_search {
+  width: 250px !important;
+  height: 40px !important;
+}
+.client_info_properties_section_header_filter_icon {
+  cursor: pointer;
+}
+/* tabs data */
+.client_info_properties_section_tabs_data {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 16px;
+}
+/* maintenance plan section */
+.building_maintenance_top_section_right_select_all {
+  border: none;
+  color: var(--rose-red);
+}
+/* maintenance plan container */
+.client_info_properties_section_maintenance_plan_container {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 16px;
+}
+/* middle container */
+.client_info_properties_section_maintenance_plan_card_container {
+  width: 100%;
+  /* height: 100%; */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.client_info_properties_section_maintenance_plan_card {
+  width: calc((100% - 48px) / 4) !important;
+  height: auto;
+}
+.client_info_properties_section_maintenance_plan_card_title {
+  font-family: var(--font-inter-font) !important;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--granite-gray);
 }

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import styles from "./styles.module.css";
 import {
   closeBlackIcon,
@@ -20,6 +20,7 @@ interface FileUploadProps {
   maxSize?: number; // in MB
   maxFiles?: number;
   allowDuplicates?: boolean;
+  uploadedFiles?: FileItem[];
   onFilesAdded?: (files: FileItem[]) => void;
   onFileRemoved?: (fileId: string) => void;
   onUploadProgress?: (fileId: string, progress: number) => void;
@@ -34,6 +35,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   maxSize = 50,
   maxFiles = 10,
   allowDuplicates = false,
+  uploadedFiles = [],
   onFilesAdded,
   onFileRemoved,
   onUploadProgress,
@@ -42,9 +44,19 @@ const FileUpload: React.FC<FileUploadProps> = ({
   supportedText = "Supported files are IFC / Images / PDFs up to Max 50 MB",
   className = "",
 }) => {
-  const [files, setFiles] = useState<FileItem[]>([]);
+  const [files, setFiles] = useState<FileItem[]>(uploadedFiles);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync internal files state with uploadedFiles prop
+  useEffect(() => {
+    // Ensure files that are already completed (100% progress) maintain their status
+    const updatedFiles = uploadedFiles.map((file) => ({
+      ...file,
+      status: file.progress === 100 ? "completed" : file.status || "uploading",
+    }));
+    setFiles(updatedFiles);
+  }, [uploadedFiles]);
 
   const generateFileId = () => {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

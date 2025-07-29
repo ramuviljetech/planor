@@ -1,4 +1,6 @@
 .client_details_container {
+  width: 100%;
+  height: auto;
   display: flex;
   flex-direction: column;
   padding: 0px 16px 48px 16px;

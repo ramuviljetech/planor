@@ -5,24 +5,37 @@ import Button from "@/components/ui/button";
 import Image from "next/image";
 import {
   backButtonIcon,
+  closeRoseIcon,
   filterIcon,
-  rightArrowPinkIcon,
+  threeDotsIcon,
 } from "@/resources/images";
 import Breadcrumb from "@/components/ui/breadcrumb";
 import Info from "@/components/ui/info";
 import MetricCard from "@/components/ui/metric-card";
+import Modal from "@/components/ui/modal";
+import CustomTabs from "@/components/ui/tabs";
+import FileUpload from "@/components/ui/upload-file";
 import styles from "./styles.module.css";
 import { useRouter } from "next/navigation";
-import CommonTable, {
-  TableColumn,
-  TableRow,
-} from "@/components/ui/common-table";
-import PopOver from "@/components/ui/popover";
-import { rowsData } from "@/app/constants";
+import CommonTableWithPopover, {
+  PopoverAction,
+} from "@/components/ui/common-table-with-popover";
+import { TableColumn, TableRow } from "@/components/ui/common-table";
+import {
+  buildingListColumns,
+  buildingListRowsData,
+  rowsData,
+} from "@/app/constants";
+import Avatar from "@/components/ui/avatar";
 
 const PropertyDetails: React.FC = () => {
   const router = useRouter();
   const buildingListRef = useRef<HTMLDivElement>(null);
+  const [showAddBuildingModal, setShowAddBuildingModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("add-revit");
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [revitFiles, setRevitFiles] = useState<any[]>([]);
+
   const breadcrumbItems = [
     { label: "Brunnfast AB", isActive: false },
     { label: "Kvarter Skatan", isActive: true },
@@ -50,85 +63,34 @@ const PropertyDetails: React.FC = () => {
 
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [popoverState, setPopoverState] = useState<{
-    show: boolean;
-    rowId: string | number | null;
-  }>({ show: false, rowId: null });
-  const actionIconRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const itemsPerPage = 10;
 
-  // Table data and handlers
-  const columns: TableColumn[] = [
+  const actions: PopoverAction[] = [
     {
-      key: "clientName",
-      title: "Client Name",
-      width: 200,
+      label: "View Details",
+      onClick: (rowId) => {
+        console.log("View Details clicked for row:", rowId);
+        router.push("/building-details");
+      },
     },
     {
-      key: "clientId",
-      title: "Client ID",
-      width: 120,
-    },
-    {
-      key: "properties",
-      title: "Properties",
-      width: 100,
-    },
-    {
-      key: "createdOn",
-      title: "Created On",
-      width: 150,
-    },
-    {
-      key: "maintenanceCost",
-      title: "Maintenance Cost",
-      width: 150,
-    },
-    {
-      key: "grossArea",
-      title: "Gross Area",
-      width: 150,
-    },
-    {
-      key: "actions",
-      title: "",
-      width: 60,
-      render: (value, row, index) => (
-        <div
-          className={styles.actionIcon}
-          ref={(el) => {
-            actionIconRefs.current[row.id] = el;
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setPopoverState({ show: true, rowId: row.id });
-          }}
-        >
-          <Image
-            src={rightArrowPinkIcon}
-            alt="menu-dot"
-            width={16}
-            height={16}
-          />
-        </div>
-      ),
+      label: "Add Property",
+      onClick: (rowId) => {
+        console.log("Add Property clicked for row:", rowId);
+        // Add your logic here
+      },
     },
   ];
 
-  const totalItems = rowsData?.length;
+  const totalItems = buildingListRowsData?.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   // Get current page data
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentRows = rowsData?.slice(startIndex, endIndex) || [];
+  const currentRows = buildingListRowsData?.slice(startIndex, endIndex) || [];
 
   const handleRowClick = (row: TableRow, index: number) => {
-    // Disable row click when popover is active
-    if (popoverState.show) {
-      return;
-    }
-
     console.log("Row clicked:", {
       id: row.id,
       clientName: row.clientName,
@@ -138,7 +100,6 @@ const PropertyDetails: React.FC = () => {
       maintenanceCost: row.maintenanceCost,
       status: row.status,
     });
-    setSelectedRowId(row.id);
   };
 
   const handlePageChange = (page: number) => {
@@ -146,13 +107,184 @@ const PropertyDetails: React.FC = () => {
     setSelectedRowId("");
   };
 
-  const handlePopoverClose = () => {
-    setPopoverState({ show: false, rowId: null });
+  const handleAddBuildingClick = () => {
+    setShowAddBuildingModal(true);
   };
 
-  const handleViewDetails = () => {
-    router.push("/building-details");
-    handlePopoverClose();
+  const handleCloseModal = () => {
+    setShowAddBuildingModal(false);
+    setActiveTab("add-revit");
+    setUploadedFiles([]);
+    setRevitFiles([]);
+  };
+
+  const handleSubmitBuilding = () => {
+    if (activeTab === "add-revit" && revitFiles.length > 0) {
+      setActiveTab("add-file");
+    }
+    if (activeTab === "add-file" && uploadedFiles.length > 0) {
+      console.log("Uploaded files:", uploadedFiles);
+      // Add your API call here to save the building
+      handleCloseModal();
+    }
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+
+  const handleFilesAdded = (files: any[]) => {
+    console.log("Files added:", files);
+    // Ensure files maintain their progress state
+    const filesWithProgress = files.map((file) => ({
+      ...file,
+      progress: file.progress || 0,
+      status: file.status || "uploading",
+    }));
+    setUploadedFiles((prev) => [...prev, ...filesWithProgress]);
+  };
+
+  const handleFileRemoved = (fileId: string) => {
+    setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
+  };
+
+  const handleRevitFilesAdded = (files: any[]) => {
+    console.log("Revit files added:", files);
+    // Ensure files maintain their progress state
+    const filesWithProgress = files.map((file) => ({
+      ...file,
+      progress: file.progress || 0,
+      status: file.status || "uploading",
+    }));
+    setRevitFiles((prev) => [...prev, ...filesWithProgress]);
+    // setActiveTab("add-file");
+  };
+
+  const handleRevitFileRemoved = (fileId: string) => {
+    setRevitFiles((prev) => prev.filter((file) => file.id !== fileId));
+  };
+
+  const renderAddBuildingModal = () => {
+    const tabs = [
+      { label: "Add Revit", value: "add-revit" },
+      { label: "Add File", value: "add-file" },
+    ];
+
+    return (
+      <Modal
+        show={showAddBuildingModal}
+        onClose={handleCloseModal}
+        closeOnOutSideClick={true}
+        container_style={styles.add_building_modal_container}
+        overlay_style={styles.add_building_modal_overlay}
+      >
+        <div className={styles.add_building_modal_content}>
+          <div className={styles.add_building_modal_header}>
+            <div className={styles.add_building_modal_header_left}>
+              <Avatar image={backButtonIcon} size="md" />
+              <h2 className={styles.add_building_modal_title}>
+                Add New Building
+              </h2>
+            </div>
+            <Avatar
+              image={closeRoseIcon}
+              size="md"
+              onClick={handleCloseModal}
+              className={styles.add_building_modal_close_button}
+            />
+          </div>
+
+          <div className={styles.add_building_modal_tabs}>
+            <CustomTabs
+              tabs={tabs}
+              defaultTab={activeTab}
+              onTabChange={handleTabChange}
+              customStyles={{
+                tabColor: "var(--granite-gray)",
+                selectedTabColor: "var(--rose-red)",
+                indicatorColor: "var(--rose-red)",
+                fontSize: "14px",
+                fontFamily: "var(--font-lato-medium)",
+              }}
+            />
+          </div>
+
+          <div className={styles.add_building_modal_body}>
+            <div className={styles.add_building_modal_file_upload_section}>
+              <FileUpload
+                allowedTypes={
+                  activeTab === "add-revit"
+                    ? [
+                        ".rvt",
+                        ".rfa",
+                        ".rte",
+                        ".dwg",
+                        ".dxf",
+                        "application/pdf",
+                      ]
+                    : [".ifc", ".rvt", "image/*", "application/pdf"]
+                }
+                maxSize={50}
+                maxFiles={10}
+                uploadedFiles={
+                  activeTab === "add-revit" ? revitFiles : uploadedFiles || []
+                }
+                onFilesAdded={
+                  activeTab === "add-revit"
+                    ? handleRevitFilesAdded
+                    : handleFilesAdded
+                }
+                onFileRemoved={
+                  activeTab === "add-revit"
+                    ? handleRevitFileRemoved
+                    : handleFileRemoved
+                }
+                onUploadComplete={(fileId) => {
+                  if (activeTab === "add-revit") {
+                    setRevitFiles((prev) =>
+                      prev.map((file) =>
+                        file.id === fileId
+                          ? { ...file, progress: 100, status: "completed" }
+                          : file
+                      )
+                    );
+                  } else {
+                    setUploadedFiles((prev) =>
+                      prev.map((file) =>
+                        file.id === fileId
+                          ? { ...file, progress: 100, status: "completed" }
+                          : file
+                      )
+                    );
+                  }
+                }}
+                supportedText={
+                  activeTab === "add-revit"
+                    ? "Supported files are Revit files (.rvt, .rfa, .rte), CAD files (.dwg, .dxf), and PDFs up to Max 50 MB"
+                    : "Supported files are IFC / Images / PDFs up to Max 50 MB"
+                }
+                className={styles.add_building_modal_file_upload_component}
+              />
+            </div>
+          </div>
+
+          <div className={styles.add_building_modal_footer}>
+            <Button
+              title="Cancel"
+              onClick={handleCloseModal}
+              variant="outline"
+              className={styles.add_building_modal_cancel_button}
+            />
+            <Button
+              title={activeTab === "add-revit" ? "Save & Continue" : "Submit"}
+              onClick={handleSubmitBuilding}
+              variant="primary"
+              className={styles.add_building_modal_button}
+            />
+          </div>
+        </div>
+      </Modal>
+    );
   };
 
   const renderTopContainer = () => {
@@ -165,7 +297,7 @@ const PropertyDetails: React.FC = () => {
         />
         <Button
           title="Add Building"
-          onClick={() => router.push("/building-details")}
+          onClick={handleAddBuildingClick}
           variant="primary"
         />
       </section>
@@ -216,12 +348,12 @@ const PropertyDetails: React.FC = () => {
               />
             ))}
           </div>
-          <CommonTable
-            columns={columns}
+          <CommonTableWithPopover
+            columns={buildingListColumns}
             rows={currentRows}
             onRowClick={handleRowClick}
             selectedRowId={selectedRowId}
-            disabled={popoverState.show}
+            actions={actions}
             pagination={{
               currentPage,
               totalPages,
@@ -230,35 +362,10 @@ const PropertyDetails: React.FC = () => {
               onPageChange: handlePageChange,
               showItemCount: true,
             }}
+            actionIconClassName={styles.actionIcon}
+            popoverMenuClassName={styles.action_popoverMenu}
+            popoverMenuItemClassName={styles.action_popoverMenuItem}
           />
-          {popoverState.show && popoverState.rowId && (
-            <>
-              <PopOver
-                reference={{
-                  current: actionIconRefs.current[popoverState.rowId],
-                }}
-                show={popoverState.show}
-                onClose={handlePopoverClose}
-                placement="bottom-end"
-                offset={[0, 8]}
-              >
-                <div className={styles.action_popoverMenu}>
-                  <div
-                    className={styles.action_popoverMenuItem}
-                    onClick={handleViewDetails}
-                  >
-                    View Details
-                  </div>
-                  <div
-                    className={styles.action_popoverMenuItem}
-                    onClick={() => {}}
-                  >
-                    Add Property
-                  </div>
-                </div>
-              </PopOver>
-            </>
-          )}
         </div>
       </div>
     );
@@ -268,6 +375,7 @@ const PropertyDetails: React.FC = () => {
     <div className={styles.property_details_container}>
       {renderTopContainer()}
       {renderBodyContainer()}
+      {renderAddBuildingModal()}
     </div>
   );
 };

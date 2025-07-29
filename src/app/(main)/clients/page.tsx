@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useState, useRef } from "react";
 import Button from "@/components/ui/button";
 import styles from "./styles.module.css";
 import ClientDetails from "@/sections/clients-section/client-properties-list";
@@ -8,13 +8,10 @@ import SectionHeader from "@/components/ui/section-header";
 import { filterIcon } from "@/resources/images";
 import Image from "next/image";
 import MetricCard from "@/components/ui/metric-card";
-import CommonTable, {
-  TableColumn,
-  TableRow,
-} from "@/components/ui/common-table";
-import PopOver from "@/components/ui/popover";
+import CommonTableWithPopover, {
+  PopoverAction,
+} from "@/components/ui/common-table-with-popover";
 import { clientsStaticCardTitle, rowsData } from "@/app/constants";
-import { rightArrowPinkIcon } from "@/resources/images";
 import { useRouter } from "next/navigation";
 
 const Clients: React.FC = () => {
@@ -24,18 +21,10 @@ const Clients: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const clientsFilterRef = useRef<HTMLDivElement>(null);
-  const actionIconRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const [popoverState, setPopoverState] = useState<{
-    show: boolean;
-    rowId: string | null;
-  }>({ show: false, rowId: null });
   const router = useRouter();
 
-  const handleAddClient = () => {
-    router.push("/clients/add");
-  };
   // Table data and handlers
-  const columns: TableColumn[] = [
+  const columns = [
     {
       key: "clientName",
       title: "Client Name",
@@ -65,37 +54,13 @@ const Clients: React.FC = () => {
       key: "status",
       title: "Status",
       width: "calc(100% / 8)",
-      render: (value, row, index) => (
+      render: (value: any, row: any, index: number) => (
         <div
           className={`${styles.statusBadge} ${
             value === "Active" ? styles.statusActive : styles.statusInactive
           }`}
         >
           {value}
-        </div>
-      ),
-    },
-    {
-      key: "actions",
-      title: "",
-      width: "calc(100% / 8)",
-      render: (value, row, index) => (
-        <div
-          className={styles.actionIcon}
-          ref={(el) => {
-            actionIconRefs.current[row.id] = el;
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setPopoverState({ show: true, rowId: row.id });
-          }}
-        >
-          <Image
-            src={rightArrowPinkIcon}
-            alt="menu-dot"
-            width={16}
-            height={16}
-          />
         </div>
       ),
     },
@@ -113,20 +78,27 @@ const Clients: React.FC = () => {
     setCurrentPage(page);
   };
 
-  const handlePopoverClose = () => {
-    setPopoverState({ show: false, rowId: null });
-  };
-  const handleViewDetails = () => {
-    console.log("View Details clicked for row:", popoverState.rowId);
+  const handleViewDetails = (rowId: string | number) => {
+    console.log("View Details clicked for row:", rowId);
     router.push("/client-info");
-    handlePopoverClose();
   };
 
-  const handleAddBuilding = () => {
-    console.log("Add Building clicked for row:", popoverState.rowId);
+  const handleAddBuilding = (rowId: string | number) => {
+    console.log("Add Building clicked for row:", rowId);
     // Add your add building logic here
-    handlePopoverClose();
   };
+
+  // Define actions for the popover
+  const actions: PopoverAction[] = [
+    {
+      label: "View Details",
+      onClick: handleViewDetails,
+    },
+    {
+      label: "Add Property",
+      onClick: handleAddBuilding,
+    },
+  ];
 
   const renderHeaderSection = () => {
     return (
@@ -142,7 +114,7 @@ const Clients: React.FC = () => {
 
   const renderClients = () => {
     return (
-      <div className={styles.dashboard_clients_container}>
+      <div className={styles.clients_details_container}>
         {/* top container */}
         <SectionHeader
           title="Clients"
@@ -172,10 +144,9 @@ const Clients: React.FC = () => {
             />
           ))}
         </div>
-        <CommonTable
+        <CommonTableWithPopover
           columns={columns}
           rows={currentRows}
-          // onRowClick={handleRowClick}
           selectedRowId={selectedRowId}
           pagination={{
             currentPage,
@@ -185,32 +156,11 @@ const Clients: React.FC = () => {
             onPageChange: handlePageChange,
             showItemCount: true,
           }}
+          actions={actions}
+          actionIconClassName={styles.actionIcon}
+          popoverMenuClassName={styles.action_popoverMenu}
+          popoverMenuItemClassName={styles.action_popoverMenuItem}
         />
-        {/* Popover for action menu */}
-        {popoverState.show && popoverState.rowId && (
-          <PopOver
-            reference={{ current: actionIconRefs.current[popoverState.rowId] }}
-            show={popoverState.show}
-            onClose={handlePopoverClose}
-            placement="bottom-end"
-            offset={[0, 8]}
-          >
-            <div className={styles.action_popoverMenu}>
-              <div
-                className={styles.action_popoverMenuItem}
-                onClick={handleViewDetails}
-              >
-                View Details
-              </div>
-              <div
-                className={styles.action_popoverMenuItem}
-                onClick={handleAddBuilding}
-              >
-                Add Property
-              </div>
-            </div>
-          </PopOver>
-        )}
       </div>
     );
   };

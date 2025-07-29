@@ -23,6 +23,7 @@ interface CustomTabsProps {
     indicatorColor?: string;
     fontSize?: string;
     fontFamily?: string;
+    borderBottom?: string;
   };
 }
 
@@ -51,6 +52,7 @@ const CustomTabs: React.FC<CustomTabsProps> = ({
     indicatorColor = "var(--black)",
     fontSize = "14px",
     fontFamily = "var(--font-lato-regular)",
+    borderBottom = "none",
   } = customStyles;
 
   return (

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useMemo, useRef } from "react";
+import styles from "./styles.module.css";
 import MaintenanceSection from "@/sections/dashboard-section/maintenance";
 import MetricCard from "@/components/ui/metric-card";
 import { clientsStaticCardTitle } from "@/app/constants";
@@ -10,16 +11,11 @@ import PopOver from "@/components/ui/popover";
 import TableFilter from "@/components/ui/table-filter";
 import Image from "next/image";
 import { filterIcon, rightArrowPinkIcon } from "@/resources/images";
-import CommonTable, {
-  TableColumn,
-  TableRow,
-} from "@/components/ui/common-table";
+import CommonTableWithPopover, {
+  PopoverAction,
+} from "@/components/ui/common-table-with-popover";
+import { TableColumn, TableRow } from "@/components/ui/common-table";
 import { useRouter } from "next/navigation";
-import TextArea from "@/components/ui/textarea";
-import styles from "./styles.module.css";
-import SelectDropDown from "@/components/ui/select-dropdown";
-import UploadFile from "@/components/ui/upload-file";
-import FileUpload from "@/components/ui/upload-file";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -55,11 +51,6 @@ export default function DashboardPage() {
   const clientsFilterRef = useRef<HTMLDivElement>(null);
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [popoverState, setPopoverState] = useState<{
-    show: boolean;
-    rowId: string | number | null;
-  }>({ show: false, rowId: null });
-  const actionIconRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const itemsPerPage = 10;
   const router = useRouter();
   // TODO: Replace this with actual API call data
@@ -158,63 +149,39 @@ export default function DashboardPage() {
     {
       key: "clientName",
       title: "Client Name",
-      width: 200,
+      width: "calc(100% / 7)",
     },
     {
       key: "clientId",
       title: "Client ID",
-      width: 120,
+      width: "calc(100% / 7)",
     },
     {
       key: "properties",
       title: "Properties",
-      width: 100,
+      width: "calc(100% / 7)",
     },
     {
       key: "createdOn",
       title: "Created On",
-      width: 150,
+      width: "calc(100% / 7)",
     },
     {
       key: "maintenanceCost",
       title: "Maintenance Cost",
-      width: 150,
+      width: "calc(100% / 7)",
     },
     {
       key: "status",
       title: "Status",
-      width: 120,
-      render: (value, row, index) => (
+      width: "calc(100% / 7)",
+      render: (value: any, row: any, index: number) => (
         <div
           className={`${styles.statusBadge} ${
             value === "Active" ? styles.statusActive : styles.statusInactive
           }`}
         >
           {value}
-        </div>
-      ),
-    },
-    {
-      key: "actions",
-      title: "",
-      width: 60,
-      render: (value, row, index) => (
-        <div
-          className={styles.actionIcon}
-          ref={(el) => {
-            actionIconRefs.current[row.id] = el;
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setPopoverState({ show: true, rowId: row.id });
-          }}
-        >
-          <Image
-            src={rightArrowPinkIcon}
-            alt="menu-dot"
-            width={16}
-            height={16}
-          />
         </div>
       ),
     },
@@ -422,15 +389,6 @@ export default function DashboardPage() {
 
   const handleRowClick = (row: TableRow, index: number) => {
     setShowBottomSheet(true);
-    // console.log("Row clicked:", {
-    //   id: row.id,
-    //   clientName: row.clientName,
-    //   clientId: row.clientId,
-    //   properties: row.properties,
-    //   createdOn: row.createdOn,
-    //   maintenanceCost: row.maintenanceCost,
-    //   status: row.status,
-    // });
     setSelectedRowId(row.id);
   };
 
@@ -439,21 +397,26 @@ export default function DashboardPage() {
     setSelectedRowId("");
   };
 
-  const handlePopoverClose = () => {
-    setPopoverState({ show: false, rowId: null });
-  };
-
-  const handleViewDetails = () => {
+  const handleViewDetails = (rowId: string | number) => {
     router.push("/property-details");
-    // Add your view details logic here
-    handlePopoverClose();
   };
 
-  const handleAddBuilding = () => {
-    console.log("Add Building clicked for row:", popoverState.rowId);
+  const handleAddBuilding = (rowId: string | number) => {
+    console.log("Add Building clicked for row:", rowId);
     // Add your add building logic here
-    handlePopoverClose();
   };
+
+  // Define actions for the popover
+  const actions: PopoverAction[] = [
+    {
+      label: "View Properties",
+      onClick: handleViewDetails,
+    },
+    {
+      label: "Add Property",
+      onClick: handleAddBuilding,
+    },
+  ];
 
   // Callback for when filters change in the maintenance component
   const handleFiltersChange = (filter: string, year: string) => {
@@ -462,17 +425,10 @@ export default function DashboardPage() {
     // TODO: Trigger API call here to fetch new data based on the selected filters
     // fetchMaintenanceData(filter, year);
   };
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const renderClients = () => {
     return (
       <div className={styles.dashboard_clients_container}>
-        <FileUpload
-          allowDuplicates={true}
-          maxSize={50}
-          onFilesAdded={(files) => console.log(files)}
-        />
-
         {/* top container */}
         <SectionHeader
           title="Clients"
@@ -493,20 +449,6 @@ export default function DashboardPage() {
           actionButtonStyle={styles.dashboard_clients_add_client_button}
         />
         {/* middle container */}
-        <SelectDropDown
-          label="Client Status"
-          options={[
-            "Active",
-            "Inactive",
-            "Pending",
-            "Cancelled",
-            "hghg",
-            "hffffghfhf",
-            "khgjhgjj",
-          ]}
-          onSelect={(value) => console.log(value)}
-          multiSelect={true}
-        />
         <div className={styles.dashboard_clients_middle_container}>
           {clientsStaticCardTitle.map((card, index) => (
             <MetricCard
@@ -518,7 +460,7 @@ export default function DashboardPage() {
             />
           ))}
         </div>
-        <CommonTable
+        <CommonTableWithPopover
           columns={columns}
           rows={currentRows}
           onRowClick={handleRowClick}
@@ -531,32 +473,11 @@ export default function DashboardPage() {
             onPageChange: handlePageChange,
             showItemCount: true,
           }}
+          actions={actions}
+          actionIconClassName={styles.actionIcon}
+          popoverMenuClassName={styles.action_popoverMenu}
+          popoverMenuItemClassName={styles.action_popoverMenuItem}
         />
-        {/* Popover for action menu */}
-        {popoverState.show && popoverState.rowId && (
-          <PopOver
-            reference={{ current: actionIconRefs.current[popoverState.rowId] }}
-            show={popoverState.show}
-            onClose={handlePopoverClose}
-            placement="bottom-end"
-            offset={[0, 8]}
-          >
-            <div className={styles.action_popoverMenu}>
-              <div
-                className={styles.action_popoverMenuItem}
-                onClick={handleViewDetails}
-              >
-                View Properties
-              </div>
-              <div
-                className={styles.action_popoverMenuItem}
-                onClick={handleAddBuilding}
-              >
-                Add Property
-              </div>
-            </div>
-          </PopOver>
-        )}
       </div>
     );
   };
