@@ -60,3 +60,5 @@ export { default as zoomOutWhiteIcon } from "@/assets/images/zoom-out-white-icon
 export { default as palmWhiteIcon } from "@/assets/images/palm-white-icon.svg";
 export { default as closeBlackIcon } from "@/assets/images/close-black-icon.svg";
 export { default as tickBlackIcon } from "@/assets/images/tick-black-icon.svg";
+
+export { default as plusRoseIcon } from "@/assets/images/plus-rose-icon.svg";

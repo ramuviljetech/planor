@@ -286,10 +286,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
           <img src={uploadBlackIcon.src} alt="uploadBlackIcon" />
         </div>
         <div className={styles.fileUpload_text}>
-          <span className={styles.fileUpload_mainText}>
+          <p className={styles.fileUpload_mainText}>
             Choose a file or drag & drop it here
-          </span>
-          <span className={styles.fileUpload_supportText}>{supportedText}</span>
+          </p>
+          <p className={styles.fileUpload_supportText}>{supportedText}</p>
         </div>
       </div>
 

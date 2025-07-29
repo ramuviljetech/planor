@@ -13,6 +13,7 @@ import CommonTableWithPopover, {
 } from "@/components/ui/common-table-with-popover";
 import { clientsStaticCardTitle, rowsData } from "@/app/constants";
 import { useRouter } from "next/navigation";
+import AddClientUserModal from "@/components/add-client-user-modal";
 
 const Clients: React.FC = () => {
   const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
@@ -22,7 +23,8 @@ const Clients: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const clientsFilterRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
+  const [showAddClientUserModal, setShowAddClientUserModal] =
+    useState<boolean>(false);
   // Table data and handlers
   const columns = [
     {
@@ -107,7 +109,12 @@ const Clients: React.FC = () => {
           <p className={styles.clients_count}>24</p>
           <p className={styles.clients_header_section_title}>Clients</p>
         </div>
-        <Button title="New Clients" variant="primary" size="sm" />
+        <Button
+          title="New Clients"
+          variant="primary"
+          size="sm"
+          onClick={() => setShowAddClientUserModal(true)}
+        />
       </div>
     );
   };
@@ -168,6 +175,10 @@ const Clients: React.FC = () => {
     <div className={styles.clients_container}>
       {renderHeaderSection()}
       {renderClients()}
+      <AddClientUserModal
+        show={showAddClientUserModal}
+        onClose={() => setShowAddClientUserModal(false)}
+      />
     </div>
   );
 };

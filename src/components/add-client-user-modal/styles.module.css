@@ -1,0 +1,427 @@
+.client_user_modal_container_style {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 756px;
+  max-height: calc(100vh - 152px);
+  background-color: var(--white);
+  border-radius: 24px;
+  border: 1px solid var(--silver-cloud);
+  box-shadow: 0px 1px 2px 0px rgba(26, 26, 26, 0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+.client_user_modal_overlay_style {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.client_user_modal_header {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.client_user_modal_header_top {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
+  border: none;
+  padding: 0px;
+}
+.client_user_modal_header_left {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
+}
+
+.client_user_modal_header_left_arrow {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.client_user_modal_header_left_text {
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -0.36px;
+  color: var(--jet-black);
+}
+
+.client_user_modal_header_close_icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 24px;
+  display: flex;
+  gap: 4px;
+  padding: 12px;
+  background-color: var(--rose-tint);
+  cursor: pointer;
+}
+.client_user_modal_header_bottom {
+  width: 100%;
+  border-bottom: 1px solid var(--concrete);
+  /* height: 34; */
+}
+.client_user_modal_header_bottom_tab_section {
+  /* width: 100%; */
+  /* height: 33; */
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+}
+.client_user_modal_header_bottom_tab_section_tab_add_client {
+  /* width: 100%; */
+  /* height: 33; */
+  display: flex;
+  gap: 9px;
+  padding: 8px 12px 8px 12px;
+}
+.client_user_modal_header_bottom_tab_section_tab_add_client_text {
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0px;
+}
+.client_user_modal_header_bottom_tab_section_tab_add_user {
+  /* width: 100%; */
+  /* height: 33; */
+  display: flex;
+  gap: 9px;
+  padding: 8px 12px 8px 12px;
+}
+.client_user_modal_header_bottom_tab_section_tab_add_user_text {
+  font-family: var(--font-lato-bold);
+  font-weight: 700;
+  font-style: Bold;
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0px;
+}
+
+/* Active and Inactive Tab Styles */
+.active_tab {
+  cursor: pointer;
+  border-bottom: 1px solid var(--rose-red) !important;
+}
+
+.inactive_tab {
+  border-bottom: 1px solid transparent !important;
+}
+
+.active_tab .client_user_modal_header_bottom_tab_section_tab_add_client_text,
+.active_tab .client_user_modal_header_bottom_tab_section_tab_add_user_text {
+  color: rgba(136, 18, 60, 1) !important;
+  font-family: var(--font-lato-regular) !important;
+  font-weight: 400 !important;
+}
+
+.inactive_tab .client_user_modal_header_bottom_tab_section_tab_add_client_text,
+.inactive_tab .client_user_modal_header_bottom_tab_section_tab_add_user_text {
+  color: var(--ash-gray) !important;
+  font-family: var(--font-lato-bold) !important;
+  font-weight: 700 !important;
+}
+
+.client_info_section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 0px 20px 0px;
+  overflow-y: auto;
+}
+
+.client_info_section_input_section {
+  width: 100%;
+  /* height: 59; */
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  display: grid;
+  grid-template-columns: auto auto;
+  padding: 0px 4px;
+}
+
+.client_info_section_input_section_input {
+  width: 100%;
+  /* height: 36px; */
+  display: flex;
+  gap: 8px;
+  border: 1px solid var(--concrete);
+  background: transparent;
+  box-shadow: none;
+}
+.client_info_section_input_section_input::placeholder {
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.16px;
+  color: var(--fog-gray);
+}
+.client_info_input_bottom_section {
+  width: 100%;
+  /* height: 109; */
+  display: flex;
+  gap: 16px;
+  padding: 0px 3px;
+}
+.client_user_modal_footer {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: 16px;
+}
+
+.client_user_modal_content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.client_user_modal_footer_button_cancel {
+  /* width: 66; */
+  height: 36px;
+  display: flex;
+  gap: 8px;
+  border-radius: 8px;
+  padding-right: 12px;
+  padding-left: 12px;
+  background-color: transparent;
+  color: rgba(136, 18, 60, 1);
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.16px;
+}
+.client_user_modal_footer_button_submit {
+  /* width: 140; */
+  height: 42px;
+  display: flex;
+  gap: 8px;
+  border-radius: 24px;
+  padding: 12px 16px 12px 16px;
+  font-family: var(--font-lato-bold);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: -0.5px;
+  text-align: center;
+  color: var(--white);
+}
+
+/* User Info Section Styles */
+.user_info_section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 0px;
+}
+
+.user_info_section_table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--white);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom-width: 1px;
+  overflow: hidden;
+}
+
+.user_info_section_table_header {
+  width: 100%;
+  /* width: 724;
+    height: 42; */
+  background-color: var(--shadow-light);
+}
+
+.user_info_section_table_header_cell {
+  padding: 12px;
+  height: 42px;
+  font-family: var(--font-lato-bold);
+  font-weight: 700;
+  font-style: Bold;
+  font-size: 12px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--granite-gray);
+  text-align: left;
+}
+
+/* Table header cell specific widths */
+.user_info_section_table_header_cell:first-child {
+  width: 210px;
+}
+
+.user_info_section_table_header_cell:nth-child(2) {
+  width: 210px;
+}
+
+.user_info_section_table_header_cell:nth-child(3) {
+  width: auto;
+}
+
+.user_info_section_table_row {
+  border-bottom: 1px solid var(--concrete);
+}
+
+.user_info_section_table_cell {
+  /* padding: 12px 8px; */
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--jet-black);
+  text-align: left;
+  border-right: 1px solid var(--concrete);
+}
+
+/* Remove left border from first column cells */
+.user_info_section_table_cell:first-child {
+  border-left: none !important;
+}
+
+/* Add padding only to user data cells (not input row) */
+.user_info_section_table
+  tbody:not(:empty)
+  .user_info_section_table_row:not(.user_info_section_table_input_row)
+  .user_info_section_table_cell {
+  padding: 12px 8px !important;
+}
+
+/* Keep input row cells without padding */
+.user_info_section_table_input_row .user_info_section_table_cell {
+  padding: 0px !important;
+}
+
+.user_info_section_input_container {
+  width: 100%;
+  display: flex;
+  gap: 0px;
+}
+
+.user_info_section_input_container .inputWrapper:focus-within {
+  box-shadow: none;
+}
+
+.user_info_section_table_input_row {
+  border-bottom: 1px solid var(--concrete);
+}
+
+.user_info_section_input_container:focus-within {
+  box-shadow: none;
+}
+
+.user_info_section_inputs {
+  display: flex;
+  /* gap: 16px; */
+  align-items: center;
+  /* margin-bottom: 16px; */
+  /* width: 724px; */
+  height: 42px;
+  display: flex;
+  gap: 1px;
+  border-bottom: 1px solid var(--concrete);
+}
+
+.user_info_section_input {
+  height: 42px;
+  /* height: 17px; */
+  background-color: transparent;
+  border: none;
+}
+
+/* Input field widths - matching header column widths */
+.user_info_section_input:first-child {
+  flex: none !important;
+}
+
+.user_info_section_input:nth-child(2) {
+  width: 210px !important;
+  flex: none !important;
+}
+
+.user_info_section_input:nth-child(3) {
+  width: 100% !important;
+  flex: 1 !important;
+}
+
+/* Target the input wrapper and input element directly */
+.user_info_section_input_container .inputWrapper {
+  width: 100% !important;
+}
+
+.user_info_section_input_container .input {
+  width: 100% !important;
+  padding: 0px !important;
+}
+
+.user_info_section_input:focus {
+  border-radius: 4px !important;
+  border: 1px solid var(--siren-red) !important;
+  outline: none !important;
+}
+
+/* Remove left and right borders only for the cell containing the focused input */
+.user_info_section_table_input_row
+  .user_info_section_table_cell:has(
+    .user_info_section_input_container:focus-within
+  ) {
+  border-right: none !important;
+  border-left: none !important;
+}
+
+.user_info_section_add_button {
+  width: 100%;
+}
+
+.user_info_section_add_button_button {
+  /* width: 724; */
+  width: 100%;
+  height: 32px;
+  gap: 8px;
+  border-radius: 12px;
+  /* border-width: 1px; */
+  padding: 8px;
+  border-style: dashed;
+  background-color: transparent;
+  color: rgba(203, 30, 93, 1);
+  border: 1px dashed rgba(184, 184, 184, 1);
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  background-color: rgba(255, 255, 255, 1);
+}
+
+.user_info_section_add_button_icon {
+  margin-right: 8px;
+}
+.user_info_section_add_button_icon img {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.user_info_section_add_button_icon {
+  width: 16px !important;
+  height: 16px !important;
+}
