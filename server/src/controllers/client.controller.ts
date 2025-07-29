@@ -2,30 +2,21 @@ import { Request, Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import {
     CreateClientRequest,
-    User,
     UserRole,
     UserStatus,
-    StandardUser,
     CreateStandardUserRequest,
     ClientFilters
 } from '../types'
 import {
     findUserByEmail,
-    findUserByEmailExcludingId,
-    findUserById,
     createUser,
-    updateUser as updateUserEntity,
-    getStandardUsers as getStandardUsersEntity,
-    deleteUser,
-    findClientById,
-    findClientByEmail,
-    createClient
+    getStandardUsers 
 } from '../entities/admin.entity'
+import { findClientByEmail, createClient } from '../entities/client.entity'
 import { hashPassword } from '../utils/common'
 import { sendWelcomeMail, isMailjetConfigured } from '../services/mail.service'
 import {
     createClientOnlySchema,
-    createUserOnlySchema,
     createClientAndUserSchema
 } from '../validation/admin.validation'
 import { getUsersContainer } from '../config/database'
@@ -193,216 +184,157 @@ export const registerClient = async (req: Request, res: Response) => {
     }
 }
 
-// Get clients with filtering and pagination
+// Get clients with filters (Admin only)
+// This function retrieves clients based on various filters and pagination options.
 export const getClients = async (req: Request, res: Response) => {
-    try {
-        const authenticatedUser = (req as any).user
-        const filters: ClientFilters = req.body
+  try {
+    const authenticatedUser = (req as any).user;
+    const filters: ClientFilters = req.body;
+    const usersContainer = getUsersContainer();
 
-        // Validate user permissions
-        if (authenticatedUser.role !== 'admin') {
-            return res.status(403).json({
-                success: false,
-                error: 'Access denied. Admin privileges required.'
-            })
-        }
-
-        const usersContainer = getUsersContainer()
-
-        // Build query parameters
-        let query = 'SELECT * FROM c WHERE c.type = "client"'
-        const parameters: any[] = []
-        let parameterIndex = 0
-
-        // Filter by client name (partial match)
-        if (filters.clientName) {
-            parameterIndex++
-            query += ` AND CONTAINS(c.clientName, @clientName${parameterIndex})`
-            parameters.push({ name: `@clientName${parameterIndex}`, value: filters.clientName })
-        }
-
-        // Filter by client ID (exact match)
-        if (filters.clientId) {
-            parameterIndex++
-            query += ` AND c.id = @clientId${parameterIndex}`
-            parameters.push({ name: `@clientId${parameterIndex}`, value: filters.clientId })
-        }
-
-        // Filter by status
-        if (filters.status) {
-            parameterIndex++
-            query += ` AND c.status = @status${parameterIndex}`
-            parameters.push({ name: `@status${parameterIndex}`, value: filters.status })
-        }
-
-        // Filter by createdOn date (match date part only, no range)
-        if (filters.createdOn) {
-            parameterIndex++
-            query += ` AND STARTSWITH(c.createdAt, @createdOn${parameterIndex})`
-            parameters.push({ name: `@createdOn${parameterIndex}`, value: filters.createdOn }) // e.g. "2025-08-10"
-        }
-
-        // Filter by maintananceCost
-        if (filters.maintananceCost) {
-            parameterIndex++
-            query += ` AND c.maintananceCost = @maintananceCost${parameterIndex}`
-            parameters.push({ name: `@maintananceCost${parameterIndex}`, value: filters.maintananceCost })
-        }
-
-        // Add ordering
-        query += ' ORDER BY c.createdAt DESC'
-
-        // Execute query
-        console.log('Query:', query)
-        console.log('Parameters:', parameters)
-        const { resources: clients } = await usersContainer.items.query({
-            query,
-            parameters
-        }).fetchAll()
-        console.log('Found clients:', clients.length)
-
-        // Process clients to add properties count and format response
-        const processedClients = await Promise.all(
-            clients.map(async (client) => {
-                // Get properties count for this client
-                const propertiesQuery = {
-                    query: 'SELECT VALUE COUNT(1) FROM c WHERE c.type = "property" AND c.clientId = @clientId',
-                    parameters: [{ name: '@clientId', value: client.id }]
-                }
-
-                const { resources: propertiesCount } = await usersContainer.items.query(propertiesQuery).fetchAll()
-                const propertiesCountValue = propertiesCount[0] || 0
-
-                // Filter by properties count if specified (exact number)
-                if (filters.properties !== undefined) {
-                    console.log(`Client ${client.clientName}: properties=${propertiesCountValue}, filter=${filters.properties}`)
-                    if (propertiesCountValue !== filters.properties) {
-                        console.log(`Filtering out client ${client.clientName} due to properties count mismatch`)
-                        return null
-                    }
-                }
-
-                return {
-                    id: client.id,
-                    clientName: client.clientName,
-                    clientId: client.organizationNumber,
-                    properties: propertiesCountValue,
-                    createdOn: client.createdAt,
-                    status: client.status,
-                    primaryContactName: client.primaryContactName,
-                    primaryContactEmail: client.primaryContactEmail,
-                    address: client.address,
-                    industryType: client.industryType,
-                    timezone: client.timezone,
-                    updatedAt: client.updatedAt
-                }
-            })
-        )
-
-        // Remove null values (filtered out by properties count)
-        const filteredClients = processedClients.filter(client => client !== null)
-        console.log('After properties filtering:', filteredClients.length)
-
-        // Apply pagination
-        const page = parseInt(filters.page as unknown as string) || 1
-        const limit = parseInt(filters.limit as unknown as string) || 10
-        const startIndex = (page - 1) * limit
-        const endIndex = startIndex + limit
-        const paginatedClients = filteredClients.slice(startIndex, endIndex)
-
-        // Calculate pagination metadata
-        const totalClients = filteredClients.length
-        const totalPages = Math.ceil(totalClients / limit)
-
-        // Get total clients count (all clients, not filtered)
-        const totalClientsQuery = {
-            query: 'SELECT VALUE COUNT(1) FROM c WHERE c.type = "client"',
-            parameters: []
-        }
-        const { resources: totalClientsCount } = await usersContainer.items.query(totalClientsQuery).fetchAll()
-        const totalClientsValue = totalClientsCount[0] || 0
-
-        // Get new clients this month
-        const currentDate = new Date()
-        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-        const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
-
-        const newClientsThisMonthQuery = {
-            query: 'SELECT VALUE COUNT(1) FROM c WHERE c.type = "client" AND c.createdAt >= @startDate AND c.createdAt <= @endDate',
-            parameters: [
-                { name: '@startDate', value: firstDayOfMonth.toISOString() },
-                { name: '@endDate', value: lastDayOfMonth.toISOString() }
-            ]
-        }
-        const { resources: newClientsThisMonthCount } = await usersContainer.items.query(newClientsThisMonthQuery).fetchAll()
-        const newClientsThisMonthValue = newClientsThisMonthCount[0] || 0
-
-        return res.json({
-            success: true,
-            data: {
-                clients: paginatedClients,
-                statistics: {
-                    totalClients: totalClientsValue,
-                    newClientsThisMonth: newClientsThisMonthValue,
-                    filteredClients: totalClients // Add filtered count for debugging
-                },
-                pagination: {
-                    currentPage: page,
-                    totalPages,
-                    itemsPerPage: limit,
-                    hasNextPage: page < totalPages,
-                    hasPreviousPage: page > 1
-                }
-            }
-        })
-    } catch (error) {
-        console.error('Get clients error:', error)
-        return res.status(500).json({
-            success: false,
-            error: 'Internal server error'
-        })
+    if (authenticatedUser.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied. Admin privileges required.'
+      });
     }
-}
 
+    // Build base query
+    let query = 'SELECT * FROM c WHERE c.role = "client"';
+    const parameters: any[] = [];
+    let parameterIndex = 0;
 
-export const getusersAssociatedWithClient = async (req: Request, res: Response) => {
-    try {
-        const authenticatedUser = (req as any).user
-        const clientId = req.params.clientId
-        const usersContainer = getUsersContainer()
-        // const filters: ClientFilters = req.body
-        let query: string;
-        let parameters: any[] = [];
-            
-        if (clientId) {
-            // Get users belonging to the specific client
-             query = 'SELECT * FROM c WHERE c.role = "standard_user" AND c.clientId = @clientId';
-            parameters = [{ name: '@clientId', value: clientId }];
-          } else {
-            // Get all standard users
-            query = 'SELECT * FROM c WHERE c.role = "standard_user"';
-          }
-
-        const { resources: users } = await usersContainer.items.query({
-            query,
-            parameters
-        }).fetchAll()
-
-
-        const withoutPassword = users.map((user) => {
-            const { password, ...userWithoutPassword } = user
-            return userWithoutPassword
-        })
-
-        return res.json({
-            success: true,
-            data: withoutPassword
-        })
-    } catch (error) {
-        console.error('Get users associated with client error:', error)
-        return res.status(500).json({
-            success: false,
-            error: 'Internal server error'
-        })
+    if (filters.clientName) {
+      parameterIndex++;
+      query += ` AND CONTAINS(c.clientName, @clientName${parameterIndex})`;
+      parameters.push({ name: `@clientName${parameterIndex}`, value: filters.clientName });
     }
-}
+
+    if (filters.clientId) {
+      parameterIndex++;
+      query += ` AND c.id = @clientId${parameterIndex}`;
+      parameters.push({ name: `@clientId${parameterIndex}`, value: filters.clientId });
+    }
+
+    if (filters.status) {
+      parameterIndex++;
+      query += ` AND c.status = @status${parameterIndex}`;
+      parameters.push({ name: `@status${parameterIndex}`, value: filters.status });
+    }
+
+    if (filters.createdOn) {
+      parameterIndex++;
+      query += ` AND STARTSWITH(c.createdAt, @createdOn${parameterIndex})`;
+      parameters.push({ name: `@createdOn${parameterIndex}`, value: filters.createdOn });
+    }
+
+    if (filters.maintananceCost !== undefined) {
+      parameterIndex++;
+      query += ` AND c.maintananceCost = @maintananceCost${parameterIndex}`;
+      parameters.push({ name: `@maintananceCost${parameterIndex}`, value: filters.maintananceCost });
+    }
+
+    query += ' ORDER BY c.createdAt DESC';
+
+    const { resources: clients } = await usersContainer.items.query({ query, parameters }).fetchAll();
+
+    // Get all property counts grouped by clientId
+    const { resources: propertyCounts } = await usersContainer.items.query({
+      query: `
+        SELECT c.clientId, COUNT(1) AS propertyCount
+        FROM c 
+        WHERE c.type = "property" 
+        GROUP BY c.clientId
+      `
+    }).fetchAll();
+
+    const propertyCountMap = new Map<string, number>();
+    for (const row of propertyCounts) {
+      propertyCountMap.set(row.clientId, row.propertyCount);
+    }
+
+    const processedClients = clients
+      .map(client => {
+        const propertiesCountValue = propertyCountMap.get(client.id) || 0;
+
+        if (filters.properties !== undefined && propertiesCountValue !== filters.properties) {
+          return null;
+        }
+
+        return {
+          id: client.id,
+          clientName: client.clientName,
+          clientId: client.organizationNumber,
+          properties: propertiesCountValue,
+          createdOn: client.createdAt,
+          status: client.status,
+          primaryContactName: client.primaryContactName,
+          primaryContactEmail: client.primaryContactEmail,
+          address: client.address,
+          industryType: client.industryType,
+          timezone: client.timezone,
+          updatedAt: client.updatedAt
+        };
+      })
+      .filter(Boolean);
+
+    const page = Number(filters.page) || 1;
+    const limit = Number(filters.limit) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedClients = processedClients.slice(startIndex, endIndex);
+
+    // Get total clients (all)
+    const { resources: totalClientsCount } = await usersContainer.items.query({
+      query: 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "client"',
+      parameters: []
+    }).fetchAll();
+
+    const totalClientsValue = totalClientsCount[0] || 0;
+
+    // Get new clients for this month
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
+
+    const { resources: newClientsThisMonthCount } = await usersContainer.items.query({
+      query: 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "client" AND c.createdAt >= @startDate AND c.createdAt <= @endDate',
+      parameters: [
+        { name: '@startDate', value: start },
+        { name: '@endDate', value: end }
+      ]
+    }).fetchAll();
+
+    const newClientsThisMonthValue = newClientsThisMonthCount[0] || 0;
+
+    return res.json({
+      success: true,
+      data: {
+        clients: paginatedClients,
+        statistics: {
+          totalClients: totalClientsValue,
+          newClientsThisMonth: newClientsThisMonthValue,
+          filteredClients: processedClients.length
+        },
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(processedClients.length / limit),
+          itemsPerPage: limit,
+          hasNextPage: page * limit < processedClients.length,
+          hasPreviousPage: page > 1
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get clients error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+};
+
+
+
+

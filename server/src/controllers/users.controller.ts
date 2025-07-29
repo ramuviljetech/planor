@@ -177,17 +177,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
     if (!otpRecord) {
       return res.status(400).json({
         success: false,
-        error: 'OTP not found. Please request a new OTP.'
-      })
-    }
-
-    // Check if OTP is expired
-    if (new Date() > new Date(otpRecord.expiresAt)) {
-      // Delete expired OTP
-      await deleteOtpRecord(email)
-      return res.status(400).json({
-        success: false,
-        error: 'OTP has expired. Please request a new OTP.'
+        error: 'OTP not found or expired. Please request a new OTP.'
       })
     }
 
@@ -231,7 +221,6 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
 
 //POST /api/users/change-password - Change password
-//!need clarity
 export const changePassword = async (req: Request, res: Response) => {
   try {
     // const authenticatedUser = (req as any).user
@@ -297,5 +286,48 @@ export const changePassword = async (req: Request, res: Response) => {
       error: 'Internal server error'
     })
     return
+  }
+}
+
+// *Get users associated with client
+export const getusersAssociatedWithClient = async (req: Request, res: Response) => {
+  try {
+      const authenticatedUser = (req as any).user
+      const clientId = req.params.clientId
+      const usersContainer = getUsersContainer()
+      // const filters: ClientFilters = req.body
+      let query: string;
+      let parameters: any[] = [];
+          
+      if (clientId) {
+          // Get users belonging to the specific client
+           query = 'SELECT * FROM c WHERE c.role = "standard_user" AND c.clientId = @clientId';
+          parameters = [{ name: '@clientId', value: clientId }];
+        } else {
+          // Get all standard users
+          query = 'SELECT * FROM c WHERE c.role = "standard_user"';
+        }
+
+      const { resources: users } = await usersContainer.items.query({
+          query,
+          parameters
+      }).fetchAll()
+
+
+      const withoutPassword = users.map((user) => {
+          const { password, ...userWithoutPassword } = user
+          return userWithoutPassword
+      })
+
+      return res.json({
+          success: true,
+          data: withoutPassword
+      })
+  } catch (error) {
+      console.error('Get users associated with client error:', error)
+      return res.status(500).json({
+          success: false,
+          error: 'Internal server error'
+      })
   }
 }

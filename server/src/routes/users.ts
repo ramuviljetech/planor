@@ -1,5 +1,5 @@
 import express from 'express'
-import { authMiddleware } from '../middleware/auth'
+import { authMiddleware, requireAdmin } from '../middleware/auth'
 import { validateRequest } from '../middleware/validation.middleware'
 import { updateUserProfileSchema, sendOtpSchema, verifyOtpSchema, changePasswordSchema } from '../validation/users.validation'
 import { 
@@ -7,7 +7,8 @@ import {
   updateUserProfile, 
   sendOtp, 
   verifyOtp,
-  changePassword
+  changePassword,
+  getusersAssociatedWithClient
 } from '../controllers/users.controller'
 
 const router = express.Router()
@@ -26,5 +27,8 @@ router.post('/verify-otp', validateRequest(verifyOtpSchema), verifyOtp)
 
 // POST /api/users/change-password - Change password
 router.post('/change-password', validateRequest(changePasswordSchema), changePassword)
+
+// GET /api/users/get-users - Get users associated with client
+router.get('/get-users/:clientId?', authMiddleware, requireAdmin, getusersAssociatedWithClient)
 
 export { router as usersRoutes }

@@ -149,20 +149,25 @@ export interface Property {
 }
 
 // Building Types
+// Note: One building belongs to exactly one property (one-to-one relationship)
 export interface Building {
   id: string;
   type: 'building';
-  name: string;
+  buildingName: string;
   description: string;
-  propertyId: string;
+  buildingId: string;
+  propertyId: string; // One building has exactly one property
   contactPerson: string;
   contactEmail: string;
   contactPhone: string;
+  address: string;
+  constructionYear: number;
   imageUrl?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
   adminId: string;
+  clientId: string; // Derived from the property
   metadata?: {
     floors?: number;
     totalArea?: number;
@@ -347,12 +352,19 @@ export interface CreatePropertyRequest {
 }
 
 export interface CreateBuildingRequest {
-  name: string;
+  buildingName: string;
+  buildingId: string;
   description: string;
   propertyId: string;
+  type: string;
   contactPerson: string;
   contactEmail: string;
   contactPhone: string;
+  address: string;
+  isActive: boolean;
+  imageUrl?: string;
+  constructionYear: number;
+  clientId: string; 
   metadata?: {
     floors?: number;
     totalArea?: number;
