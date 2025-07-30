@@ -5,12 +5,18 @@ import {
   accordianDownBlackIcon,
   accordianDownPinkIcon,
   threeDotsIcon,
+  closeBlackIcon,
+  zoomInBlackIcon,
+  zoomOutBlackIcon,
+  focusBlackIcon,
 } from "@/resources/images";
 import MetricCard from "@/components/ui/metric-card";
 import { clientsStaticCardTitle } from "@/app/constants";
 import Input from "@/components/ui/input";
 import Button from "@/components/ui/button";
 import AddFolderModal from "@/components/add-folder-modal";
+import Modal from "@/components/ui/modal";
+import Avatar from "@/components/ui/avatar";
 import styles from "./styles.module.css";
 
 type TabType = "all" | "new";
@@ -32,6 +38,8 @@ interface NewObjectRow {
 }
 
 const PriceListPage: React.FC = () => {
+  const [showAddNewObjectModal, setShowAddNewObjectModal] =
+    useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [accordionStates, setAccordionStates] = useState<{
     [key: string]: boolean;
@@ -495,11 +503,55 @@ const PriceListPage: React.FC = () => {
           {renderTabs()}
 
           <div className={styles.price_list_content_header_threedots}>
-            <Image src={threeDotsIcon} alt="More Options" onClick={() => {}} />
+            <Image
+              src={threeDotsIcon}
+              alt="More Options"
+              onClick={() => {
+                setShowAddNewObjectModal(true);
+              }}
+            />
           </div>
         </div>
         {activeTab === "all" ? renderAllObjects() : renderNewObjectsTable()}
       </section>
+      <Modal
+        show={showAddNewObjectModal}
+        onClose={() => setShowAddNewObjectModal(false)}
+      >
+        <div className={styles.property_image_modal_container}>
+          
+          <div className={styles.property_image_modal_cancel_button}>
+            <Avatar
+              image={closeBlackIcon}
+              alt="Close"
+              size="sm"
+              // className={styles.property_image_modal_cancel_button_avatar_wrapper}
+              avatarStyle={styles.property_image_modal_cancel_button_avatar}
+              onClick={() => setShowAddNewObjectModal(false)}
+            />
+          </div>
+          <div className={styles.property_image_modal_view_adjustment_section}>
+            <Avatar
+              image={zoomInBlackIcon}
+              alt="Zoom In"
+              size="sm"
+              avatarStyle={styles.property_image_modal_cancel_button_avatar}
+            />
+            <Avatar
+              image={zoomOutBlackIcon}
+              alt="Zoom In"
+              size="sm"
+              avatarStyle={styles.property_image_modal_cancel_button_avatar}
+            />
+            <Avatar
+              image={focusBlackIcon}
+              alt="Focus"
+              size="sm"
+              avatarStyle={styles.property_image_modal_cancel_button_avatar}
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

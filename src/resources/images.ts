@@ -71,8 +71,12 @@ export { default as gridGrayIcon } from "@/assets/images/grid-gray-icon.svg";
 export { default as gridPinkIcon } from "@/assets/images/grid-pink-icon.svg";
 export { default as folderIcon } from "@/assets/images/folder-icon.svg";
 export { default as downloadBlackIcon } from "@/assets/images/download-black-icon.svg";
+export { default as zoomInBlackIcon } from "@/assets/images/zoom-in-black-icon.svg";
+export { default as zoomOutBlackIcon } from "@/assets/images/zoom-out-black-icon.svg";
+export { default as focusBlackIcon } from "@/assets/images/focus-black-icon.svg";
 
 //
 
 export { default as recentUploadedFileDummyImg1 } from "@/assets/images/recent-uploaded-file-dummy-img-1.svg";
 export { default as recentUploadedFileDummyImg2 } from "@/assets/images/recent-uploaded-file-dummy-img-2.svg";
+
