@@ -7,6 +7,7 @@ import Image from "next/image";
 import Input from "../ui/input";
 import Button from "../ui/button";
 import styles from "./styles.module.css";
+import SelectDropDown from "../ui/select-dropdown";
 
 interface AddPropertyModalProps {
   show: boolean;
@@ -127,19 +128,16 @@ export default function AddPropertyModal({
                 : undefined
             }
           />
-          <Input
-            label="Property Type"
-            value={values.propertyType}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            name="propertyType"
-            placeholder="Enter property type"
-            inputStyle={styles.add_property_modal_input_section_input}
-            inputContainerClass={styles.add_property_modal_input_container}
-            error={
-              touched.propertyType && errors.propertyType
-                ? errors.propertyType
-                : undefined
+          <SelectDropDown
+            label="Property Type*"
+            options={[
+              { label: "Property Type", value: "Property Type" },
+              { label: "Property Type 2", value: "Property Type 2" },
+              { label: "Property Type 3", value: "Property Type 3" },
+            ]}
+            selected={values.propertyType}
+            onSelect={(value) =>
+              formikProps.setFieldValue("propertyType", value as string)
             }
           />
           <Input
@@ -166,19 +164,16 @@ export default function AddPropertyModal({
             inputContainerClass={styles.add_property_modal_input_container}
             error={touched.city && errors.city ? errors.city : undefined}
           />
-          <Input
+          <SelectDropDown
             label="Gross Area*"
-            value={values.grossArea}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            name="grossArea"
-            placeholder="Enter gross area"
-            inputStyle={styles.add_property_modal_input_section_input}
-            inputContainerClass={styles.add_property_modal_input_container}
-            error={
-              touched.grossArea && errors.grossArea
-                ? errors.grossArea
-                : undefined
+            options={[
+              { label: "Gross Area", value: "Gross Area" },
+              { label: "Gross Area 2", value: "Gross Area 2" },
+              { label: "Gross Area 3", value: "Gross Area 3" },
+            ]}
+            selected={values.grossArea}
+            onSelect={(value) =>
+              formikProps.setFieldValue("grossArea", value as string)
             }
           />
           <Input
@@ -207,16 +202,17 @@ export default function AddPropertyModal({
             inputContainerClass={styles.add_property_modal_input_container}
             error={touched.email && errors.email ? errors.email : undefined}
           />
-          <Input
+          <SelectDropDown
             label="Role"
-            value={values.role}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            name="role"
-            placeholder="Enter role"
-            inputStyle={styles.add_property_modal_input_section_input}
-            inputContainerClass={styles.add_property_modal_input_container}
-            error={touched.role && errors.role ? errors.role : undefined}
+            options={[
+              { label: "Admin", value: "Admin" },
+              { label: "User", value: "User" },
+              { label: "Client", value: "Client" },
+            ]}
+            selected={values.role}
+            onSelect={(value) =>
+              formikProps.setFieldValue("role", value as string)
+            }
           />
           <Input
             label="Phone*"

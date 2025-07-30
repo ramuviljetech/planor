@@ -86,9 +86,9 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
     router.push("/property-details");
   };
 
-  const handleAddProperty = (rowId: string | number) => {
-    console.log("Add Property clicked for row:", rowId);
-    // Add your add property logic here
+  const handleAddBuilding = (rowId: string | number) => {
+    console.log("Add Building clicked for row:", rowId);
+    // Add your add building logic here
   };
 
   // Define popover actions
@@ -98,8 +98,8 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
       onClick: handleViewDetails,
     },
     {
-      label: "Add Property",
-      onClick: handleAddProperty,
+      label: "Add Building",
+      onClick: handleAddBuilding,
     },
   ];
 

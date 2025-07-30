@@ -16,6 +16,7 @@ import CommonTableWithPopover, {
 import { TableColumn, TableRow } from "@/components/ui/common-table";
 import { useRouter } from "next/navigation";
 import AddClientUserModal from "@/components/add-client-user-modal";
+import AddPropertyModal from "@/components/add-property-modal";
 import styles from "./styles.module.css";
 
 // Fixed colors for metric cards based on title
@@ -35,6 +36,8 @@ export default function DashboardPage() {
     setSelectedYearlyMaintenanceSummary,
   ] = useState<string>("thisYear");
   const [showAddClientUserModal, setShowAddClientUserModal] =
+    useState<boolean>(false);
+  const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
   const [selectedClientsFilters, setSelectedClientsFilters] =
     useState<string>("Active");
@@ -394,9 +397,9 @@ export default function DashboardPage() {
     router.push("/property-details");
   };
 
-  const handleAddBuilding = (rowId: string | number) => {
-    console.log("Add Building clicked for row:", rowId);
-    // Add your add building logic here
+  const handleAddProperty = (rowId: string | number) => {
+    console.log("Add Property clicked for row:", rowId);
+    setShowAddPropertyModal(true);
   };
 
   // Define actions for the popover
@@ -407,7 +410,7 @@ export default function DashboardPage() {
     },
     {
       label: "Add Property",
-      onClick: handleAddBuilding,
+      onClick: handleAddProperty,
     },
   ];
 
@@ -524,6 +527,10 @@ export default function DashboardPage() {
       <AddClientUserModal
         show={showAddClientUserModal}
         onClose={() => setShowAddClientUserModal(false)}
+      />
+      <AddPropertyModal
+        show={showAddPropertyModal}
+        onClose={() => setShowAddPropertyModal(false)}
       />
     </div>
   );

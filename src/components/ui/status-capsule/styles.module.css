@@ -1,0 +1,38 @@
+.status_capsule {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-family: var(--font-lato-regular);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.status_text {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.approved {
+  background-color: var(--mint-cream);
+  color: var(--forest-green);
+}
+
+.pending {
+  background-color: var(--sunbeam);
+  color: var(--crimson-deep);
+}
+
+.rejected {
+  background-color: var(--blush-pink);
+  color: var(--crimson-red);
+}
+
+.default {
+  background-color: var(--light-gray);
+  color: var(--granite-gray);
+}

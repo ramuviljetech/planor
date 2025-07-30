@@ -2,7 +2,13 @@ import React from "react";
 import classNames from "classnames";
 import styles from "./styles.module.css";
 import Image from "next/image";
-import { rightArrowPinkIcon, leftArrowGrayIcon } from "@/resources/images";
+import {
+  rightArrowPinkIcon,
+  leftArrowGrayIcon,
+  leftArrowBlackIcon,
+  rightArrowBlackIcon,
+  rightArrowGrayIcon,
+} from "@/resources/images";
 
 export interface PaginationProps {
   currentPage: number;
@@ -93,7 +99,7 @@ const Pagination: React.FC<PaginationProps> = ({
             onClick={currentPage > 1 ? handlePrevious : undefined}
           >
             <Image
-              src={currentPage === 1 ? leftArrowGrayIcon : rightArrowPinkIcon}
+              src={currentPage === 1 ? leftArrowGrayIcon : leftArrowBlackIcon}
               alt="arrow-left"
               width={16}
               height={16}
@@ -146,8 +152,8 @@ const Pagination: React.FC<PaginationProps> = ({
             <Image
               src={
                 currentPage === totalPages
-                  ? leftArrowGrayIcon
-                  : rightArrowPinkIcon
+                  ? rightArrowGrayIcon
+                  : rightArrowBlackIcon
               }
               alt="arrow-right"
               width={16}

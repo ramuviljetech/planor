@@ -28,6 +28,7 @@ import FileCategories from "@/sections/building-section/file-categories";
 import { ImageViewer } from "@/components/ui/image-viewer";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import styles from "./styles.module.css";
+import { sampleActivities } from "@/app/constants";
 
 const BuildingDetails: React.FC = () => {
   const [activeImageTab, setActiveImageTab] = useState("image");
@@ -203,7 +204,9 @@ const BuildingDetails: React.FC = () => {
         {activeTab === "overview" && <Overview />}
         {activeTab === "maintenance" && <Maintenance />}
         {activeTab === "files" && <FileCategories />}
-        {activeTab === "activity" && <ActivityHistory />}
+        {activeTab === "activity" && (
+          <ActivityHistory activities={sampleActivities} />
+        )}
       </div>
     );
   };

@@ -26,6 +26,8 @@ export { default as closeRoseIcon } from "@/assets/images/close-rose-icon.svg";
 export { default as backButtonIcon } from "@/assets/images/arrow-left-black-icon.svg";
 
 export { default as rightArrowPinkIcon } from "@/assets/images/right-arrow-pink-icon.svg";
+export { default as rightArrowBlackIcon } from "@/assets/images/right-arrow-black-icon.svg";
+export { default as rightArrowGrayIcon } from "@/assets/images/right-arrow-gray-icon.svg";
 export { default as leftArrowGrayIcon } from "@/assets/images/left-arrow-gray-icon.svg";
 export { default as leftArrowBlackIcon } from "@/assets/images/left-arrow-black-icon.svg";
 

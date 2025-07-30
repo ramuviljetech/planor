@@ -14,6 +14,7 @@ import { clientsStaticCardTitle, rowsData } from "@/app/constants";
 import { useRouter } from "next/navigation";
 import AddClientUserModal from "@/components/add-client-user-modal";
 import styles from "./styles.module.css";
+import AddPropertyModal from "@/components/add-property-modal";
 
 const Clients: React.FC = () => {
   const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
@@ -24,6 +25,8 @@ const Clients: React.FC = () => {
   const clientsFilterRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [showAddClientUserModal, setShowAddClientUserModal] =
+    useState<boolean>(false);
+  const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
   // Table data and handlers
   const columns = [
@@ -85,9 +88,9 @@ const Clients: React.FC = () => {
     router.push("/client-info");
   };
 
-  const handleAddBuilding = (rowId: string | number) => {
-    console.log("Add Building clicked for row:", rowId);
-    // Add your add building logic here
+  const handleAddProperty = (rowId: string | number) => {
+    console.log("Add Property clicked for row:", rowId);
+    setShowAddPropertyModal(true);
   };
 
   // Define actions for the popover
@@ -98,7 +101,7 @@ const Clients: React.FC = () => {
     },
     {
       label: "Add Property",
-      onClick: handleAddBuilding,
+      onClick: handleAddProperty,
     },
   ];
 
@@ -178,6 +181,10 @@ const Clients: React.FC = () => {
       <AddClientUserModal
         show={showAddClientUserModal}
         onClose={() => setShowAddClientUserModal(false)}
+      />
+      <AddPropertyModal
+        show={showAddPropertyModal}
+        onClose={() => setShowAddPropertyModal(false)}
       />
     </div>
   );
