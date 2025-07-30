@@ -180,7 +180,12 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt, onClose }) => {
           }}
           onLoad={handleImageLoad}
           onMouseDown={handleMouseDown}
-          onClick={!isZoomed ? handleZoomToggle : undefined}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isZoomed) {
+              handleZoomToggle();
+            }
+          }}
           draggable={false}
         />
       </div>
@@ -198,7 +203,10 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt, onClose }) => {
                 ? styles.imageViewer_active
                 : ""
             }`}
-            onClick={() => handleControlAction(btn.type)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleControlAction(btn.type);
+            }}
             aria-label={
               btn.type === "handTool" && isZoomed
                 ? "Hand tool active"
@@ -219,18 +227,26 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt, onClose }) => {
           className={styles.imageViewer_rightControllerBtn}
           title="This building"
           icon={zoomInWhiteIcon}
+          onClick={(e) => {
+            e.stopPropagation();
+            // handleZoomIn();
+          }}
         />
         <Button
           className={styles.imageViewer_rightControllerBtn}
           title="All buildings"
           icon={zoomOutWhiteIcon}
+          onClick={(e) => {
+            e.stopPropagation();
+            // handleZoomOut();
+          }}
         />
       </div>
     );
   };
 
   return (
-    <div className={styles.imageViewer_overlay}>
+    <div onClick={onClose} className={styles.imageViewer_overlay}>
       <div className={styles.imageViewer_mainContainer}>
         {renderImage()}
         <div className={styles.imageViewer_controlBar}>

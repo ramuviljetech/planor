@@ -1,6 +1,5 @@
 .selectDropDown {
   width: 100%;
-  max-width: 240px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -11,7 +10,7 @@
   font-size: 13px;
   line-height: 19px;
   letter-spacing: -0.12px;
-  color: rgba(87, 87, 87, 1);
+  color: var(--carbon);
 }
 
 .selectDropDownWithDownArrow {
@@ -19,14 +18,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px;
-  border: 1px solid rgba(219, 219, 219, 1);
-  background: var(--white);
+  border: 1px solid var(--concrete);
+  background: transparent;
   border-radius: 6px;
   cursor: pointer;
   min-height: 36px;
 }
 .selectDropDownFocused {
-  border: 1px solid rgba(158, 46, 86, 1);
+  border: 1px solid var(--rose-red);
 }
 
 .selectDropDownError {
@@ -35,23 +34,23 @@
 }
 .placeholder,
 .selectedText {
-  font-family: "TitilliumWeb-Regular", sans-serif;
+  font-family: var(--font-lato-regular);
   font-weight: 400;
   font-size: 15px;
   line-height: 140%;
   letter-spacing: 0%;
-  color: rgba(87, 87, 87, 1);
+  color: var(--fog-gray);
 }
 
 .selectedText {
-  color: var(--charcoal-gray);
+  color: var(--jet-black);
 }
 
 .dropdownContainer {
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid rgba(219, 219, 219, 1);
-  background: var(--white);
+  border: 1px solid var(--concrete);
+  background: var(--snow-white);
   padding: 8px;
 }
 
@@ -68,23 +67,23 @@
 .searchInput {
   width: 100%;
   padding: 8px 16px 8px 34px;
-  border: 1px solid rgba(219, 219, 219, 1);
+  border: 1px solid var(--concrete);
   border-radius: 24px;
   font-family: var(--font-lato-regular);
   font-size: 14px;
   line-height: 140%;
-  color: rgba(87, 87, 87, 1);
-  background: var(--white);
+  color: var(--carbon);
+  background: transparent;
   outline: none;
   transition: border-color 0.2s ease;
 }
 
 .searchInput:focus {
-  border-color: rgba(158, 46, 86, 1);
+  border-color: var(--rose-red);
 }
 
 .searchInput::placeholder {
-  color: rgba(87, 87, 87, 0.6);
+  color: var(--fog-gray);
 }
 
 .dropdownMenu {
@@ -110,41 +109,7 @@
 }
 
 .selectedOption {
-  background: rgba(250, 250, 250, 1);
-}
-
-.optionContent {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-}
-.optionContent span {
-  font-family: var(--font-lato-regular);
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 140%;
-  letter-spacing: 0%;
-  color: rgba(87, 87, 87, 1);
-}
-
-.optionAvatar {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.optionIcon {
-  width: 16px;
-  height: 16px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.dropdownItem:hover .optionIcon,
-.iconVisible {
-  opacity: 1;
+  background: var(--snow-white);
 }
 
 .arrowBase {
@@ -163,72 +128,4 @@
   line-height: 19px;
   letter-spacing: -0.12px;
   margin-top: 4px;
-}
-
-/* Selected Items Display Styles */
-.selectedItemsContainer {
-  border-top: 1px solid rgba(219, 219, 219, 1);
-  padding-top: 12px;
-}
-
-.selectedItemsHeader {
-  margin-bottom: 8px;
-}
-
-.selectedItemsHeader span {
-  font-family: var(--font-lato-regular);
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(87, 87, 87, 1);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.selectedItemsList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  max-height: 80px;
-  overflow-y: auto;
-}
-
-.selectedItemChip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  background: rgba(158, 46, 86, 0.1);
-  border: 1px solid rgba(158, 46, 86, 0.3);
-  border-radius: 12px;
-  font-family: var(--font-lato-regular);
-  font-size: 12px;
-  color: rgba(158, 46, 86, 1);
-  max-width: 120px;
-}
-
-.selectedItemChip span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.removeButton {
-  background: none;
-  border: none;
-  color: rgba(158, 46, 86, 1);
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 0;
-  width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
-}
-
-.removeButton:hover {
-  background-color: rgba(158, 46, 86, 0.2);
 }

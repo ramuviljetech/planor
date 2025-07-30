@@ -8,15 +8,19 @@ interface CustomCheckboxProps {
   checked: boolean;
   onChange: () => void;
   label: string;
+  className?: string;
+  labelClassName?: string;
 }
 
 const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
   checked,
   onChange,
   label,
+  className,
+  labelClassName,
 }) => {
   return (
-    <div className={styles.wrapper} onClick={onChange}>
+    <div className={classNames(styles.wrapper, className)} onClick={onChange}>
       <div
         className={classNames(
           styles.checkbox,
@@ -33,7 +37,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
           />
         )}
       </div>
-      <span className={styles.label}>{label}</span>
+      <span className={classNames(styles.label, labelClassName)}>{label}</span>
     </div>
   );
 };

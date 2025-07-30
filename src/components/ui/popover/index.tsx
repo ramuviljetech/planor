@@ -18,6 +18,7 @@ const PopOver: React.FC<PopOverProps> = ({
   relativeWidth = false,
   offset = [0, 0],
   children,
+  zIndex,
 }) => {
   const [popperElement, setPopperElement] = useState<HTMLElement | null>(null);
 
@@ -99,6 +100,7 @@ const PopOver: React.FC<PopOverProps> = ({
           className={classNames(styles.container, container_style)}
           onClick={(e) => e.stopPropagation()}
           ref={setPopperElement}
+          style={zIndex ? { zIndex } : undefined}
         >
           {children}
         </div>

@@ -9,6 +9,8 @@ interface CustomDatePickerProps {
   value?: Date;
   onChange?: (date: Date) => void;
   className?: string;
+  containerStyle?: string;
+  zIndex?: number;
 }
 
 const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
@@ -17,6 +19,8 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   value,
   onChange,
   className = "",
+  containerStyle,
+  zIndex,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(value || null);
@@ -216,9 +220,10 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         show={isOpen}
         onClose={() => setIsOpen(false)}
         placement="bottom-start"
-        container_style={styles.datePicker_dropdown}
+        container_style={containerStyle || styles.datePicker_dropdown}
         relativeWidth={true}
         offset={[0, 16]}
+        zIndex={zIndex}
       >
         <div className={styles.datePicker_header}>
           <div

@@ -10,7 +10,7 @@
   font-size: 13px;
   line-height: 19px;
   letter-spacing: -0.12px;
-  color: rgba(87, 87, 87, 1);
+  color: var(--carbon);
 }
 .inputWrapper {
   display: flex;
@@ -44,11 +44,12 @@
   font-size: 15px;
   line-height: 21px;
   letter-spacing: -0.24px;
+  color: var(--jet-black);
   border-radius: 8px;
   padding: 8px;
   outline: none;
-  background: rgba(250, 250, 250, 1);
-  border: 1px solid rgba(219, 219, 219, 1);
+  background: var(--snow-white);
+  border: 1px solid var(--concrete);
 }
 .input::placeholder {
   color: var(--fog-gray);

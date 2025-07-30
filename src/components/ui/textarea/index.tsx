@@ -7,7 +7,7 @@ interface TextAreaProps {
   placeholder?: string;
   rows?: number;
   value?: string;
-  onChange?: (value: string) => void;
+  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onBlur?: () => void;
   onFocus?: () => void;
   disabled?: boolean;
@@ -48,12 +48,6 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   }) =>
     // ref
     {
-      const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        if (onChange) {
-          onChange(e.target.value);
-        }
-      };
-
       return (
         <div className={classNames(styles.text_area_container, className)}>
           {label && (
@@ -72,7 +66,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
             placeholder={placeholder}
             rows={rows}
             value={value}
-            onChange={handleChange}
+            onChange={onChange}
             onBlur={onBlur}
             onFocus={onFocus}
             disabled={disabled}

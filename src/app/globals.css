@@ -56,10 +56,12 @@
   --transparent-white: rgba(255, 255, 255, 0.1);
   --crimson-red: rgba(136, 18, 60, 1);
   --soft-white: rgba(247, 247, 247, 1);
-  --ruby-red: rgba(136, 18, 60, 1);
-  --pinkish-red: rgba(136, 18, 60, 1);
   --siren-red: rgba(158, 46, 86, 1);
-  --dark-maroon: rgba(136, 18, 60, 1);
+  --onyx-shadow: rgba(26, 26, 26, 0.08);
+  --rosewood: rgba(171, 75, 109, 1);
+  --mauve-rose: rgba(168, 104, 127, 1);
+  --light-ice: rgb(249, 250, 251);
+  --sky-glow: rgb(219, 234, 254);
 }
 
 html,

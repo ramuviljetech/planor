@@ -9,6 +9,7 @@ import {
   building2,
   building3,
   building4,
+  building3d,
 } from "@/resources/images";
 import SearchBar from "../ui/searchbar";
 import { useState } from "react";
@@ -17,40 +18,10 @@ import { ImageCarousel } from "@/components/ui/image-carousel";
 import { ImageViewer } from "@/components/ui/image-viewer";
 import { CustomDatePicker } from "@/components/ui/date-picker";
 import styles from "./styles.module.css";
+import Avatar from "../ui/avatar";
 
 const Header: React.FC = () => {
   const [search, setSearch] = useState("");
-  const [showViewer, setShowViewer] = useState(false);
-
-  const [isCarouselOpen, setIsCarouselOpen] = useState(false);
-  const images = [
-    building3,
-    building4,
-    building2,
-    building1,
-    building2,
-    building3,
-    building4,
-    building1,
-    building2,
-    building3,
-    building4,
-    building2,
-    building3,
-    building4,
-  ];
-
-  const openCarousel = () => {
-    setIsCarouselOpen(true);
-  };
-
-  const closeCarousel = () => {
-    setIsCarouselOpen(false);
-  };
-
-  const handleDateChange = (date: Date) => {
-    console.log("Selected date:", date);
-  };
 
   return (
     <div className={styles.header_container}>
@@ -69,42 +40,12 @@ const Header: React.FC = () => {
       </div>
       {/* pfofile and notification */}
       <div className={styles.header_right_container}>
-        <div className={styles.pin_icon}>
-          <Image
-            src={pinIcon}
-            alt="pin"
-            width={20}
-            height={20}
-            onClick={openCarousel}
-          />
-        </div>
-
-        {/* // TODO: IMAGE CAROUSEL IMPLEMENTATION */}
-        <ImageCarousel
-          images={images}
-          isOpen={isCarouselOpen}
-          onClose={closeCarousel}
+        <Avatar image={pinIcon} alt="building3d" className={styles.pin_icon} />
+        <Avatar
+          image={questionmarkIcon}
+          alt="questionmark"
+          className={styles.questionmark_icon}
         />
-        {/* //TODO: IMAGE 3D CAROUSEL IMPLEMENTATION */}
-        <div className={styles.questionmark_icon}>
-          <Image
-            src={questionmarkIcon}
-            alt="questionmark"
-            width={20}
-            height={20}
-            onClick={() => setShowViewer(true)}
-          />
-
-          {showViewer && (
-            <ImageViewer
-              src={building1.src}
-              alt="building one"
-              onClose={() => setShowViewer(false)}
-            />
-          )}
-        </div>
-
-        {/* //TODO: DATE PICKER IMPLEMENTATION */}
 
         {/* <CustomDatePicker
           label="Set new Maintenance date*"

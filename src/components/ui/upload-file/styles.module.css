@@ -12,7 +12,7 @@
   padding: 32px;
   justify-content: center;
   align-items: center;
-  border: 2px dashed rgba(204, 204, 204, 1);
+  border: 2px dashed var(--concrete);
   border-radius: 8px;
   text-align: center;
   cursor: pointer;
@@ -22,7 +22,7 @@
 }
 
 .fileUpload_dropZone:hover {
-  border-color: #9ca3af;
+  border-color: var(--granite-gray);
 }
 
 .fileUpload_dropZone__dragOver {
@@ -36,7 +36,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(232, 232, 232, 1);
+  background-color: var(--concrete);
   border-radius: 50%;
 }
 
@@ -58,7 +58,7 @@
   line-height: 20px;
   letter-spacing: -0.16px;
   text-align: center;
-  color: rgba(26, 26, 26, 1);
+  color: var(--jet-black);
 }
 
 .fileUpload_supportText {
@@ -68,7 +68,7 @@
   line-height: 19px;
   letter-spacing: -0.12px;
   text-align: center;
-  color: rgba(117, 117, 117, 1);
+  color: var(--granite-gray);
 }
 
 .fileUpload_hiddenInput {
@@ -90,7 +90,7 @@
   gap: 8px;
   padding: 12px;
   background-color: var(--white);
-  border: 1px solid rgba(219, 219, 219, 1);
+  border: 1px solid var(--concrete);
   border-radius: 16px;
   transition: all 0.2s ease;
 }
@@ -106,7 +106,7 @@
   justify-content: center;
   width: 38px;
   height: 38px;
-  background-color: #fef2f2;
+  background-color: var(--rose-tint);
   border-radius: 12px;
   flex-shrink: 0;
 }
@@ -125,7 +125,7 @@
   line-height: 20px;
   letter-spacing: -0.16px;
   word-break: break-word;
-  color: rgba(26, 26, 26, 1);
+  color: var(--jet-black);
 }
 
 .fileUpload_fileProgress {
@@ -140,20 +140,20 @@
   font-size: 13px;
   line-height: 19px;
   letter-spacing: -0.12px;
-  color: rgba(117, 117, 117, 1);
+  color: var(--granite-gray);
 }
 
 .fileUpload_progressBar {
   width: 100%;
   height: 4px;
-  background-color: #e5e7eb;
+  background-color: var(--concrete);
   border-radius: 2px;
   overflow: hidden;
 }
 
 .fileUpload_progressFill {
   height: 100%;
-  background-color: #10b981;
+  background-color: var(--forest-green);
   border-radius: 2px;
   transition: width 0.3s ease;
 }
@@ -175,12 +175,12 @@
 }
 
 .fileUpload_removeButton:hover {
-  color: #ef4444;
-  background-color: #fef2f2;
+  color: var(--crimson-red);
+  background-color: var(--rose-tint);
 }
 
 .fileUpload_removeButton:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--ocean-blue);
   outline-offset: 2px;
 }
 
@@ -206,15 +206,15 @@
 }
 
 .fileUpload_fileList::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--concrete);
   border-radius: 3px;
 }
 
 .fileUpload_fileList::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--granite-gray);
   border-radius: 3px;
 }
 
 .fileUpload_fileList::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--granite-gray);
 }

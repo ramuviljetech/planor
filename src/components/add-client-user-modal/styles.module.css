@@ -66,71 +66,12 @@
   background-color: var(--rose-tint);
   cursor: pointer;
 }
-.client_user_modal_header_bottom {
+
+.client_user_modal_tabs {
   width: 100%;
+  height: auto;
+  display: flex;
   border-bottom: 1px solid var(--concrete);
-  /* height: 34; */
-}
-.client_user_modal_header_bottom_tab_section {
-  /* width: 100%; */
-  /* height: 33; */
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-}
-.client_user_modal_header_bottom_tab_section_tab_add_client {
-  /* width: 100%; */
-  /* height: 33; */
-  display: flex;
-  gap: 9px;
-  padding: 8px 12px 8px 12px;
-}
-.client_user_modal_header_bottom_tab_section_tab_add_client_text {
-  font-family: var(--font-lato-regular);
-  font-weight: 400;
-  font-style: Regular;
-  font-size: 14px;
-  line-height: 100%;
-  letter-spacing: 0px;
-}
-.client_user_modal_header_bottom_tab_section_tab_add_user {
-  /* width: 100%; */
-  /* height: 33; */
-  display: flex;
-  gap: 9px;
-  padding: 8px 12px 8px 12px;
-}
-.client_user_modal_header_bottom_tab_section_tab_add_user_text {
-  font-family: var(--font-lato-bold);
-  font-weight: 700;
-  font-style: Bold;
-  font-size: 14px;
-  line-height: 100%;
-  letter-spacing: 0px;
-}
-
-/* Active and Inactive Tab Styles */
-.active_tab {
-  cursor: pointer;
-  border-bottom: 1px solid var(--rose-red) !important;
-}
-
-.inactive_tab {
-  border-bottom: 1px solid transparent !important;
-}
-
-.active_tab .client_user_modal_header_bottom_tab_section_tab_add_client_text,
-.active_tab .client_user_modal_header_bottom_tab_section_tab_add_user_text {
-  color: rgba(136, 18, 60, 1) !important;
-  font-family: var(--font-lato-regular) !important;
-  font-weight: 400 !important;
-}
-
-.inactive_tab .client_user_modal_header_bottom_tab_section_tab_add_client_text,
-.inactive_tab .client_user_modal_header_bottom_tab_section_tab_add_user_text {
-  color: var(--ash-gray) !important;
-  font-family: var(--font-lato-bold) !important;
-  font-weight: 700 !important;
 }
 
 .client_info_section {

@@ -8,10 +8,13 @@ import {
   leftArrowBlackIcon,
   plusRoseIcon,
 } from "@/resources/images";
-import styles from "./styles.module.css";
 import Input from "../ui/input";
 import Button from "../ui/button";
 import Modal from "../ui/modal";
+import SelectDropDown from "../ui/select-dropdown";
+import TextArea from "../ui/textarea";
+import styles from "./styles.module.css";
+import CustomTabs from "../ui/tabs";
 
 interface AddClientUserModalProps {
   show: boolean;
@@ -40,14 +43,13 @@ export default function AddClientUserModal({
     email: "",
     role: "",
     phone: "",
-    clientLogo: "",
+    description: "",
   });
 
   const [users, setUsers] = useState<
     Array<{ id: number; name: string; contact: string; email: string }>
   >([]);
   const [newUser, setNewUser] = useState({ name: "", contact: "", email: "" });
-  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   const isUserFormValid =
     newUser.name.trim() !== "" &&
@@ -61,7 +63,7 @@ export default function AddClientUserModal({
     clientData.timeZone.trim() !== "" &&
     clientData.primaryContactName.trim() !== "" &&
     clientData.phone.trim() !== "" &&
-    clientData.clientLogo.trim() !== "";
+    clientData.description.trim() !== "";
 
   const handleAddUser = () => {
     if (newUser.name && newUser.contact && newUser.email) {
@@ -87,7 +89,7 @@ export default function AddClientUserModal({
         email: "",
         role: "",
         phone: "",
-        clientLogo: "",
+        description: "",
       });
       setUsers([]);
       setNewUser({ name: "", contact: "", email: "" });
@@ -118,14 +120,17 @@ export default function AddClientUserModal({
             placeholder="Enter org number"
             inputStyle={styles.client_info_section_input_section_input}
           />
-          <Input
+          <SelectDropDown
             label="Industry Type*"
-            value={clientData.industryType}
-            onChange={(e) =>
-              setClientData({ ...clientData, industryType: e.target.value })
+            options={[
+              { label: "Industry Type", value: "Industry Type" },
+              { label: "Industry Type 2", value: "Industry Type 2" },
+              { label: "Industry Type 3", value: "Industry Type 3" },
+            ]}
+            selected={clientData.industryType}
+            onSelect={(value) =>
+              setClientData({ ...clientData, industryType: value as string })
             }
-            placeholder="Enter industry type"
-            inputStyle={styles.client_info_section_input_section_input}
           />
           <Input
             label="Address*"
@@ -145,14 +150,16 @@ export default function AddClientUserModal({
             placeholder="Enter website url"
             inputStyle={styles.client_info_section_input_section_input}
           />
-          <Input
-            label="Time Zone*"
-            value={clientData.timeZone}
-            onChange={(e) =>
-              setClientData({ ...clientData, timeZone: e.target.value })
+          <SelectDropDown
+            label="Status*"
+            options={[
+              { label: "Active", value: "Active" },
+              { label: "Inactive", value: "Inactive" },
+            ]}
+            selected={clientData.timeZone}
+            onSelect={(value) =>
+              setClientData({ ...clientData, timeZone: value as string })
             }
-            placeholder="Enter time zone"
-            inputStyle={styles.client_info_section_input_section_input}
           />
           <Input
             label="Primary Contact Name*"
@@ -175,14 +182,17 @@ export default function AddClientUserModal({
             placeholder="Enter email"
             inputStyle={styles.client_info_section_input_section_input}
           />
-          <Input
-            label="Role"
-            value={clientData.role}
-            onChange={(e) =>
-              setClientData({ ...clientData, role: e.target.value })
+          <SelectDropDown
+            label="Role*"
+            options={[
+              { label: "Admin", value: "Admin" },
+              { label: "Client", value: "Client" },
+              { label: "User", value: "User" },
+            ]}
+            selected={clientData.role}
+            onSelect={(value) =>
+              setClientData({ ...clientData, role: value as string })
             }
-            placeholder="Enter role"
-            inputStyle={styles.client_info_section_input_section_input}
           />
           <Input
             label="Phone*"
@@ -195,14 +205,13 @@ export default function AddClientUserModal({
           />
         </div>
         <div className={styles.client_info_input_bottom_section}>
-          <Input
-            label="Client Logo*"
-            value={clientData.clientLogo}
+          <TextArea
+            label="Description*"
+            value={clientData.description}
             onChange={(e) =>
-              setClientData({ ...clientData, clientLogo: e.target.value })
+              setClientData({ ...clientData, description: e.target.value })
             }
-            placeholder="Enter client logo"
-            inputStyle={styles.client_info_section_input_section_input}
+            placeholder="Enter description"
           />
         </div>
       </div>
@@ -246,6 +255,7 @@ export default function AddClientUserModal({
               <td className={styles.user_info_section_table_cell}>
                 <Input
                   label=""
+                  placeholder="Enter here"
                   value={newUser.name}
                   onChange={(e) =>
                     setNewUser({ ...newUser, name: e.target.value })
@@ -258,6 +268,7 @@ export default function AddClientUserModal({
               <td className={styles.user_info_section_table_cell}>
                 <Input
                   label=""
+                  placeholder="Enter here"
                   value={newUser.contact}
                   onChange={(e) =>
                     setNewUser({ ...newUser, contact: e.target.value })
@@ -270,6 +281,7 @@ export default function AddClientUserModal({
               <td className={styles.user_info_section_table_cell}>
                 <Input
                   label=""
+                  placeholder="Enter here"
                   value={newUser.email}
                   onChange={(e) =>
                     setNewUser({ ...newUser, email: e.target.value })
@@ -327,7 +339,7 @@ export default function AddClientUserModal({
                 email: "",
                 role: "",
                 phone: "",
-                clientLogo: "",
+                description: "",
               });
               setUsers([]);
               setNewUser({ name: "", contact: "", email: "" });
@@ -337,43 +349,23 @@ export default function AddClientUserModal({
             style={{ cursor: "pointer" }}
           />
         </div>
-        <div className={styles.client_user_modal_header_bottom}>
-          <div className={styles.client_user_modal_header_bottom_tab_section}>
-            <div
-              className={`${
-                styles.client_user_modal_header_bottom_tab_section_tab_add_client
-              } ${
-                activeTab === "client" ? styles.active_tab : styles.inactive_tab
-              }`}
-              onClick={() => handleTabClick("client")}
-              style={{ cursor: "pointer" }}
-            >
-              <p
-                className={
-                  styles.client_user_modal_header_bottom_tab_section_tab_add_client_text
-                }
-              >
-                Add client info
-              </p>
-            </div>
-            <div
-              className={`${
-                styles.client_user_modal_header_bottom_tab_section_tab_add_user
-              } ${
-                activeTab === "user" ? styles.active_tab : styles.inactive_tab
-              }`}
-              onClick={() => handleTabClick("user")}
-              style={{ cursor: "pointer" }}
-            >
-              <p
-                className={
-                  styles.client_user_modal_header_bottom_tab_section_tab_add_user_text
-                }
-              >
-                Add users
-              </p>
-            </div>
-          </div>
+
+        <div className={styles.client_user_modal_tabs}>
+          <CustomTabs
+            tabs={[
+              { label: "Add client info", value: "client" },
+              { label: "Add users", value: "user" },
+            ]}
+            defaultTab={activeTab}
+            onTabChange={handleTabClick}
+            customStyles={{
+              tabColor: "var(--granite-gray)",
+              selectedTabColor: "var(--rose-red)",
+              indicatorColor: "var(--rose-red)",
+              fontSize: "14px",
+              fontFamily: "var(--font-lato-bold)",
+            }}
+          />
         </div>
       </div>
       <div className={styles.client_user_modal_content}>
@@ -396,7 +388,7 @@ export default function AddClientUserModal({
               email: "",
               role: "",
               phone: "",
-              clientLogo: "",
+              description: "",
             });
             setUsers([]);
             setNewUser({ name: "", contact: "", email: "" });

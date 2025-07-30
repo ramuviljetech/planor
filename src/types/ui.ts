@@ -88,6 +88,7 @@ export interface PopOverProps {
   relativeWidth?: boolean;
   offset?: [number, number];
   children: ReactNode;
+  zIndex?: number;
 }
 
 export interface SectionHeaderProps {
