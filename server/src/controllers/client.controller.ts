@@ -19,7 +19,7 @@ import {
     createClientOnlySchema,
     createClientAndUserSchema
 } from '../validation/admin.validation'
-import { getUsersContainer } from '../config/database'
+import { getUsersContainer,getBuildingsContainer } from '../config/database'
 
 // Create new client (Admin only) - can create client only or client + users
 export const registerClient = async (req: Request, res: Response) => {
@@ -186,78 +186,109 @@ export const registerClient = async (req: Request, res: Response) => {
 
 // Get clients with filters (Admin only)
 // This function retrieves clients based on various filters and pagination options.
+
 export const getClients = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user;
     const filters: ClientFilters = req.body;
-    const usersContainer = getUsersContainer();
 
     if (authenticatedUser.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: 'Access denied. Admin privileges required.'
+        error: 'Access denied. Admin privileges required.',
       });
     }
 
-    // Build base query
+    const usersContainer = getUsersContainer();
+    const buildingsContainer = getBuildingsContainer();
+
+    // --- Build client query with filters ---
     let query = 'SELECT * FROM c WHERE c.role = "client"';
     const parameters: any[] = [];
-    let parameterIndex = 0;
+    let paramIdx = 0;
 
     if (filters.clientName) {
-      parameterIndex++;
-      query += ` AND CONTAINS(c.clientName, @clientName${parameterIndex})`;
-      parameters.push({ name: `@clientName${parameterIndex}`, value: filters.clientName });
+      paramIdx++;
+      query += ` AND CONTAINS(c.clientName, @clientName${paramIdx})`;
+      parameters.push({ name: `@clientName${paramIdx}`, value: filters.clientName });
     }
 
     if (filters.clientId) {
-      parameterIndex++;
-      query += ` AND c.id = @clientId${parameterIndex}`;
-      parameters.push({ name: `@clientId${parameterIndex}`, value: filters.clientId });
+      paramIdx++;
+      query += ` AND c.id = @clientId${paramIdx}`;
+      parameters.push({ name: `@clientId${paramIdx}`, value: filters.clientId });
     }
 
     if (filters.status) {
-      parameterIndex++;
-      query += ` AND c.status = @status${parameterIndex}`;
-      parameters.push({ name: `@status${parameterIndex}`, value: filters.status });
+      paramIdx++;
+      query += ` AND c.status = @status${paramIdx}`;
+      parameters.push({ name: `@status${paramIdx}`, value: filters.status });
     }
 
     if (filters.createdOn) {
-      parameterIndex++;
-      query += ` AND STARTSWITH(c.createdAt, @createdOn${parameterIndex})`;
-      parameters.push({ name: `@createdOn${parameterIndex}`, value: filters.createdOn });
+      paramIdx++;
+      query += ` AND STARTSWITH(c.createdAt, @createdOn${paramIdx})`;
+      parameters.push({ name: `@createdOn${paramIdx}`, value: filters.createdOn });
     }
 
     if (filters.maintananceCost !== undefined) {
-      parameterIndex++;
-      query += ` AND c.maintananceCost = @maintananceCost${parameterIndex}`;
-      parameters.push({ name: `@maintananceCost${parameterIndex}`, value: filters.maintananceCost });
+      paramIdx++;
+      query += ` AND c.maintananceCost = @maintananceCost${paramIdx}`;
+      parameters.push({ name: `@maintananceCost${paramIdx}`, value: filters.maintananceCost });
     }
 
     query += ' ORDER BY c.createdAt DESC';
 
-    const { resources: clients } = await usersContainer.items.query({ query, parameters }).fetchAll();
+    // --- Dates for newClientsThisMonth query ---
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
 
-    // Get all property counts grouped by clientId
-    const { resources: propertyCounts } = await usersContainer.items.query({
-      query: `
-        SELECT c.clientId, COUNT(1) AS propertyCount
-        FROM c 
-        WHERE c.type = "property" 
-        GROUP BY c.clientId
-      `
-    }).fetchAll();
+    // --- Run parallel queries ---
+    const [
+      clientsResult,
+      propertyCountsResult,
+      newClientsThisMonthCountResult
+    ] = await Promise.all([
+      usersContainer.items.query({ query, parameters }).fetchAll(),
+
+      usersContainer.items.query({
+        query: `
+          SELECT c.clientId, COUNT(1) AS propertyCount
+          FROM c 
+          WHERE c.type = "property"
+          GROUP BY c.clientId
+        `
+      }).fetchAll(),
+
+      usersContainer.items.query({
+        query: `
+          SELECT VALUE COUNT(1)
+          FROM c
+          WHERE c.role = "client" AND c.createdAt >= @startDate AND c.createdAt <= @endDate
+        `,
+        parameters: [
+          { name: '@startDate', value: start },
+          { name: '@endDate', value: end }
+        ]
+      }).fetchAll()
+    ]);
+
+    const clients = clientsResult.resources;
+    const propertyCounts = propertyCountsResult.resources;
+    const newClientsThisMonthValue = newClientsThisMonthCountResult.resources[0] ?? 0;
 
     const propertyCountMap = new Map<string, number>();
     for (const row of propertyCounts) {
       propertyCountMap.set(row.clientId, row.propertyCount);
     }
 
+    // --- Filter + transform clients ---
     const processedClients = clients
       .map(client => {
-        const propertiesCountValue = propertyCountMap.get(client.id) || 0;
+        const propertiesCount = propertyCountMap.get(client.id) ?? 0;
 
-        if (filters.properties !== undefined && propertiesCountValue !== filters.properties) {
+        if (filters.properties !== undefined && propertiesCount !== filters.properties) {
           return null;
         }
 
@@ -265,7 +296,7 @@ export const getClients = async (req: Request, res: Response) => {
           id: client.id,
           clientName: client.clientName,
           clientId: client.organizationNumber,
-          properties: propertiesCountValue,
+          properties: propertiesCount,
           createdOn: client.createdAt,
           status: client.status,
           primaryContactName: client.primaryContactName,
@@ -278,42 +309,55 @@ export const getClients = async (req: Request, res: Response) => {
       })
       .filter(Boolean);
 
+    // --- Pagination ---
     const page = Number(filters.page) || 1;
     const limit = Number(filters.limit) || 10;
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     const paginatedClients = processedClients.slice(startIndex, endIndex);
 
-    // Get total clients (all)
-    const { resources: totalClientsCount } = await usersContainer.items.query({
-      query: 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "client"',
-      parameters: []
-    }).fetchAll();
+    // --- Get filtered building count ---
+    let filteredBuildingsCountResult: any[] = [0];
+    const filteredClientIds = processedClients.map(client => client?.id).filter(Boolean) as string[];
 
-    const totalClientsValue = totalClientsCount[0] || 0;
+    if (filteredClientIds.length > 0) {
+      const buildingsQuery = `
+        SELECT VALUE COUNT(1)
+        FROM c
+        WHERE c.type = "building" AND ARRAY_CONTAINS(@clientIds, c.clientId)
+      `;
 
-    // Get new clients for this month
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
+      const buildingsResult = await buildingsContainer.items.query({
+        query: buildingsQuery,
+        parameters: [{ name: '@clientIds', value: filteredClientIds }]
+      }).fetchAll();
 
-    const { resources: newClientsThisMonthCount } = await usersContainer.items.query({
-      query: 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "client" AND c.createdAt >= @startDate AND c.createdAt <= @endDate',
-      parameters: [
-        { name: '@startDate', value: start },
-        { name: '@endDate', value: end }
-      ]
-    }).fetchAll();
+      filteredBuildingsCountResult = buildingsResult.resources;
+    } else {
+      // No filters — return total buildings count
+      const totalResult = await buildingsContainer.items.query({
+        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.type = "building"',
+        parameters: []
+      }).fetchAll();
 
-    const newClientsThisMonthValue = newClientsThisMonthCount[0] || 0;
+      filteredBuildingsCountResult = totalResult.resources;
+    }
 
+    const filteredBuildingsValue = filteredBuildingsCountResult[0] ?? 0;
+
+    // --- Placeholder: total file uploads (filtered) ---
+    const totalFileUploadsValue = 0;
+
+    // --- Return result ---
     return res.json({
       success: true,
       data: {
         clients: paginatedClients,
         statistics: {
-          totalClients: totalClientsValue,
+          totalClients: processedClients.length,
           newClientsThisMonth: newClientsThisMonthValue,
+          totalFileUploads: totalFileUploadsValue,
+          totalBuildings: filteredBuildingsValue,
           filteredClients: processedClients.length
         },
         pagination: {
@@ -334,6 +378,9 @@ export const getClients = async (req: Request, res: Response) => {
     });
   }
 };
+
+
+
 
 
 

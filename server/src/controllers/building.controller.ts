@@ -8,49 +8,22 @@ import {
   getBuildingsByClientId,
   getBuildingsByPropertyId,
   createBuilding,
-  searchBuildings
+  calculateBuildingStatistics,
+  getBuildingsWithPagination
 } from '../entities/building.entity'
 import { findPropertyById } from '../entities/property.entity'
 
-// *Get all buildings (Admin only) or buildings by client ID and propertyId
+// *Get all buildings with pagination
 export const getAllBuildingsController = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user
-    const { search, adminId, clientId, propertyId } = req.query
+    const { page = '1', limit = '10' } = req.query
 
-    let buildings: Building[]
+    // Parse pagination parameters
+    const pageNumber = parseInt(page as string, 10) || 1
+    const limitNumber = parseInt(limit as string, 10) || 10
 
-    // If clientId is provided, return buildings for that client (no admin required)
-    if (clientId && typeof clientId === 'string') {
-      buildings = await getBuildingsByClientId(clientId)
-      
-      return res.json({
-        success: true,
-        message: 'Buildings retrieved successfully for client',
-        data: {
-          buildings,
-          count: buildings.length,
-          clientId
-        }
-      })
-    }
-
-    // If propertyId is provided, return buildings for that property
-    if (propertyId && typeof propertyId === 'string') {
-      buildings = await getBuildingsByPropertyId(propertyId)
-      
-      return res.json({
-        success: true,
-        message: 'Buildings retrieved successfully for property',
-        data: {
-          buildings,
-          count: buildings.length,
-          propertyId
-        }
-      })
-    }
-
-    // If no clientId or propertyId, require admin access
+    // Require admin access
     if (!authenticatedUser || authenticatedUser.role !== 'admin') {
       return res.status(403).json({
         success: false,
@@ -58,23 +31,27 @@ export const getAllBuildingsController = async (req: Request, res: Response) => 
       })
     }
 
-    if (search && typeof search === 'string') {
-      // Search buildings
-      buildings = await searchBuildings(search)
-    } else if (adminId && typeof adminId === 'string') {
-      // Get buildings by admin ID
-      buildings = await getBuildingsByAdminId(adminId)
-    } else {
-      // Get all buildings
-      buildings = await getAllBuildings()
-    }
+    // Get buildings with pagination (optimized for speed)
+    const { buildings, total } = await getBuildingsWithPagination(pageNumber, limitNumber)
+    const statistics = await calculateBuildingStatistics()
 
     return res.json({
       success: true,
       message: 'Buildings retrieved successfully',
       data: {
         buildings,
-        count: buildings.length
+        count: buildings.length,
+        totalCount: total,
+        totalBuildings: statistics.totalBuildings,
+        totalArea: statistics.totalArea,
+        totalMaintenanceCost: statistics.totalMaintenanceCost,
+        maintenanceUpdates: statistics.maintenanceUpdates,
+        pagination: {
+          page: pageNumber,
+          limit: limitNumber,
+          total: total,
+          totalPages: Math.ceil(total / limitNumber)
+        }
       }
     })
   } catch (error) {

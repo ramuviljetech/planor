@@ -11,20 +11,38 @@ import {
   createProperty,
   updateProperty,
   deleteProperty,
-  searchProperties
+  searchProperties,
+  getPropertiesWithFilters,
+  calculatePropertyStatistics
 } from '../entities/property.entity'
 
 // Get all properties (Admin only) or properties by client ID
 export const getAllPropertiesController = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user
-    const { search, adminId, clientId } = req.query
+    const { 
+      search, 
+      adminId, 
+      clientId, 
+    // Default to include statistics
+    } = req.query
 
     let properties: Property[]
+    let statistics: any = null
 
-    // If clientId is provided, return properties for that client (no admin required)
+    // Build filters object
+    const filters: any = {}
+    if (adminId && typeof adminId === 'string') filters.adminId = adminId
+    if (clientId && typeof clientId === 'string') filters.clientId = clientId
+    if (search && typeof search === 'string') filters.search = search
+
+    // If clientId is provided, allow access without admin role
     if (clientId && typeof clientId === 'string') {
-      properties = await getPropertiesByClientId(clientId)
+      // Get properties with all filters including clientId
+      properties = await getPropertiesWithFilters(filters)
+      
+      // Calculate statistics for client properties if requested
+      statistics = await calculatePropertyStatistics(filters)
       
       return res.json({
         success: true,
@@ -32,7 +50,8 @@ export const getAllPropertiesController = async (req: Request, res: Response) =>
         data: {
           properties,
           count: properties.length,
-          clientId
+          clientId,
+          ...(statistics && { statistics })
         }
       })
     }
@@ -45,23 +64,23 @@ export const getAllPropertiesController = async (req: Request, res: Response) =>
       })
     }
 
-    if (search && typeof search === 'string') {
-      // Search properties
-      properties = await searchProperties(search)
-    } else if (adminId && typeof adminId === 'string') {
-      // Get properties by admin ID
-      properties = await getPropertiesByAdminId(adminId)
+    // Get properties with filters (admin access)
+    if (Object.keys(filters).length > 0) {
+      properties = await getPropertiesWithFilters(filters)
     } else {
-      // Get all properties
       properties = await getAllProperties()
     }
+
+    // Calculate statistics if requested
+    statistics = await calculatePropertyStatistics(Object.keys(filters).length > 0 ? filters : undefined)
 
     return res.json({
       success: true,
       message: 'Properties retrieved successfully',
       data: {
         properties,
-        count: properties.length
+        count: properties.length,
+        ...(statistics && { statistics })
       }
     })
   } catch (error) {

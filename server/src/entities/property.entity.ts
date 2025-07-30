@@ -176,4 +176,156 @@ export const searchProperties = async (searchTerm: string): Promise<Property[]> 
     console.error('Error searching properties:', error)
     throw error
   }
+}
+
+// Get properties with filters
+export const getPropertiesWithFilters = async (filters: {
+  adminId?: string;
+  clientId?: string;
+  search?: string;
+  propertyType?: string;
+  city?: string;
+  inactive?: boolean;
+}): Promise<Property[]> => {
+  try {
+    const propertiesContainer = getPropertiesContainer()
+    
+    let query = 'SELECT * FROM c WHERE 1=1'
+    const parameters: any[] = []
+    let paramIndex = 0
+
+    if (filters.adminId) {
+      paramIndex++
+      query += ` AND c.adminId = @adminId${paramIndex}`
+      parameters.push({ name: `@adminId${paramIndex}`, value: filters.adminId })
+    }
+
+    if (filters.clientId) {
+      paramIndex++
+      query += ` AND c.clientId = @clientId${paramIndex}`
+      parameters.push({ name: `@clientId${paramIndex}`, value: filters.clientId })
+    }
+
+    if (filters.propertyType) {
+      paramIndex++
+      query += ` AND c.propertyType = @propertyType${paramIndex}`
+      parameters.push({ name: `@propertyType${paramIndex}`, value: filters.propertyType })
+    }
+
+    if (filters.city) {
+      paramIndex++
+      query += ` AND c.city = @city${paramIndex}`
+      parameters.push({ name: `@city${paramIndex}`, value: filters.city })
+    }
+
+    if (filters.inactive !== undefined) {
+      paramIndex++
+      query += ` AND c.inactive = @inactive${paramIndex}`
+      parameters.push({ name: `@inactive${paramIndex}`, value: filters.inactive })
+    }
+
+    if (filters.search) {
+      paramIndex++
+      query += ` AND (CONTAINS(c.propertyName, @search${paramIndex}, true) 
+                OR CONTAINS(c.propertyCode, @search${paramIndex}, true)
+                OR CONTAINS(c.address, @search${paramIndex}, true)
+                OR CONTAINS(c.city, @search${paramIndex}, true))`
+      parameters.push({ name: `@search${paramIndex}`, value: filters.search })
+    }
+
+    query += ' ORDER BY c.createdAt DESC'
+
+    const queryObj = { query, parameters }
+    const { resources: properties } = await propertiesContainer.items.query(queryObj).fetchAll()
+    return properties
+  } catch (error) {
+    console.error('Error getting properties with filters:', error)
+    throw error
+  }
+}
+
+// Calculate property statistics
+export const calculatePropertyStatistics = async (filters?: {
+  adminId?: string;
+  clientId?: string;
+  search?: string;
+  propertyType?: string;
+  city?: string;
+  inactive?: boolean;
+}): Promise<{
+  totalProperties: number;
+  totalArea: number;
+  totalBuildings: number;
+  // activeProperties: number;
+  // inactiveProperties: number;
+  totalMaintenanceCost: number;
+  //   propertiesByType: { [key: string]: number };
+  //   propertiesByCity: { [key: string]: number };
+}> => {
+  try {
+    // Get properties based on filters
+    const properties = filters ? await getPropertiesWithFilters(filters) : await getAllProperties()
+    
+    // Import building functions
+    const { getBuildingsByPropertyId } = await import('./building.entity')
+    
+    // Calculate statistics
+    let totalArea = 0
+    let totalBuildings = 0
+    // let activeProperties = 0
+    // let inactiveProperties = 0
+    let totalMaintenanceCost = 0
+    const propertiesByType: { [key: string]: number } = {}
+    const propertiesByCity: { [key: string]: number } = {}
+
+    // Process each property
+    for (const property of properties) {
+      // Count by type
+      if (!propertiesByType[property.propertyType]) {
+        propertiesByType[property.propertyType] = 0
+      }
+      propertiesByType[property.propertyType]++
+
+      // Count by city
+      if (!propertiesByCity[property.city]) {
+        propertiesByCity[property.city] = 0
+      }
+      propertiesByCity[property.city]++
+
+      // Count active/inactive
+      // if (property.inactive) {
+      //   inactiveProperties++
+      // } else {
+      //   activeProperties++
+      // }
+
+      // Calculate total area from metadata
+      if (property.metadata?.grossArea) {
+        totalArea += property.metadata.grossArea
+      }
+
+      // Count buildings for this property
+      try {
+        const buildings = await getBuildingsByPropertyId(property.id)
+        totalBuildings += buildings.length
+      } catch (error) {
+        console.error(`Error getting buildings for property ${property.id}:`, error)
+        // Continue processing other properties
+      }
+    }
+
+    return {
+      totalProperties: properties.length,
+      totalArea,
+      totalBuildings,
+      // activeProperties,
+      // inactiveProperties,
+      totalMaintenanceCost
+      // propertiesByType,
+      // propertiesByCity
+    }
+  } catch (error) {
+    console.error('Error calculating property statistics:', error)
+    throw error
+  }
 } 
