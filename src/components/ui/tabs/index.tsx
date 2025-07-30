@@ -12,6 +12,7 @@ export interface TabItem {
 interface CustomTabsProps {
   tabs: TabItem[];
   defaultTab?: string;
+  activeTab?: string;
   onTabChange?: (value: string) => void;
   className?: string;
   variant?: "standard" | "fullWidth" | "scrollable";
@@ -30,6 +31,7 @@ interface CustomTabsProps {
 const CustomTabs: React.FC<CustomTabsProps> = ({
   tabs,
   defaultTab,
+  activeTab: controlledActiveTab,
   onTabChange,
   className,
   variant = "standard",
@@ -37,12 +39,16 @@ const CustomTabs: React.FC<CustomTabsProps> = ({
   showIndicator = true,
   customStyles = {},
 }) => {
-  const [activeTab, setActiveTab] = useState(
+  const [internalActiveTab, setInternalActiveTab] = useState(
     defaultTab || tabs[0]?.value || ""
   );
 
+  // Use controlled value if provided, otherwise use internal state
+  const activeTab =
+    controlledActiveTab !== undefined ? controlledActiveTab : internalActiveTab;
+
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
-    setActiveTab(newValue);
+    setInternalActiveTab(newValue);
     onTabChange?.(newValue);
   };
 

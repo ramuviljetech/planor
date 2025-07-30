@@ -67,7 +67,8 @@ const FileCategories = () => {
     const columns = [
       {
         key: "checkbox",
-        title: (
+        title: "",
+        headerRender: () => (
           <CustomCheckbox
             checked={selectAll}
             onChange={handleToggleAll}
@@ -89,6 +90,7 @@ const FileCategories = () => {
       { key: "size", title: "Size" },
       {
         key: "actions",
+        title: "",
         render: () => (
           <div className={styles.files_tableActions}>
             <img

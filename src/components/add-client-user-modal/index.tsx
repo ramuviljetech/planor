@@ -1,20 +1,14 @@
 import { useState } from "react";
 
 import Image from "next/image";
-import {
-  accordianDownBlackIcon,
-  backButtonIcon,
-  closeRoseIcon,
-  leftArrowBlackIcon,
-  plusRoseIcon,
-} from "@/resources/images";
-import Input from "../ui/input";
-import Button from "../ui/button";
-import Modal from "../ui/modal";
-import SelectDropDown from "../ui/select-dropdown";
-import TextArea from "../ui/textarea";
+import { closeRoseIcon, plusRoseIcon } from "@/resources/images";
+import Input from "@/components/ui/input";
+import Button from "@/components/ui/button";
+import Modal from "@/components/ui/modal";
+import SelectDropDown from "@/components/ui/select-dropdown";
+import TextArea from "@/components/ui/textarea";
+import CustomTabs from "@/components/ui/tabs";
 import styles from "./styles.module.css";
-import CustomTabs from "../ui/tabs";
 
 interface AddClientUserModalProps {
   show: boolean;
@@ -356,7 +350,7 @@ export default function AddClientUserModal({
               { label: "Add client info", value: "client" },
               { label: "Add users", value: "user" },
             ]}
-            defaultTab={activeTab}
+            activeTab={activeTab}
             onTabChange={handleTabClick}
             customStyles={{
               tabColor: "var(--granite-gray)",

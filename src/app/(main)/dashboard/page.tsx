@@ -9,14 +9,13 @@ import SectionHeader from "@/components/ui/section-header";
 import PopOver from "@/components/ui/popover";
 import TableFilter from "@/components/ui/table-filter";
 import Image from "next/image";
-import { filterIcon, rightArrowPinkIcon } from "@/resources/images";
+import { filterIcon } from "@/resources/images";
 import CommonTableWithPopover, {
   PopoverAction,
 } from "@/components/ui/common-table-with-popover";
 import { TableColumn, TableRow } from "@/components/ui/common-table";
 import { useRouter } from "next/navigation";
-import TextArea from "@/components/ui/textarea";
-import SelectDropDown from "@/components/ui/select-dropdown";
+import AddClientUserModal from "@/components/add-client-user-modal";
 import styles from "./styles.module.css";
 
 // Fixed colors for metric cards based on title
@@ -29,22 +28,14 @@ const titleColorMap: Record<string, string> = {
   Area: "var(--neon-mint)",
 };
 
-const tableOptions = [
-  "Client Name",
-  "Client Id",
-  "Properties",
-  "Created On",
-  "Maintenance Cost",
-  "Status",
-];
-
 export default function DashboardPage() {
   const [selectedFilter, setSelectedFilter] = useState<string>("clients");
   const [
     selectedYearlyMaintenanceSummary,
     setSelectedYearlyMaintenanceSummary,
   ] = useState<string>("thisYear");
-
+  const [showAddClientUserModal, setShowAddClientUserModal] =
+    useState<boolean>(false);
   const [selectedClientsFilters, setSelectedClientsFilters] =
     useState<string>("Active");
   const [showBottomSheet, setShowBottomSheet] = useState<boolean>(false);
@@ -438,7 +429,9 @@ export default function DashboardPage() {
           onSearchChange={setClientsSearchValue}
           searchPlaceholder="Search properties..."
           actionButtonTitle="Add Client"
-          onActionButtonClick={() => {}}
+          onActionButtonClick={() => {
+            setShowAddClientUserModal(true);
+          }}
           filterComponent={
             <div
               ref={clientsFilterRef}
@@ -515,13 +508,23 @@ export default function DashboardPage() {
       </PopOver>
       <BottomSheet
         isOpen={showBottomSheet}
-        onClose={() => setShowBottomSheet(false)}
+        onClose={() => {
+          setShowBottomSheet(false);
+          setSelectedRowId("");
+        }}
         title="Brunnfast AB"
         backButton={true}
-        onBackButton={() => setShowBottomSheet(false)}
+        onBackButton={() => {
+          setShowBottomSheet(false);
+          setSelectedRowId("");
+        }}
       >
         <ClientPropertiesList />
       </BottomSheet>
+      <AddClientUserModal
+        show={showAddClientUserModal}
+        onClose={() => setShowAddClientUserModal(false)}
+      />
     </div>
   );
 }

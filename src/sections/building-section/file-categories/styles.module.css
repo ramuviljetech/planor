@@ -9,7 +9,7 @@
   flex-direction: column;
   gap: 34px;
   padding: 12px;
-  border-right: 1px solid rgba(232, 232, 232, 1);
+  border-right: 1px solid var(--concrete);
 }
 .file_categories_left_section_header,
 .file_categories_tabs {
@@ -17,7 +17,7 @@
   font-size: 16px;
   line-height: 100%;
   letter-spacing: 0px;
-  color: rgba(161, 161, 161, 1);
+  color: var(--ash-gray);
 }
 .file_categories_left_section_content {
   display: flex;
@@ -25,11 +25,11 @@
   gap: 24px;
 }
 .file_categories_tabs {
-  color: rgba(25, 30, 33, 1);
+  color: var(--jet-black);
   cursor: pointer;
 }
 .active_tab {
-  color: rgba(203, 30, 93, 1);
+  color: var(--rose-red);
   cursor: pointer;
 }
 .file_categories_right_section {
@@ -46,23 +46,23 @@
   width: 100%;
   max-width: 248px;
   padding: 8px 16px 8px 34px;
-  border: 1px solid rgba(219, 219, 219, 1);
+  border: 1px solid var(--concrete);
   border-radius: 24px;
   font-family: var(--font-lato-regular);
   font-size: 14px;
   line-height: 140%;
-  color: rgba(87, 87, 87, 1);
+  color: var(--carbon);
   background: var(--white);
   outline: none;
   transition: border-color 0.2s ease;
 }
 
 .search_input:focus {
-  border-color: rgba(158, 46, 86, 1);
+  border-color: var(--rose-red);
 }
 
 .search_input::placeholder {
-  color: rgba(87, 87, 87, 0.6);
+  color: var(--charcoal-soft);
 }
 
 .file_categories_right_section {
@@ -95,7 +95,7 @@
   align-items: center;
   justify-content: space-around;
   gap: 4px;
-  border: 1px solid rgba(232, 232, 232, 1);
+  border: 1px solid var(--concrete);
   border-radius: 24px;
   padding: 4px;
 }
@@ -136,33 +136,30 @@
 }
 
 .file_recentFolderHeading {
-  font-family: Lato;
-  font-weight: 700;
+  font-family: var(--font-lato-bold);
   font-size: 16px;
   line-height: 100%;
   letter-spacing: 0px;
-  color: rgba(25, 30, 33, 1);
+  color: var(--jet-black);
 }
 
 .file_viewAllText {
-  font-family: Lato;
-  font-weight: 700;
+  font-family: var(--font-lato-bold);
   font-size: 14px;
   line-height: 18px;
   letter-spacing: -0.5px;
   text-align: center;
-  color: rgba(203, 30, 93, 1);
+  color: var(--rose-red);
   cursor: pointer;
 }
 
 .file_folderBox {
-  max-width: 224px;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  border: 1px solid rgba(232, 232, 232, 1);
+  border: 1px solid var(--concrete);
   border-radius: 12px;
   padding: 16px;
 }
@@ -179,11 +176,11 @@
 }
 
 .file_folderLabelText {
-  font-family: Lato;
-  font-weight: 400;
+  font-family: var(--font-lato-regular);
   font-size: 16px;
   line-height: 100%;
   letter-spacing: 0px;
+  color: var(--jet-black);
 }
 
 .file_verticalMenuIcon {
@@ -213,13 +210,11 @@
 }
 
 .file_recentVisitedFilesText {
-  font-family: Lato;
-  font-weight: 700;
-  font-style: Bold;
+  font-family: var(--font-lato-bold);
   font-size: 16px;
   line-height: 100%;
   letter-spacing: 0px;
-  color: rgba(25, 30, 33, 1);
+  color: var(--jet-black);
 }
 
 .file_recentVisitedFileCard {
@@ -229,7 +224,7 @@
   gap: 4px;
   border-radius: 12px;
   padding: 8px;
-  border: 1px solid rgba(232, 232, 232, 1);
+  border: 1px solid var(--concrete);
 }
 
 .file_recentVisitedFileCardHeader {
@@ -253,13 +248,11 @@
 }
 
 .recentVisitedFileLabelText {
-  font-family: Lato;
-  font-weight: 400;
-  font-style: Regular;
+  font-family: var(--font-lato-regular);
   font-size: 16px;
   line-height: 100%;
   letter-spacing: 0px;
-  color: rgba(25, 30, 33, 1);
+  color: var(--jet-black);
 }
 
 .file_recentVisitedFilePreview {
@@ -302,6 +295,6 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  background-color: rgba(203, 30, 93, 0.08);
+  background-color: var(--rose-tint);
   border-radius: 50%;
 }

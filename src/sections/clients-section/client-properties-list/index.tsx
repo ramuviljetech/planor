@@ -74,7 +74,7 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
       maintenanceCost: row.maintenanceCost,
       status: row.status,
     });
-    setSelectedRowId(row.id);
+    // setSelectedRowId(row.id);
   };
 
   const handlePageChange = (page: number) => {

@@ -106,9 +106,10 @@ const CommonTable: React.FC<CommonTableProps> = ({
                 <tr
                   key={row.id}
                   className={rowClassName}
-                  onClick={() =>
-                    handleRowClick && handleRowClick(row, rowIndex)
-                  }
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRowClick && handleRowClick(row, rowIndex);
+                  }}
                 >
                   {columns.map((column) => (
                     <td

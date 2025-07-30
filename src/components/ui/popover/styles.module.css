@@ -9,7 +9,7 @@
 }
 .container {
   position: absolute;
-  background-color: var(--off-white);
+  background-color: var(--white);
   z-index: 1000;
   border-radius: 0.5rem;
   cursor: initial;

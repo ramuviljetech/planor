@@ -2,7 +2,6 @@
 
 import React, { useState, useRef } from "react";
 import Button from "@/components/ui/button";
-import styles from "./styles.module.css";
 import ClientDetails from "@/sections/clients-section/client-properties-list";
 import SectionHeader from "@/components/ui/section-header";
 import { filterIcon } from "@/resources/images";
@@ -14,6 +13,7 @@ import CommonTableWithPopover, {
 import { clientsStaticCardTitle, rowsData } from "@/app/constants";
 import { useRouter } from "next/navigation";
 import AddClientUserModal from "@/components/add-client-user-modal";
+import styles from "./styles.module.css";
 
 const Clients: React.FC = () => {
   const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
