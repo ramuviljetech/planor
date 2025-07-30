@@ -6,8 +6,8 @@ import { closeRoseIcon } from "@/resources/images";
 import Image from "next/image";
 import Input from "../ui/input";
 import Button from "../ui/button";
-import styles from "./styles.module.css";
 import SelectDropDown from "../ui/select-dropdown";
+import styles from "./styles.module.css";
 
 interface AddPropertyModalProps {
   show: boolean;
