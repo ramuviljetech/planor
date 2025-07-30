@@ -10,6 +10,7 @@
   justify-content: center;
   z-index: 1000;
   background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(9.100000381469727px);
 }
 
 /* Main Container */
@@ -107,12 +108,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  background: rgba(25, 30, 33, 0.34);
-  border: 1px solid rgba(161, 161, 161, 1);
+  background: var(--slate-blue-gray);
+  border: 1px solid var(--ash-gray);
   padding: 10px;
   z-index: 2;
   border-radius: 34px;
-  backdrop-filter: blur(1px) !important;
+  backdrop-filter: blur(9.100000381469727px) !important;
 }
 
 .imageViewer_leftControlBar,

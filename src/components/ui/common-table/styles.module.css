@@ -47,7 +47,7 @@
   font-size: 12px;
   font-weight: 600;
   color: #6b7280;
-  text-transform: uppercase;
+  text-transform: capitalize;
   letter-spacing: 0.05em;
   white-space: nowrap;
 }
@@ -74,11 +74,11 @@
 } */
 
 .selected_row {
-  background: rgba(203, 30, 93, 0.08);
+  background: rgba(203, 30, 93, 0.08) !important;
 }
 
 .selected_row:hover {
-  background: rgba(203, 30, 93, 0.08);
+  background: rgba(203, 30, 93, 0.08) !important;
   border-radius: 24px;
 }
 
