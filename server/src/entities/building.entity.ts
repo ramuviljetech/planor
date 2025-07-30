@@ -202,3 +202,145 @@ export const calculateBuildingStatistics = async (): Promise<{
     throw error
   }
 }
+
+// Get buildings with pagination and filters (optimized for speed)
+export const getBuildingsWithPaginationAndFilters = async (
+  page: number, 
+  limit: number, 
+  filters?: { propertyId?: string; clientId?: string }
+): Promise<{
+  buildings: Building[];
+  total: number;
+  totalArea: number;
+}> => {
+  try {
+    const buildingsContainer = getBuildingsContainer()
+    
+    // Build query based on filters
+    let query: any
+    let countQuery: any
+    let areaQuery: any
+    
+    if (filters?.propertyId && filters?.clientId) {
+      // Both filters applied
+      query = {
+        query: 'SELECT * FROM c WHERE c.propertyId = @propertyId AND c.clientId = @clientId ORDER BY c.createdAt DESC',
+        parameters: [
+          { name: '@propertyId', value: filters.propertyId },
+          { name: '@clientId', value: filters.clientId }
+        ]
+      }
+      countQuery = {
+        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.propertyId = @propertyId AND c.clientId = @clientId',
+        parameters: [
+          { name: '@propertyId', value: filters.propertyId },
+          { name: '@clientId', value: filters.clientId }
+        ]
+      }
+      areaQuery = {
+        query: 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.propertyId = @propertyId AND c.clientId = @clientId',
+        parameters: [
+          { name: '@propertyId', value: filters.propertyId },
+          { name: '@clientId', value: filters.clientId }
+        ]
+      }
+    } else if (filters?.propertyId) {
+      // Only propertyId filter
+      query = {
+        query: 'SELECT * FROM c WHERE c.propertyId = @propertyId ORDER BY c.createdAt DESC',
+        parameters: [{ name: '@propertyId', value: filters.propertyId }]
+      }
+      countQuery = {
+        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.propertyId = @propertyId',
+        parameters: [{ name: '@propertyId', value: filters.propertyId }]
+      }
+      areaQuery = {
+        query: 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.propertyId = @propertyId',
+        parameters: [{ name: '@propertyId', value: filters.propertyId }]
+      }
+    } else if (filters?.clientId) {
+      // Only clientId filter
+      query = {
+        query: 'SELECT * FROM c WHERE c.clientId = @clientId ORDER BY c.createdAt DESC',
+        parameters: [{ name: '@clientId', value: filters.clientId }]
+      }
+      countQuery = {
+        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.clientId = @clientId',
+        parameters: [{ name: '@clientId', value: filters.clientId }]
+      }
+      areaQuery = {
+        query: 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.clientId = @clientId',
+        parameters: [{ name: '@clientId', value: filters.clientId }]
+      }
+    } else {
+      // No filters - use existing pagination function
+      const result = await getBuildingsWithPagination(page, limit)
+      const totalArea = await getTotalAreaByFilters()
+      return { ...result, totalArea }
+    }
+    
+    // Execute queries in parallel for faster response
+    const [countResult, areaResult, allBuildingsResult] = await Promise.all([
+      buildingsContainer.items.query(countQuery).fetchAll(),
+      buildingsContainer.items.query(areaQuery).fetchAll(),
+      buildingsContainer.items.query(query).fetchAll()
+    ])
+    
+    const total = countResult.resources[0] || 0
+    const totalArea = areaResult.resources[0] || 0
+    const allBuildings = allBuildingsResult.resources
+    
+    // Apply pagination in memory
+    const offset = (page - 1) * limit
+    const buildings = allBuildings.slice(offset, offset + limit)
+    
+    return { buildings, total, totalArea }
+  } catch (error) {
+    console.error('Error getting buildings with pagination and filters:', error)
+    throw error
+  }
+}
+
+// Get total area based on filters
+export const getTotalAreaByFilters = async (filters?: { propertyId?: string; clientId?: string }): Promise<number> => {
+  try {
+    const buildingsContainer = getBuildingsContainer()
+    
+    // If no filters, get total area of all buildings
+    if (!filters || (Object.keys(filters).length === 0)) {
+      const totalQuery = {
+        query: 'SELECT VALUE SUM(c.metadata.totalArea) FROM c'
+      }
+      const { resources: totalResult } = await buildingsContainer.items.query(totalQuery).fetchAll()
+      return totalResult[0] || 0
+    }
+    
+    // Build filtered query for area
+    let filteredQuery: any
+    if (filters?.propertyId && filters?.clientId) {
+      filteredQuery = {
+        query: 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.propertyId = @propertyId AND c.clientId = @clientId',
+        parameters: [
+          { name: '@propertyId', value: filters.propertyId },
+          { name: '@clientId', value: filters.clientId }
+        ]
+      }
+    } else if (filters?.propertyId) {
+      filteredQuery = {
+        query: 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.propertyId = @propertyId',
+        parameters: [{ name: '@propertyId', value: filters.propertyId }]
+      }
+    } else if (filters?.clientId) {
+      filteredQuery = {
+        query: 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.clientId = @clientId',
+        parameters: [{ name: '@clientId', value: filters.clientId }]
+      }
+    }
+    
+    const { resources: filteredResult } = await buildingsContainer.items.query(filteredQuery).fetchAll()
+    return filteredResult[0] || 0
+  } catch (error) {
+    console.error('Error getting total area by filters:', error)
+    throw error
+  }
+}

@@ -2,10 +2,13 @@ import express from 'express'
 import { login } from '../controllers/auth.controller'
 import { validateRequest } from '../middleware/validation.middleware'
 import { loginSchema } from '../validation/auth.validation'
-
+// import { listBlobs } from '../services/blob.service'
 const router = express.Router()
 
 // POST /api/auth/login - User login
 router.post('/login', validateRequest(loginSchema), login)
+
+// router.get('/read', readAzureFiles)
+    
 
 export { router as authRoutes }

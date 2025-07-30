@@ -92,6 +92,102 @@ export const getAllPropertiesController = async (req: Request, res: Response) =>
   }
 }
 
+// export const getAllPropertiesController = async (req: Request, res: Response) => {
+//   try {
+//     const authenticatedUser = (req as any).user;
+//     const { 
+//       search, 
+//       adminId, 
+//       clientId,
+//       page = '1',
+//       limit = '10'
+//     } = req.query;
+
+//     let properties: Property[] = [];
+//     let statistics: any = null;
+
+//     // Pagination values
+//     const currentPage = Math.max(1, parseInt(page as string, 10));
+//     const itemsPerPage = Math.max(1, parseInt(limit as string, 10));
+//     const startIndex = (currentPage - 1) * itemsPerPage;
+//     const endIndex = startIndex + itemsPerPage;
+
+//     // Build filters object
+//     const filters: any = {};
+//     if (adminId && typeof adminId === 'string') filters.adminId = adminId;
+//     if (clientId && typeof clientId === 'string') filters.clientId = clientId;
+//     if (search && typeof search === 'string') filters.search = search;
+
+//     // If clientId is provided, allow access without admin role
+//     if (clientId && typeof clientId === 'string') {
+//       const allProperties = await getPropertiesWithFilters(filters);
+//       properties = allProperties.slice(startIndex, endIndex);
+//       statistics = await calculatePropertyStatistics(filters);
+
+//       return res.json({
+//         success: true,
+//         message: 'Properties retrieved successfully for client',
+//         data: {
+//           properties,
+//           count: allProperties.length,
+//           clientId,
+//           pagination: {
+//             currentPage,
+//             itemsPerPage,
+//             totalItems: allProperties.length,
+//             totalPages: Math.ceil(allProperties.length / itemsPerPage),
+//             hasNextPage: endIndex < allProperties.length,
+//             hasPreviousPage: startIndex > 0
+//           },
+//           ...(statistics && { statistics })
+//         }
+//       });
+//     }
+
+//     // If no clientId, require admin access
+//     if (!authenticatedUser || authenticatedUser.role !== 'admin') {
+//       return res.status(403).json({
+//         success: false,
+//         error: 'Admin access required to view all properties'
+//       });
+//     }
+
+//     const allProperties = Object.keys(filters).length > 0
+//       ? await getPropertiesWithFilters(filters)
+//       : await getAllProperties();
+
+//     properties = allProperties.slice(startIndex, endIndex);
+//     statistics = await calculatePropertyStatistics(Object.keys(filters).length > 0 ? filters : undefined);
+
+//     return res.json({
+//       success: true,
+//       message: 'Properties retrieved successfully',
+//       data: {
+//         properties,
+//         count: allProperties.length,
+//         pagination: {
+//           currentPage,
+//           itemsPerPage,
+//           totalItems: allProperties.length,
+//           totalPages: Math.ceil(allProperties.length / itemsPerPage),
+//           hasNextPage: endIndex < allProperties.length,
+//           hasPreviousPage: startIndex > 0
+//         },
+//         ...(statistics && { statistics })
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Get properties error:', error);
+//     return res.status(500).json({
+//       success: false,
+//       error: 'Internal server error'
+//     });
+//   }
+// };
+
+
+
+
 // Get property by ID (Admin only)
 export const getPropertyById = async (req: Request, res: Response) => {
   try {

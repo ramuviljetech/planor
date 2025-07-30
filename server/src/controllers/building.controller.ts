@@ -3,25 +3,30 @@ import { v4 as uuidv4 } from 'uuid'
 import { Building, CreateBuildingRequest } from '../types'
 import {
   findBuildingById,
-  getAllBuildings,
-  getBuildingsByAdminId,
-  getBuildingsByClientId,
-  getBuildingsByPropertyId,
   createBuilding,
   calculateBuildingStatistics,
-  getBuildingsWithPagination
+  getBuildingsWithPaginationAndFilters
 } from '../entities/building.entity'
 import { findPropertyById } from '../entities/property.entity'
 
-// *Get all buildings with pagination
+// *Get all buildings with pagination and search filters
 export const getAllBuildingsController = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user
-    const { page = '1', limit = '10' } = req.query
+    const { page , limit, propertyId, clientId } = req.query
 
     // Parse pagination parameters
-    const pageNumber = parseInt(page as string, 10) || 1
-    const limitNumber = parseInt(limit as string, 10) || 10
+    const pageNumber = parseInt(page as string) || 1
+    const limitNumber = parseInt(limit as string) || 10
+
+    // Parse search filters
+    const filters: { propertyId?: string; clientId?: string } = {}
+    if (propertyId && typeof propertyId === 'string') {
+      filters.propertyId = propertyId
+    }
+    if (clientId && typeof clientId === 'string') {
+      filters.clientId = clientId
+    }
 
     // Require admin access
     if (!authenticatedUser || authenticatedUser.role !== 'admin') {
@@ -31,8 +36,10 @@ export const getAllBuildingsController = async (req: Request, res: Response) => 
       })
     }
 
-    // Get buildings with pagination (optimized for speed)
-    const { buildings, total } = await getBuildingsWithPagination(pageNumber, limitNumber)
+    // Get buildings with pagination, filters, and area in one optimized call
+    const { buildings, total, totalArea } = await getBuildingsWithPaginationAndFilters(pageNumber, limitNumber, filters)
+    
+    // Get basic statistics
     const statistics = await calculateBuildingStatistics()
 
     return res.json({
@@ -41,11 +48,12 @@ export const getAllBuildingsController = async (req: Request, res: Response) => 
       data: {
         buildings,
         count: buildings.length,
-        totalCount: total,
-        totalBuildings: statistics.totalBuildings,
-        totalArea: statistics.totalArea,
+        totalCount: statistics.totalBuildings,
+        totalBuildings: total,
+        totalArea: totalArea,
         totalMaintenanceCost: statistics.totalMaintenanceCost,
         maintenanceUpdates: statistics.maintenanceUpdates,
+        filters: Object.keys(filters).length > 0 ? filters : undefined,
         pagination: {
           page: pageNumber,
           limit: limitNumber,
