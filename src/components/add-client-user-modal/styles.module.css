@@ -149,7 +149,6 @@
   letter-spacing: -0.16px;
 }
 .client_user_modal_footer_button_submit {
-  /* width: 140; */
   height: 42px;
   display: flex;
   gap: 8px;
@@ -162,6 +161,15 @@
   letter-spacing: -0.5px;
   text-align: center;
   color: var(--white);
+}
+
+.client_user_modal_error_message {
+  color: red;
+  font-family: var(--font-lato-regular);
+  font-size: 13px;
+  line-height: 19px;
+  letter-spacing: -0.12px;
+  margin-top: 4px;
 }
 
 /* User Info Section Styles */

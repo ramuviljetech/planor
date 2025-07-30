@@ -1,5 +1,6 @@
 import { useState } from "react";
-
+import { Formik } from "formik";
+import * as Yup from "yup";
 import Image from "next/image";
 import { closeRoseIcon, plusRoseIcon } from "@/resources/images";
 import Input from "@/components/ui/input";
@@ -15,6 +16,59 @@ interface AddClientUserModalProps {
   onClose: () => void;
 }
 
+interface ClientFormData {
+  clientName: string;
+  orgNumber: string;
+  industryType: string;
+  address: string;
+  websiteUrl: string;
+  status: string;
+  primaryContactName: string;
+  email: string;
+  role: string;
+  phone: string;
+  description: string;
+}
+
+// Validation schema using Yup
+const ClientValidationSchema = Yup.object().shape({
+  clientName: Yup.string().required("Client name is required"),
+  orgNumber: Yup.string(),
+  industryType: Yup.string().required("Industry type is required"),
+  address: Yup.string().required("Address is required"),
+  websiteUrl: Yup.string()
+    .required("Website URL is required")
+    .url("Invalid website URL format"),
+  status: Yup.string().required("Status is required"),
+  primaryContactName: Yup.string().required("Primary contact name is required"),
+  email: Yup.string()
+    .email("Invalid email format")
+    .when('$isEmailRequired', {
+      is: true,
+      then: (schema) => schema.required("Email is required"),
+      otherwise: (schema) => schema.optional(),
+    }),
+  role: Yup.string().required("Role is required"),
+  phone: Yup.string()
+    .required("Phone number is required")
+    .matches(/^[\+]?[1-9][\d]{0,15}$/, "Phone number must be a valid number"),
+  description: Yup.string().required("Description is required"),
+});
+
+const initialValues: ClientFormData = {
+  clientName: "",
+  orgNumber: "",
+  industryType: "",
+  address: "",
+  websiteUrl: "",
+  status: "",
+  primaryContactName: "",
+  email: "",
+  role: "",
+  phone: "",
+  description: "",
+};
+
 export default function AddClientUserModal({
   show,
   onClose,
@@ -25,21 +79,6 @@ export default function AddClientUserModal({
     setActiveTab(tab);
   };
 
-  // Client Info Section
-  const [clientData, setClientData] = useState({
-    clientName: "",
-    orgNumber: "",
-    industryType: "",
-    address: "",
-    websiteUrl: "",
-    timeZone: "",
-    primaryContactName: "",
-    email: "",
-    role: "",
-    phone: "",
-    description: "",
-  });
-
   const [users, setUsers] = useState<
     Array<{ id: number; name: string; contact: string; email: string }>
   >([]);
@@ -49,15 +88,43 @@ export default function AddClientUserModal({
     newUser.name.trim() !== "" &&
     newUser.contact.trim() !== "" &&
     newUser.email.trim() !== "";
-  const isClientFormValid =
-    clientData.clientName.trim() !== "" &&
-    clientData.industryType.trim() !== "" &&
-    clientData.address.trim() !== "" &&
-    clientData.websiteUrl.trim() !== "" &&
-    clientData.timeZone.trim() !== "" &&
-    clientData.primaryContactName.trim() !== "" &&
-    clientData.phone.trim() !== "" &&
-    clientData.description.trim() !== "";
+
+  // Handle form submission
+  const handleSubmit = (
+    values: ClientFormData,
+    { setSubmitting, resetForm }: any
+  ) => {
+    if (activeTab === "client") {
+      console.log("Client Data:", values);
+      setActiveTab("user");
+    } else {
+      console.log("Users Data:", users);
+      resetForm();
+      setUsers([]);
+      setNewUser({ name: "", contact: "", email: "" });
+      setActiveTab("client");
+      onClose();
+    }
+    setSubmitting(false);
+  };
+
+  // Handle cancel
+  const handleCancel = (resetForm: () => void) => {
+    resetForm();
+    setUsers([]);
+    setNewUser({ name: "", contact: "", email: "" });
+    setActiveTab("client");
+    onClose();
+  };
+
+  // Handle close icon
+  const handleClose = (resetForm: () => void) => {
+    resetForm();
+    setUsers([]);
+    setNewUser({ name: "", contact: "", email: "" });
+    setActiveTab("client");
+    onClose();
+  };
 
   const handleAddUser = () => {
     if (newUser.name && newUser.contact && newUser.email) {
@@ -66,53 +133,39 @@ export default function AddClientUserModal({
     }
   };
 
-  const handleSubmit = () => {
-    if (activeTab === "client") {
-      console.log("Client Data:", clientData);
-      setActiveTab("user");
-    } else {
-      console.log("Users Data:", users);
-      setClientData({
-        clientName: "",
-        orgNumber: "",
-        industryType: "",
-        address: "",
-        websiteUrl: "",
-        timeZone: "",
-        primaryContactName: "",
-        email: "",
-        role: "",
-        phone: "",
-        description: "",
-      });
-      setUsers([]);
-      setNewUser({ name: "", contact: "", email: "" });
-      setActiveTab("client");
-      onClose();
-    }
-  };
+  const renderClinetInfo = (formikProps: any) => {
+    const { values, errors, touched, handleChange, handleBlur, isSubmitting } = formikProps;
 
-  const renderClinetInfo = () => {
     return (
       <div className={styles.client_info_section}>
         <div className={styles.client_info_section_input_section}>
           <Input
             label="Client name*"
-            value={clientData.clientName}
-            onChange={(e) =>
-              setClientData({ ...clientData, clientName: e.target.value })
-            }
+            value={values.clientName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            name="clientName"
             placeholder="Enter client name"
             inputStyle={styles.client_info_section_input_section_input}
+            error={
+              touched.clientName && errors.clientName
+                ? errors.clientName
+                : undefined
+            }
           />
           <Input
             label="Org Number"
-            value={clientData.orgNumber}
-            onChange={(e) =>
-              setClientData({ ...clientData, orgNumber: e.target.value })
-            }
+            value={values.orgNumber}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            name="orgNumber"
             placeholder="Enter org number"
             inputStyle={styles.client_info_section_input_section_input}
+            error={
+              touched.orgNumber && errors.orgNumber
+                ? errors.orgNumber
+                : undefined
+            }
           />
           <SelectDropDown
             label="Industry Type*"
@@ -121,28 +174,38 @@ export default function AddClientUserModal({
               { label: "Industry Type 2", value: "Industry Type 2" },
               { label: "Industry Type 3", value: "Industry Type 3" },
             ]}
-            selected={clientData.industryType}
+            selected={values.industryType}
             onSelect={(value) =>
-              setClientData({ ...clientData, industryType: value as string })
+              formikProps.setFieldValue("industryType", value as string)
             }
           />
           <Input
             label="Address*"
-            value={clientData.address}
-            onChange={(e) =>
-              setClientData({ ...clientData, address: e.target.value })
-            }
+            value={values.address}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            name="address"
             placeholder="Enter address"
             inputStyle={styles.client_info_section_input_section_input}
+            error={
+              touched.address && errors.address
+                ? errors.address
+                : undefined
+            }
           />
           <Input
             label="Website URL*"
-            value={clientData.websiteUrl}
-            onChange={(e) =>
-              setClientData({ ...clientData, websiteUrl: e.target.value })
-            }
+            value={values.websiteUrl}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            name="websiteUrl"
             placeholder="Enter website url"
             inputStyle={styles.client_info_section_input_section_input}
+            error={
+              touched.websiteUrl && errors.websiteUrl
+                ? errors.websiteUrl
+                : undefined
+            }
           />
           <SelectDropDown
             label="Status*"
@@ -150,31 +213,38 @@ export default function AddClientUserModal({
               { label: "Active", value: "Active" },
               { label: "Inactive", value: "Inactive" },
             ]}
-            selected={clientData.timeZone}
+            selected={values.status}
             onSelect={(value) =>
-              setClientData({ ...clientData, timeZone: value as string })
+              formikProps.setFieldValue("status", value as string)
             }
           />
           <Input
             label="Primary Contact Name*"
-            value={clientData.primaryContactName}
-            onChange={(e) =>
-              setClientData({
-                ...clientData,
-                primaryContactName: e.target.value,
-              })
-            }
+            value={values.primaryContactName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            name="primaryContactName"
             placeholder="Enter primary contact name"
             inputStyle={styles.client_info_section_input_section_input}
+            error={
+              touched.primaryContactName && errors.primaryContactName
+                ? errors.primaryContactName
+                : undefined
+            }
           />
           <Input
             label="Email"
-            value={clientData.email}
-            onChange={(e) =>
-              setClientData({ ...clientData, email: e.target.value })
-            }
+            value={values.email}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            name="email"
             placeholder="Enter email"
             inputStyle={styles.client_info_section_input_section_input}
+            error={
+              touched.email && errors.email
+                ? errors.email
+                : undefined
+            }
           />
           <SelectDropDown
             label="Role*"
@@ -183,29 +253,39 @@ export default function AddClientUserModal({
               { label: "Client", value: "Client" },
               { label: "User", value: "User" },
             ]}
-            selected={clientData.role}
+            selected={values.role}
             onSelect={(value) =>
-              setClientData({ ...clientData, role: value as string })
+              formikProps.setFieldValue("role", value as string)
             }
           />
           <Input
             label="Phone*"
-            value={clientData.phone}
-            onChange={(e) =>
-              setClientData({ ...clientData, phone: e.target.value })
-            }
+            value={values.phone}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            name="phone"
             placeholder="Enter phone"
             inputStyle={styles.client_info_section_input_section_input}
+            error={
+              touched.phone && errors.phone
+                ? errors.phone
+                : undefined
+            }
           />
         </div>
         <div className={styles.client_info_input_bottom_section}>
           <TextArea
             label="Description*"
-            value={clientData.description}
-            onChange={(e) =>
-              setClientData({ ...clientData, description: e.target.value })
-            }
+            value={values.description}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            name="description"
             placeholder="Enter description"
+            error={
+              touched.description && errors.description
+                ? errors.description
+                : undefined
+            }
           />
         </div>
       </div>
@@ -309,97 +389,75 @@ export default function AddClientUserModal({
       container_style={styles.client_user_modal_container_style}
       overlay_style={styles.client_user_modal_overlay_style}
     >
-      <div className={styles.client_user_modal_header}>
-        <div className={styles.client_user_modal_header_top}>
-          <div className={styles.client_user_modal_header_left}>
-            <p className={styles.client_user_modal_header_left_text}>
-              Add New Client
-            </p>
-          </div>
-          <Image
-            src={closeRoseIcon}
-            alt="close"
-            className={styles.client_user_modal_header_close_icon}
-            onClick={() => {
-              // Reset all form data
-              setClientData({
-                clientName: "",
-                orgNumber: "",
-                industryType: "",
-                address: "",
-                websiteUrl: "",
-                timeZone: "",
-                primaryContactName: "",
-                email: "",
-                role: "",
-                phone: "",
-                description: "",
-              });
-              setUsers([]);
-              setNewUser({ name: "", contact: "", email: "" });
-              setActiveTab("client");
-              onClose();
-            }}
-            style={{ cursor: "pointer" }}
-          />
-        </div>
+      <Formik
+        initialValues={initialValues}
+        validationSchema={ClientValidationSchema}
+        onSubmit={handleSubmit}
+      >
+        {(formikProps) => (
+          <>
+            <div className={styles.client_user_modal_header}>
+              <div className={styles.client_user_modal_header_top}>
+                <div className={styles.client_user_modal_header_left}>
+                  <p className={styles.client_user_modal_header_left_text}>
+                    Add New Client
+                  </p>
+                </div>
+                <Image
+                  src={closeRoseIcon}
+                  alt="close"
+                  className={styles.client_user_modal_header_close_icon}
+                  onClick={() => handleClose(formikProps.resetForm)}
+                  style={{ cursor: "pointer" }}
+                />
+              </div>
 
-        <div className={styles.client_user_modal_tabs}>
-          <CustomTabs
-            tabs={[
-              { label: "Add client info", value: "client" },
-              { label: "Add users", value: "user" },
-            ]}
-            activeTab={activeTab}
-            onTabChange={handleTabClick}
-            customStyles={{
-              tabColor: "var(--granite-gray)",
-              selectedTabColor: "var(--rose-red)",
-              indicatorColor: "var(--rose-red)",
-              fontSize: "14px",
-              fontFamily: "var(--font-lato-bold)",
-            }}
-          />
-        </div>
-      </div>
-      <div className={styles.client_user_modal_content}>
-        {activeTab === "client" ? renderClinetInfo() : renderUserInfo()}
-      </div>
-      <div className={styles.client_user_modal_footer}>
-        <Button
-          title="Cancel"
-          className={styles.client_user_modal_footer_button_cancel}
-          onClick={() => {
-            // Reset all form data
-            setClientData({
-              clientName: "",
-              orgNumber: "",
-              industryType: "",
-              address: "",
-              websiteUrl: "",
-              timeZone: "",
-              primaryContactName: "",
-              email: "",
-              role: "",
-              phone: "",
-              description: "",
-            });
-            setUsers([]);
-            setNewUser({ name: "", contact: "", email: "" });
-            setActiveTab("client");
-            onClose();
-          }}
-        />
-        <Button
-          title={activeTab === "client" ? "Save & Continue" : "Submit"}
-          className={styles.client_user_modal_footer_button_submit}
-          onClick={handleSubmit}
-          disabled={
-            (activeTab === "user" && !isUserFormValid) ||
-            (activeTab === "client" && !isClientFormValid)
-          }
-        />
-      </div>
+              <div className={styles.client_user_modal_tabs}>
+                <CustomTabs
+                  tabs={[
+                    { label: "Add client info", value: "client" },
+                    { label: "Add users", value: "user" },
+                  ]}
+                  activeTab={activeTab}
+                  onTabChange={handleTabClick}
+                  customStyles={{
+                    tabColor: "var(--granite-gray)",
+                    selectedTabColor: "var(--rose-red)",
+                    indicatorColor: "var(--rose-red)",
+                    fontSize: "14px",
+                    fontFamily: "var(--font-lato-bold)",
+                  }}
+                />
+              </div>
+            </div>
+            <div className={styles.client_user_modal_content}>
+              {activeTab === "client" ? renderClinetInfo(formikProps) : renderUserInfo()}
+            </div>
+            <div className={styles.client_user_modal_footer}>
+              <Button
+                title="Cancel"
+                className={styles.client_user_modal_footer_button_cancel}
+                onClick={() => handleCancel(formikProps.resetForm)}
+              />
+              <Button
+                title={activeTab === "client" ? "Save & Continue" : "Submit"}
+                className={styles.client_user_modal_footer_button_submit}
+                onClick={() => {
+                  if (activeTab === "client") {
+                    formikProps.handleSubmit();
+                  } else {
+                    handleSubmit(formikProps.values, { setSubmitting: () => {}, resetForm: formikProps.resetForm });
+                  }
+                }}
+                disabled={
+                  (activeTab === "user" && !isUserFormValid) ||
+                  (activeTab === "client" && (!formikProps.isValid || formikProps.isSubmitting))
+                }
+              />
+            </div>
+          </>
+        )}
+      </Formik>
     </Modal>
   );
 }
