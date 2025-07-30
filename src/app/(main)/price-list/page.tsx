@@ -6,7 +6,9 @@ import MetricCard from '@/components/ui/metric-card';
 import { clientsStaticCardTitle } from '@/app/constants';
 import Input from '@/components/ui/input';
 import Button from '@/components/ui/button';
+import AddFolderModal from '@/components/add-folder-modal';
 import styles from './styles.module.css';
+
 
 type TabType = 'all' | 'new';
 
@@ -38,7 +40,7 @@ const PriceListPage: React.FC = () => {
     windows: false,
     area: false
   });
-
+  const [showAddFolderModal, setShowAddFolderModal] = useState(false);
   // Define table columns
   const tableColumns = [
     { key: 'type', label: 'Type' },
@@ -338,7 +340,7 @@ const PriceListPage: React.FC = () => {
           {renderTabs()}
 
           <div className={styles.price_list_content_header_threedots}>
-            <Image src={threeDotsIcon} alt="More Options" />
+            <Image src={threeDotsIcon} alt="More Options" onClick={() => setShowAddFolderModal(true)}/>
           </div>
         </div>
         {activeTab === 'all' ? (
@@ -347,6 +349,7 @@ const PriceListPage: React.FC = () => {
           renderNewObjectsTable()
         )}
       </section>
+      <AddFolderModal show={showAddFolderModal} onClose={() => setShowAddFolderModal(false)} />
     </div>
   );
 };
