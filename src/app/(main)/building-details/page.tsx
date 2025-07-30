@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   i3DGrayIcon,
   imageRoseIcon,
@@ -22,12 +23,11 @@ import classNames from "classnames";
 import CustomTabs, { TabItem } from "@/components/ui/tabs";
 import Overview from "@/sections/building-section/overview";
 import Maintenance from "@/sections/building-section/maintenance";
-import styles from "./styles.module.css";
 import ActivityHistory from "@/sections/building-section/activity-history";
-import { useRouter } from "next/navigation";
-import FileCategories from "@/components/ui/file-categories";
+import FileCategories from "@/sections/building-section/file-categories";
 import { ImageViewer } from "@/components/ui/image-viewer";
 import { ImageCarousel } from "@/components/ui/image-carousel";
+import styles from "./styles.module.css";
 
 const BuildingDetails: React.FC = () => {
   const [activeImageTab, setActiveImageTab] = useState("image");

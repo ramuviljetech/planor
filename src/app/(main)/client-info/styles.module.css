@@ -163,13 +163,13 @@
   text-wrap: nowrap;
 }
 .client_info_properties_section_header_tabs_item_text:hover {
-  color: var(--ruby-red);
+  color: var(--crimson-red);
 }
 .client_info_properties_section_header_tabs_item_active {
   background-color: var(--soft-white);
 }
 .client_info_properties_section_header_tabs_item_text_active {
-  color: var(--ruby-red);
+  color: var(--crimson-red);
 }
 .client_info_properties_section_header_right {
   display: flex;

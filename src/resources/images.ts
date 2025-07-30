@@ -63,3 +63,14 @@ export { default as tickBlackIcon } from "@/assets/images/tick-black-icon.svg";
 
 export { default as plusRoseIcon } from "@/assets/images/plus-rose-icon.svg";
 export { default as building3d } from "@/assets/images/building3d.svg";
+export { default as listGrayIcon } from "@/assets/images/list-gray-icon.svg";
+export { default as listPinkIcon } from "@/assets/images/list-pink-icon.svg";
+export { default as gridGrayIcon } from "@/assets/images/grid-gray-icon.svg";
+export { default as gridPinkIcon } from "@/assets/images/grid-pink-icon.svg";
+export { default as folderIcon } from "@/assets/images/folder-icon.svg";
+export { default as downloadBlackIcon } from "@/assets/images/download-black-icon.svg";
+
+//
+
+export { default as recentUploadedFileDummyImg1 } from "@/assets/images/recent-uploaded-file-dummy-img-1.svg";
+export { default as recentUploadedFileDummyImg2 } from "@/assets/images/recent-uploaded-file-dummy-img-2.svg";

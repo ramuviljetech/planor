@@ -29,7 +29,7 @@
 }
 
 .capsule_item_text:hover {
-  color: var(--ruby-red);
+  color: var(--crimson-red);
 }
 
 .capsule_item_active {
@@ -37,5 +37,5 @@
 }
 
 .capsule_item_text_active {
-  color: var(--ruby-red);
+  color: var(--crimson-red);
 }

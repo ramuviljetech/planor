@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import Avatar from "@/components/ui/avatar";
 import Capsule from "@/components/ui/capsule";
 import CustomCheckbox from "@/components/ui/checkbox";
+import UpdateLastDate from "@/components/ui/update-last-date";
 import styles from "./styles.module.css";
 
 const tabItems = [
@@ -50,6 +51,9 @@ const Maintenance = () => {
   );
   // New state to store selected rows data
   const [selectedRowsData, setSelectedRowsData] = useState<TableRow[]>([]);
+
+  // Modal state
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   // Table data and handlers
   const columns: TableColumn[] = [
@@ -146,6 +150,18 @@ const Maintenance = () => {
       key: "lastMaintenanceDate",
       title: "Last Maintenance date",
       width: "calc(100% / 4)",
+      render: (value, row, index) => (
+        <div
+          className={styles.last_maintenance_date_container}
+          onClick={() => {
+            setSelectedRowsData([row]);
+            setShowUpdateModal(true);
+            setSelectedObjectViewRowId(row.id);
+          }}
+        >
+          <p className={styles.last_maintenance_date_text}>{value}</p>
+        </div>
+      ),
     },
     {
       key: "actions",
@@ -153,7 +169,7 @@ const Maintenance = () => {
       width: "calc(100% / 4)",
       render: (value, row, index) => (
         <div
-          className={styles.actionIcon}
+          className={styles.actionIconContainer}
           ref={(el) => {
             actionIconRefs.current[row.id] = el;
           }}
@@ -310,18 +326,22 @@ const Maintenance = () => {
       return;
     }
 
-    // Log each selected row's details
-    selectedRowsData.forEach((row, index) => {
-      console.log(`Selected row ${index + 1}:`, {
-        id: row.id,
-        objectName: row.objectName,
-        objectType: row.objectType,
-        unit: row.unit,
-        interval: row.interval,
-        utilized: row.utilized,
-        lastMaintenanceDate: row.lastMaintenanceDate,
-      });
-    });
+    // Open the modal
+    setShowUpdateModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowUpdateModal(false);
+    setSelectedRowsData([]);
+    setSelectedObjectViewRowId("");
+  };
+
+  const handleDateSubmit = (date: Date) => {
+    console.log("Updating maintenance date to:", date);
+    console.log("For selected objects:", selectedRowsData);
+
+    // Here you would typically make an API call to update the maintenance dates
+    // The date is now available in the parent component
   };
 
   const renderTabContent = () => {
@@ -432,6 +452,15 @@ const Maintenance = () => {
       </div>
       {activeTab === "objectView" && renderObjectView()}
       {activeTab === "maintenancePlan" && renderMaintenancePlan()}
+
+      {/* Update Last Maintenance Date Modal */}
+      <UpdateLastDate
+        show={showUpdateModal}
+        onClose={handleModalClose}
+        selectedObjectsCount={selectedRowsData.length}
+        onDateSubmit={handleDateSubmit}
+        buildingName="Block-C"
+      />
     </section>
   );
 };

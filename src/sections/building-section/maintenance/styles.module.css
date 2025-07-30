@@ -45,13 +45,13 @@
   color: var(--granite-gray);
 }
 .building_maintenance_top_section_left_item_text:hover {
-  color: var(--ruby-red);
+  color: var(--crimson-red);
 }
 .building_maintenance_top_section_left_item_active {
   background-color: var(--soft-white);
 }
 .building_maintenance_top_section_left_item_text_active {
-  color: var(--ruby-red);
+  color: var(--crimson-red);
 }
 /* right section */
 .building_maintenance_top_section_right {
@@ -112,4 +112,22 @@
   line-height: 100%;
   letter-spacing: 0px;
   color: #6b7280;
+}
+/* last maintenance date */
+.last_maintenance_date_container {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+}
+.last_maintenance_date_text {
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 18px;
+  letter-spacing: 0px;
+  color: var(--rose-red);
 }
