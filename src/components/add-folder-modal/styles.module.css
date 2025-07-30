@@ -1,4 +1,4 @@
-.add_property_modal_container_style {
+.add_folder_modal_container_style {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -13,10 +13,10 @@
     display: flex;
     flex-direction: column;
   }
-  .add_property_modal_overlay_style {
+  .add_folder_modal_overlay_style {
     background-color: rgba(0, 0, 0, 0.5);
   }
-  .add_property_modal_header {
+  .add_folder_modal_header {
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -24,30 +24,14 @@
     flex-shrink: 0;
     padding-bottom: 10px;
   }
-  /* .add_property_modal_header_top {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    gap: 16px;
-    align-items: center;
-    border: none;
-    padding: 0px;
-  } */
-  .add_property_modal_header_left {
+  .add_folder_modal_header_left {
     width: 100%;
     display: flex;
     flex-direction: row;
     gap: 16px;
     align-items: center;
   }
-  
-  /* .add_property_modal_header_left_arrow {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-  }
-   */
-  .add_property_modal_header_left_text {
+  .add_folder_modal_header_left_text {
     font-family: var(--font-lato-regular);
     font-weight: 400;
     font-style: Regular;
@@ -57,7 +41,7 @@
     color: var(--jet-black);
   }
   
-  .add_property_modal_header_close_icon {
+  .add_folder_modal_header_close_icon {
     width: 44px;
     height: 44px;
     border-radius: 24px;
@@ -67,8 +51,7 @@
     background-color: var(--rose-tint);
     cursor: pointer;
   }
-
-  .add_property_modal_content {
+  .add_folder_modal_content {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -76,56 +59,44 @@
     padding: 15px 0px 15px 0px;
     overflow-y: auto;
   }
-  
-  .add_property_modal_input_section {
-    width: 100%;
-    /* height: 59; */
-    display: flex;
-    flex-direction: row;
-    gap: 16px;
-    display: grid;
-    grid-template-columns: auto auto;
-    padding: 0px 4px;
-  }
-  
-  .add_property_modal_input_section_input {
+  .add_folder_modal_folder_info_input {
     width: 100%;
     /* height: 36px; */
     display: flex;
-    gap: 8px;
+    gap: 8px;       
     border: 1px solid var(--concrete);
     background: transparent;
     box-shadow: none;
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   }
+
+
+  /* .add_folder_modal_select_dropdown_selected_text{
+    font-family: var(--font-lato-regular) !important;
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    line-height: 140% !important;
+    letter-spacing: 0% !important;
+    color: var(--fog-gray) !important;
+  } */
   
-  /* Fix focus border issue - ensure proper focus state management */
-  /* .add_property_modal_input_section_input:focus {
-    border: 1px solid var(--siren-red);
-    box-shadow: 0px 0px 0px 2px rgba(220, 38, 127, 0.1);
+  .add_folder_modal_content {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
   }
   
-  .add_property_modal_input_section_input:not(:focus) {
-    border: 1px solid rgba(219, 219, 219, 1);
-    box-shadow: none;
-  }  */
-  
-  .add_property_modal_input_section_input::placeholder {
+  /* .add_folder_modal_select_dropdown::placeholder {
     font-family: var(--font-lato-regular);
     font-weight: 400;
     font-size: 14px;
     line-height: 20px;
     letter-spacing: -0.16px;
-    color: var(--fog-gray);
-  }
-  .add_property_modal_input_bottom_section {
-    width: 100%;
-    /* height: 109; */
-    display: flex;
-    gap: 16px;
-    padding: 0px 3px;
-  }
-  .add_property_modal_footer {
+    
+  } */
+
+
+  .add_folder_modal_footer {
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -133,17 +104,10 @@
     justify-content: flex-end;
     align-items: center;
     flex-shrink: 0;
-    margin-top: 16px;
+    /* margin-top: 16px; */
   }
   
-  .add_property_modal_content {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-  }
-
-  
-.add_property_modal_footer_button_cancel {
+  .add_folder_modal_footer_button_cancel {
     /* width: 66; */
     height: 36px;
     display: flex;
@@ -151,7 +115,7 @@
     border-radius: 8px;
     padding-right: 12px;
     padding-left: 12px;
-    background-color: transparent;
+    background-color: transparent;  
     color: rgba(136, 18, 60, 1);
     font-family: var(--font-lato-regular);
     font-weight: 400;
@@ -159,7 +123,7 @@
     line-height: 20px;
     letter-spacing: -0.16px;
   }
-  .add_property_modal_footer_button_submit {
+  .add_folder_modal_footer_button_submit {
     /* width: 140; */
     height: 42px;
     display: flex;
@@ -174,4 +138,3 @@
     text-align: center;
     color: var(--white);
   }
-  
