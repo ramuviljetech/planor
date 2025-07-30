@@ -73,6 +73,8 @@ export { default as folderIcon } from "@/assets/images/folder-icon.svg";
 export { default as downloadBlackIcon } from "@/assets/images/download-black-icon.svg";
 
 //
-
 export { default as recentUploadedFileDummyImg1 } from "@/assets/images/recent-uploaded-file-dummy-img-1.svg";
 export { default as recentUploadedFileDummyImg2 } from "@/assets/images/recent-uploaded-file-dummy-img-2.svg";
+
+export { default as xlsIcon } from "@/assets/images/xls-icon.svg";
+export { default as docIcon } from "@/assets/images/doc-icon.svg";

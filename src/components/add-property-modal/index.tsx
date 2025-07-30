@@ -8,6 +8,7 @@ import Input from "../ui/input";
 import Button from "../ui/button";
 import SelectDropDown from "../ui/select-dropdown";
 import styles from "./styles.module.css";
+import TextArea from "../ui/textarea";
 
 interface AddPropertyModalProps {
   show: boolean;
@@ -227,15 +228,13 @@ export default function AddPropertyModal({
           />
         </div>
         <div className={styles.add_property_modal_input_bottom_section}>
-          <Input
+          <TextArea
             label="Description*"
             value={values.description}
             onChange={handleChange}
             onBlur={handleBlur}
             name="description"
-            placeholder="Add description"
-            inputStyle={styles.add_property_modal_input_section_input}
-            inputContainerClass={styles.add_property_modal_input_container}
+            placeholder="Enter description"
             error={
               touched.description && errors.description
                 ? errors.description

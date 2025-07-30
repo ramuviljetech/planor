@@ -16,6 +16,7 @@ import {
 import Button from "@/components/ui/button";
 import CommonTable from "@/components/ui/common-table";
 import CustomCheckbox from "@/components/ui/checkbox";
+import AddFolderModal from "@/components/add-folder-modal";
 import styles from "./styles.module.css";
 
 const FileCategories = () => {
@@ -25,7 +26,7 @@ const FileCategories = () => {
   const [selectAll, setSelectAll] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-
+  const [showAddFolderModal, setShowAddFolderModal] = useState(false);
   const fileTabsData = [
     { label: "All", value: "all" },
     { label: "Recently Added", value: "recently_added" },
@@ -185,7 +186,10 @@ const FileCategories = () => {
             className={styles.file_filterIconImg}
           />
         </div>
-        <Button title="Add Folder" />
+        <Button
+          title="Add Folder"
+          onClick={() => setShowAddFolderModal(true)}
+        />
       </div>
     </div>
   );
@@ -297,6 +301,10 @@ const FileCategories = () => {
           ? renderRecentVisitedFiles()
           : renderRecentVisitedFilesTable()}
       </div>
+      <AddFolderModal
+        show={showAddFolderModal}
+        onClose={() => setShowAddFolderModal(false)}
+      />
     </div>
   );
 };
