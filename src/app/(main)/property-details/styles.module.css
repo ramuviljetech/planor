@@ -110,16 +110,8 @@
 /* Action icon styles */
 .actionIcon {
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.actionIcon:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  align-self: flex-end;
+  justify-self: flex-end;
 }
 
 /* Popover menu styles */
