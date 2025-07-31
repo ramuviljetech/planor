@@ -137,7 +137,7 @@
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 .selected_item {
   display: flex;

@@ -3,7 +3,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: 100%;
-  max-width: 756px;
+  max-width: 625px;
   max-height: calc(100vh - 152px);
   background-color: var(--white);
   border-radius: 24px;

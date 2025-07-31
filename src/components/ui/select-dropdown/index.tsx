@@ -52,6 +52,7 @@ interface SelectDropDownProps {
   searchPlaceholder?: string;
   onCloseIconClick?: (item: string) => void;
   leftImage?: boolean;
+  selectedItemsContainerClass?: string;
 }
 
 // Function to get file icon based on file extension
@@ -106,6 +107,7 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
   searchPlaceholder = "Search options...",
   onCloseIconClick = (item: string) => {},
   leftImage = false,
+  selectedItemsContainerClass = "",
 }) => {
   const [internalSelected, setInternalSelected] = useState<string | string[]>(
     multiSelect
@@ -207,7 +209,12 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
       </div>
       {/* // if multi select then show the selected items */}
       {multiSelect && selectedArray.length > 0 && (
-        <div className={styles.selected_items_container}>
+        <div
+          className={classNames(
+            styles.selected_items_container,
+            selectedItemsContainerClass
+          )}
+        >
           {selectedArray.map((item) => (
             <div key={item} className={styles.selected_item}>
               {leftImage && (

@@ -21,13 +21,22 @@
 .secondary {
   background-color: var(--dark-slate);
   color: var(--white);
-  border-radius: 8px;
 }
 
 .outline {
   background-color: transparent;
   border: 1px solid var(--silver-cloud);
   color: var(--dark-slate);
+}
+.ghost {
+  background-color: var(--platinum);
+  border: none;
+  color: var(--dark-slate);
+}
+.plain {
+  background-color: transparent;
+  border: none;
+  color: var(--rose-red);
 }
 .disabled {
   opacity: 0.5;

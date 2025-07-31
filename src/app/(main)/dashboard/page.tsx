@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useRef } from "react";
 import MaintenanceSection from "@/sections/dashboard-section/maintenance";
 import MetricCard from "@/components/ui/metric-card";
-import { clientsStaticCardTitle } from "@/app/constants";
+import { clientsStaticCardTitle, rowsData } from "@/app/constants";
 import BottomSheet from "@/components/ui/bottom-sheet";
 import ClientPropertiesList from "@/sections/clients-section/client-properties-list";
 import SectionHeader from "@/components/ui/section-header";
@@ -18,6 +18,8 @@ import { useRouter } from "next/navigation";
 import AddClientUserModal from "@/components/add-client-user-modal";
 import AddPropertyModal from "@/components/add-property-modal";
 import styles from "./styles.module.css";
+import Modal from "@/components/ui/modal";
+import ClientsFilter from "@/sections/clients-section/clients-filter";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -39,16 +41,14 @@ export default function DashboardPage() {
     useState<boolean>(false);
   const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
-  const [selectedClientsFilters, setSelectedClientsFilters] =
-    useState<string>("Active");
   const [showBottomSheet, setShowBottomSheet] = useState<boolean>(false);
   const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
-  const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
-  const clientsFilterRef = useRef<HTMLDivElement>(null);
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const router = useRouter();
+  const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
+
   // TODO: Replace this with actual API call data
   // This will be fetched from the database based on selectedFilter and selectedYearlyMaintenanceSummary
   const mockApiData = useMemo(() => {
@@ -183,198 +183,6 @@ export default function DashboardPage() {
     },
   ];
 
-  const rowsData = [
-    {
-      id: 1,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 2,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 3,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 4,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 5,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 6,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 7,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 40,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 8,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 9,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 10,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 9,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 11,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 12,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 77,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 13,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 89,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 14,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 15,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 16,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 17,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 18,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 19,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 20,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 21,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-  ];
-
   const totalItems = rowsData.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -437,7 +245,7 @@ export default function DashboardPage() {
           }}
           filterComponent={
             <div
-              ref={clientsFilterRef}
+              // ref={clientsFilterRef}
               onClick={() => setShowClientsFilter(true)}
             >
               <Image src={filterIcon} alt="filter" width={24} height={24} />
@@ -494,7 +302,7 @@ export default function DashboardPage() {
         totalPercentageChange={mockApiData.totalPercentageChange}
       />
       {renderClients()}
-      <PopOver
+      {/* <PopOver
         reference={clientsFilterRef}
         show={showClientsFilter}
         onClose={() => setShowClientsFilter(false)}
@@ -508,7 +316,7 @@ export default function DashboardPage() {
             setShowClientsFilter(false);
           }}
         />
-      </PopOver>
+      </PopOver> */}
       <BottomSheet
         isOpen={showBottomSheet}
         onClose={() => {
@@ -532,6 +340,20 @@ export default function DashboardPage() {
         show={showAddPropertyModal}
         onClose={() => setShowAddPropertyModal(false)}
       />
+      <Modal
+        show={showClientsFilter}
+        onClose={() => setShowClientsFilter(false)}
+        closeOnOutSideClick={true}
+        container_style={styles.clients_filter_modal_container_style}
+        overlay_style={styles.clients_filter_modal_overlay_style}
+      >
+        <ClientsFilter
+          onClose={() => setShowClientsFilter(false)}
+          onApplyFilters={(data: any) => {
+            console.log("data", data);
+          }}
+        />
+      </Modal>
     </div>
   );
 }
