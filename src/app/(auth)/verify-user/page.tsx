@@ -9,8 +9,7 @@ import styles from "./styles.module.css";
 // Validation schema
 const VerifyUserSchema = Yup.object().shape({
   otp: Yup.string()
-    .length(6, "Please enter a 6-digit code")
-    .matches(/^[0-9]+$/, "Code must contain only numbers")
+    .length(6, "Please enter a code")
     .required("Verification code is required")
     .trim(),
 });
@@ -77,12 +76,6 @@ const VerifyUser: React.FC = () => {
     }
   };
 
-  const handleOTPChange = (value: string) => {
-    // Filter out non-numeric characters
-    const numericValue = value.replace(/[^0-9]/g, "");
-    return numericValue;
-  };
-
   const renderForm = () => {
     return (
       <Formik
@@ -90,19 +83,12 @@ const VerifyUser: React.FC = () => {
         validationSchema={VerifyUserSchema}
         onSubmit={handleSubmit}
       >
-        {({
-          values,
-          errors,
-          touched,
-          handleChange,
-          handleBlur,
-          setFieldValue,
-        }) => (
+        {({ values, errors, touched, setFieldValue }) => (
           <Form className={styles.verify_user_form_container}>
             {/* OTP Input */}
             <OTPInputComponent
               value={values.otp}
-              onChange={(value) => setFieldValue("otp", handleOTPChange(value))}
+              onChange={(value) => setFieldValue("otp", value)}
               disabled={isSubmitting}
               className={styles.otp_input_wrapper}
             />
@@ -116,7 +102,7 @@ const VerifyUser: React.FC = () => {
             <Button
               title="Send verification code"
               type="submit"
-              variant="secondary"
+              variant="primary"
               className={styles.verify_user_sign_in_button}
               loading={isSubmitting}
               disabled={isSubmitting || values.otp.length !== 6}
@@ -124,13 +110,11 @@ const VerifyUser: React.FC = () => {
 
             {/* Resend Code */}
             <div className={styles.resend_container}>
-              <span className={styles.resend_text}>
-                Don't receive any code?{" "}
-              </span>
+              <p className={styles.resend_text}>Don't receive any code? </p>
               {resendCountdown > 0 ? (
-                <span className={styles.resend_countdown}>
-                  Resend in {resendCountdown}s
-                </span>
+                <p className={styles.resend_countdown}>
+                  Resend OTP in {resendCountdown}s
+                </p>
               ) : (
                 <button
                   type="button"
@@ -138,7 +122,7 @@ const VerifyUser: React.FC = () => {
                   disabled={isResending}
                   className={styles.resend_button}
                 >
-                  {isResending ? "Sending..." : "Resend Code"}
+                  {isResending ? "Sending..." : "Resend OTP"}
                 </button>
               )}
             </div>

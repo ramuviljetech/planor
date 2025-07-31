@@ -30,7 +30,7 @@ interface LoginFormValues {
 
 const Login: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [errorMessage, setErrorMessage] = useState("");
   const initialValues: LoginFormValues = {
     email: "",
     password: "",
@@ -51,8 +51,10 @@ const Login: React.FC = () => {
       console.log("Login successful");
       // Reset form after successful submission
       resetForm();
+      setErrorMessage("");
     } catch (error) {
       console.error("Login failed:", error);
+      setErrorMessage("Login failed. Double-check your email and password.");
     } finally {
       setIsSubmitting(false);
       setSubmitting(false);
@@ -107,7 +109,7 @@ const Login: React.FC = () => {
             <Button
               title="Sign in"
               type="submit"
-              variant="secondary"
+              variant="primary"
               className={styles.sign_in_button}
               loading={isSubmitting}
               disabled={isSubmitting}
@@ -130,6 +132,17 @@ const Login: React.FC = () => {
             One step away from your dashboard Just a quick login and you're in!
           </p>
         </div>
+        {/* Failed */}
+        {errorMessage && (
+          <div className={styles.login_form_failed_container}>
+            <p className={styles.login_form_failed_title}>
+              That combo doesn’t look right — give it another shot!
+            </p>
+            <p className={styles.login_form_failed_subtitle}>
+              Login failed. Double-check your email and password.
+            </p>
+          </div>
+        )}
         {/* Form */}
         {renderForm()}
       </div>

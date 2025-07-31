@@ -1,3 +1,4 @@
+export { default as bannerIcon } from "@/assets/images/banner.svg";
 export { default as placeholder } from "@/assets/images/placeholder-icon.svg";
 export { default as checkWhite } from "@/assets/images/check-white-icon.svg";
 export { default as searchIcon } from "@/assets/images/search-gray-icon.svg";

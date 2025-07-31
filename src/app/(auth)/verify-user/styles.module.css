@@ -86,21 +86,21 @@
   border: none;
   font-family: var(--font-lato-bold);
   font-size: 14px;
-  color: #3b82f6;
+  color: var(--rose-red);
   cursor: pointer;
   text-decoration: underline;
   transition: color 0.2s ease-in-out;
 }
 .resend_button:hover {
-  color: #2563eb;
+  color: var(--rose-red);
 }
 .resend_button:disabled {
-  color: #94a3b8;
+  color: var(--rose-red);
   cursor: not-allowed;
   text-decoration: none;
 }
 .resend_countdown {
-  font-family: var(--font-lato-regular);
+  font-family: var(--font-lato-bold);
   font-size: 14px;
-  color: #94a3b8;
+  color: var(--rose-red);
 }
