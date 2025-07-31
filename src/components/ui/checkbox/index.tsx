@@ -20,7 +20,13 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
   labelClassName,
 }) => {
   return (
-    <div className={classNames(styles.wrapper, className)} onClick={onChange}>
+    <div
+      className={classNames(styles.wrapper, className)}
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange();
+      }}
+    >
       <div
         className={classNames(
           styles.checkbox,

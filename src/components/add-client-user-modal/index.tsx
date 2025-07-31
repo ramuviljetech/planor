@@ -181,6 +181,14 @@ export default function AddClientUserModal({
             onSelect={(value) =>
               formikProps.setFieldValue("industryType", value as string)
             }
+            showError={
+              touched.industryType && errors.industryType ? true : false
+            }
+            errorMessage={
+              touched.industryType && errors.industryType
+                ? errors.industryType
+                : ""
+            }
           />
           <Input
             label="Address*"
@@ -218,6 +226,8 @@ export default function AddClientUserModal({
             onSelect={(value) =>
               formikProps.setFieldValue("status", value as string)
             }
+            showError={touched.status && errors.status ? true : false}
+            errorMessage={touched.status && errors.status ? errors.status : ""}
           />
           <Input
             label="Primary Contact Name*"
@@ -254,6 +264,8 @@ export default function AddClientUserModal({
             onSelect={(value) =>
               formikProps.setFieldValue("role", value as string)
             }
+            showError={touched.role && errors.role ? true : false}
+            errorMessage={touched.role && errors.role ? errors.role : ""}
           />
           <Input
             label="Phone*"
@@ -439,7 +451,21 @@ export default function AddClientUserModal({
                 className={styles.client_user_modal_footer_button_submit}
                 onClick={() => {
                   if (activeTab === "client") {
-                    formikProps.handleSubmit();
+                    formikProps.validateForm().then((errors: any) => {
+                      if (Object.keys(errors).length === 0) {
+                        setActiveTab("user");
+                      } else {
+                        formikProps.setTouched(
+                          Object.keys(formikProps.values).reduce(
+                            (acc: any, key) => {
+                              acc[key] = true;
+                              return acc;
+                            },
+                            {}
+                          )
+                        );
+                      }
+                    });
                   } else {
                     handleSubmit(formikProps.values, {
                       setSubmitting: () => {},
@@ -448,9 +474,10 @@ export default function AddClientUserModal({
                   }
                 }}
                 disabled={
-                  (activeTab === "user" && !isUserFormValid) ||
-                  (activeTab === "client" &&
-                    (!formikProps.isValid || formikProps.isSubmitting))
+                  (activeTab === "user" &&
+                    users.length === 0 &&
+                    !isUserFormValid) ||
+                  (activeTab === "client" && formikProps.isSubmitting)
                 }
               />
             </div>

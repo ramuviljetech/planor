@@ -29,7 +29,6 @@
 }
 
 .selectDropDownError {
-  border-color: red !important;
   outline: 1px solid red;
 }
 .placeholder,

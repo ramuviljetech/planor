@@ -33,17 +33,15 @@ interface PropertyFormData {
 const PropertyValidationSchema = Yup.object().shape({
   propertyName: Yup.string().required("Property name is required"),
   propertyCode: Yup.string(),
-  propertyType: Yup.string(),
+  propertyType: Yup.string().required("Property type is required"),
   address: Yup.string().required("Address is required"),
   city: Yup.string().required("City is required"),
-  grossArea: Yup.string()
-    .required("Gross area is required")
-    .matches(/^\d+(\.\d+)?$/, "Gross area must be a valid number"),
+  grossArea: Yup.string().required("Gross area is required"),
   primaryContactName: Yup.string().required("Primary contact name is required"),
   email: Yup.string()
     .required("Email is required")
     .email("Invalid email format"),
-  role: Yup.string(),
+  role: Yup.string().required("Role is required"),
   phone: Yup.string()
     .required("Phone number is required")
     .matches(/^[\+]?[1-9][\d]{0,15}$/, "Phone number must be a valid number"),
@@ -137,8 +135,16 @@ export default function AddPropertyModal({
               { label: "Property Type 3", value: "Property Type 3" },
             ]}
             selected={values.propertyType}
-            onSelect={(value) =>
-              formikProps.setFieldValue("propertyType", value as string)
+            onSelect={(value) => {
+              formikProps.setFieldValue("propertyType", value as string);
+            }}
+            showError={
+              touched.propertyType && errors.propertyType ? true : false
+            }
+            errorMessage={
+              touched.propertyType && errors.propertyType
+                ? errors.propertyType
+                : ""
             }
           />
           <Input
@@ -175,6 +181,10 @@ export default function AddPropertyModal({
             selected={values.grossArea}
             onSelect={(value) =>
               formikProps.setFieldValue("grossArea", value as string)
+            }
+            showError={touched.grossArea && errors.grossArea ? true : false}
+            errorMessage={
+              touched.grossArea && errors.grossArea ? errors.grossArea : ""
             }
           />
           <Input
@@ -214,6 +224,8 @@ export default function AddPropertyModal({
             onSelect={(value) =>
               formikProps.setFieldValue("role", value as string)
             }
+            showError={touched.role && errors.role ? true : false}
+            errorMessage={touched.role && errors.role ? errors.role : ""}
           />
           <Input
             label="Phone*"
