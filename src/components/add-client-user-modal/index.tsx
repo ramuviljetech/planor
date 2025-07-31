@@ -75,8 +75,10 @@ export default function AddClientUserModal({
 }: AddClientUserModalProps) {
   const [activeTab, setActiveTab] = useState("client");
 
-  const handleTabClick = (tab: string) => {
-    setActiveTab(tab);
+  const handleTabClick = () => {
+    if (activeTab === "user") {
+      setActiveTab("client");
+    }
   };
 
   const [users, setUsers] = useState<
