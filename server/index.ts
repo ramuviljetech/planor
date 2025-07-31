@@ -16,7 +16,7 @@ import { propertyRoutes } from './src/routes/properties';
 import { buildingRoutes } from './src/routes/buildings';
 import { fileRoutes } from './src/routes/files';
 import { maintenanceRoutes } from './src/routes/maintenance';
-import { blobRoutes } from './src/routes/blob';
+import { pricelistRoutes } from './src/routes/pricelist';
 import { errorHandler } from './src/middleware/errorHandler';
 import { authMiddleware } from './src/middleware/auth';
 import { initializeDatabase } from './src/config/database';
@@ -61,13 +61,13 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', authMiddleware, adminRoutes);
-app.use('/api/users', authMiddleware, usersRoutes);
+app.use('/api/users', usersRoutes); // !No authMiddleware here bcoz of otp
 app.use('/api/properties', authMiddleware, propertyRoutes);
 app.use('/api/buildings', authMiddleware, buildingRoutes);
 app.use('/api/files', authMiddleware, fileRoutes);
 app.use('/api/maintenance', authMiddleware, maintenanceRoutes);
 app.use('/api/clients', authMiddleware, clientRoutes);
-app.use('/api/blob', authMiddleware, blobRoutes);
+app.use('/api/pricelist', authMiddleware, pricelistRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

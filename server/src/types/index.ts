@@ -168,10 +168,20 @@ export interface Building {
   updatedAt: string;
   adminId: string;
   clientId: string; // Derived from the property
+  totalBuildings?: number;
+  totalArea?: number;
+  totalMaintenanceCost?: number;
+  maintenanceUpdates?: number;
   metadata?: {
-    floors?: number;
     totalArea?: number;
     yearBuilt?: number;
+    objects?: Array<{
+      id: string;
+      type: string;
+      count?: number; // For window/door types
+      area?: number; // For floor/wall/area types
+      object: string;
+    }>;
   };
 }
 
@@ -204,14 +214,28 @@ export interface PriceList {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  buildingId?: string; // Optional building ID for building-specific pricelists
   prices: {
     [key: string]: {
-      unit: string;
+      type: string;
+      object: string;
+      count: number;
       price: number;
-      maintenanceInterval: number;
-      maintenanceCost: number;
+      totalPrice: number;
     };
   };
+}
+
+// Individual Price Item Types
+export interface PriceItem {
+  id: string;
+  type: string; // window, door, floor, etc.
+  isGlobal?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  buildingId?: string;
+  object: string; // The actual type like "11x13 Fast"
+  price: number;
 }
 
 // Building Element Types
@@ -365,10 +389,24 @@ export interface CreateBuildingRequest {
   imageUrl?: string;
   constructionYear: number;
   clientId: string; 
+  totalBuildings?: number;
+  totalArea?: number;
+  totalMaintenanceCost?: number;
+  maintenanceUpdates?: number;
   metadata?: {
+    totalBuildings?: number;
+    totalMaintenanceCost?: number;
+    maintenanceUpdates?: number;
     floors?: number;
     totalArea?: number;
     yearBuilt?: number;
+    objects?: Array<{
+      id: string;
+      type: string;
+      count?: number; // For window/door types
+      area?: number; // For floor/wall/area types
+      object: string;
+    }>;
   };
 }
 

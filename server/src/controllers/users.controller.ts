@@ -13,6 +13,7 @@ import { sendMail } from '../services/mail.service'
 import { generateNumericOTP } from '../utils/otp'
 import { hashPassword, comparePassword } from '../utils/common'
 import { getUsersContainer } from '../config/database'
+import { findUserByEmail } from '@/entities/auth.entity'
 
 // !Get user profile
 export const getUserProfile = async (req: Request, res: Response) => {
@@ -129,6 +130,13 @@ export const sendOtp = async (req: Request, res: Response) => {
   try {
     const { email } = req.body
 
+    // const user = await findUserByEmail(email)
+    // if(!user){
+    //   return res.status(400).json({
+    //     success: false,
+    //     error: 'User not found'
+    //   })
+    // }
     // Generate OTP
     const otp = generateNumericOTP()
     

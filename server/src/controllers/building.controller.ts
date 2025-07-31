@@ -42,11 +42,20 @@ export const getAllBuildingsController = async (req: Request, res: Response) => 
     // Get basic statistics
     const statistics = await calculateBuildingStatistics()
 
+    // Add statistics to each building object
+    const buildingsWithStats = buildings.map(building => ({
+      ...building,
+      totalBuildings: total,
+      totalArea: totalArea,
+      totalMaintenanceCost: statistics.totalMaintenanceCost,
+      maintenanceUpdates: statistics.maintenanceUpdates
+    }))
+
     return res.json({
       success: true,
       message: 'Buildings retrieved successfully',
       data: {
-        buildings,
+        buildings: buildingsWithStats,
         count: buildings.length,
         totalCount: statistics.totalBuildings,
         totalBuildings: total,
@@ -84,11 +93,24 @@ export const getBuildingById = async (req: Request, res: Response) => {
       })
     }
 
+    // Get basic statistics for this building
+    const statistics = await calculateBuildingStatistics()
+    const { total, totalArea } = await getBuildingsWithPaginationAndFilters(1, 1, {})
+
+    // Add statistics to the building object
+    const buildingWithStats = {
+      ...building,
+      totalBuildings: total,
+      totalArea: totalArea,
+      totalMaintenanceCost: statistics.totalMaintenanceCost,
+      maintenanceUpdates: statistics.maintenanceUpdates
+    }
+
     return res.json({
       success: true,
       message: 'Building retrieved successfully',
       data: {
-        building
+        building: buildingWithStats
       }
     })
   } catch (error) {
@@ -147,7 +169,6 @@ export const createBuildingController = async (req: Request, res: Response) => {
       metadata: buildingData.metadata || {},
       propertyId: buildingData.propertyId // Save the propertyId
     }
-
     // Save building to database
     await createBuilding(newBuilding)
 

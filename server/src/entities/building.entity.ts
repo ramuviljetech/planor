@@ -276,6 +276,7 @@ export const getBuildingsWithPaginationAndFilters = async (
       // No filters - use existing pagination function
       const result = await getBuildingsWithPagination(page, limit)
       const totalArea = await getTotalAreaByFilters()
+      
       return { ...result, totalArea }
     }
     

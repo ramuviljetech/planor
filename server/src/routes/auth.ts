@@ -8,7 +8,4 @@ const router = express.Router()
 // POST /api/auth/login - User login
 router.post('/login', validateRequest(loginSchema), login)
 
-// router.get('/read', readAzureFiles)
-    
-
 export { router as authRoutes }
