@@ -251,14 +251,14 @@ const PriceListPage: React.FC = () => {
         </div>
         <div className={styles.price_list_content_accordion}>
           {accordionData.map((accordion) => (
-            <div key={accordion.key}>
+            <React.Fragment key={accordion.key}>
               {renderAccordion(
                 accordion.title, 
                 accordion.data, 
                 accordionStates[accordion.key as keyof typeof accordionStates], 
                 () => toggleAccordion(accordion.key)
               )}
-            </div>
+            </React.Fragment>
           ))}
         </div>
       </>

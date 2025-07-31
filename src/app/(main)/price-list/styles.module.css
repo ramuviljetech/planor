@@ -387,6 +387,10 @@
 .accordion_table_full:not(.closed) .accordion_header {
   border-bottom: none;
 }
+
+.accordion_table_full.closed:nth-child(6) .accordion_header {
+  border-bottom: none;
+}
 .accordion_header {
   width: 100%;
   display: flex;
@@ -416,7 +420,7 @@
 }
 
 .accordion_icon {
-  transition: all 0.6s ease;
+  transition: all 0.1s ease;
   transform: rotate(0deg);
   cursor: pointer;
 }
@@ -470,7 +474,6 @@
   padding-right: 16px;
   /* padding-bottom: 8px; */
   padding-left: 16px;
-  transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease;
   overflow: hidden;
   max-height: 0;
   opacity: 0;
@@ -483,7 +486,6 @@
   opacity: 1;
   padding-top: 8px;
   padding-bottom: 8px;
-  transition: max-height 0.8s ease, opacity 0.8s ease, padding 0.8s ease;
 }
 .accordion_table {
   width: 100%;
