@@ -92,10 +92,7 @@
   align-items: flex-start;
   gap: 16px;
 }
-.client_info_overview_add_user_button {
-  border: none;
-  color: var(--rose-red);
-}
+
 .client_info_overview_action_icon {
   cursor: pointer;
   align-self: flex-end;

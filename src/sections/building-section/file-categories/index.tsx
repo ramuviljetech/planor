@@ -18,6 +18,7 @@ import CommonTable from "@/components/ui/common-table";
 import CustomCheckbox from "@/components/ui/checkbox";
 import AddFolderModal from "@/components/add-folder-modal";
 import styles from "./styles.module.css";
+import Image from "next/image";
 
 const FileCategories = () => {
   const [activeTab, setActiveTab] = useState("all");
@@ -169,10 +170,12 @@ const FileCategories = () => {
                 }`}
                 onClick={() => setLayoutType(layout.title)}
               >
-                <img
+                <Image
                   src={isActive ? layout.iconPink.src : layout.iconGray.src}
                   alt={layout.title}
                   className={styles.file_switchIcon}
+                  width={24}
+                  height={24}
                 />
               </div>
             );
@@ -180,10 +183,12 @@ const FileCategories = () => {
         </div>
 
         <div className={styles.file_filterIcon}>
-          <img
+          <Image
             src={filterIcon.src}
             alt="filterIcon"
             className={styles.file_filterIconImg}
+            width={36}
+            height={36}
           />
         </div>
         <Button
@@ -211,7 +216,7 @@ const FileCategories = () => {
     <div className={styles.file_recentFolderBox}>
       <div className={styles.file_recentFolderHeader}>
         <h5 className={styles.file_recentFolderHeading}>Recent Folders</h5>
-        <p className={styles.file_viewAllText}>View all</p>
+        <Button title="View all" variant="plain" size="sm" />
       </div>
       <div className={styles.file_recentFolders}>
         {Array(4)
@@ -249,7 +254,7 @@ const FileCategories = () => {
         <h5 className={styles.file_recentVisitedFilesText}>
           Recent Visited Files
         </h5>
-        <p className={styles.file_viewAllText}>View all</p>
+        <Button title="View all" variant="plain" size="sm" />
       </div>
 
       <div className={styles.file_recentVisitedFilesGrid}>

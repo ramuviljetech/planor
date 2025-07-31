@@ -94,12 +94,7 @@ const AddFolderModal = ({ show, onClose }: AddFolderModalProps) => {
       </div>
       {renderFolderInfo()}
       <div className={styles.add_folder_modal_footer}>
-        <Button
-          title="Cancel"
-          variant="outline"
-          className={styles.add_folder_modal_footer_button_cancel}
-          onClick={() => onClose()}
-        />
+        <Button title="Cancel" variant="plain" onClick={() => onClose()} />
         <Button
           title="Submit"
           className={styles.add_folder_modal_footer_button_submit}

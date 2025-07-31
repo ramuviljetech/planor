@@ -269,12 +269,7 @@ const PropertyDetails: React.FC = () => {
           </div>
 
           <div className={styles.add_building_modal_footer}>
-            <Button
-              title="Cancel"
-              onClick={handleCloseModal}
-              variant="outline"
-              className={styles.add_building_modal_cancel_button}
-            />
+            <Button title="Cancel" onClick={handleCloseModal} variant="plain" />
             <Button
               title={activeTab === "add-revit" ? "Save & Continue" : "Submit"}
               onClick={handleSubmitBuilding}

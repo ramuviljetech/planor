@@ -279,7 +279,7 @@ export default function AddPropertyModal({
             <div className={styles.add_property_modal_footer}>
               <Button
                 title="Cancel"
-                className={styles.add_property_modal_footer_button_cancel}
+                variant="plain"
                 onClick={() => handleCancel(formikProps.resetForm)}
               />
               <Button

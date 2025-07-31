@@ -34,7 +34,8 @@ const ClientInfo: React.FC = () => {
     useState<string>("propertyList");
   const [searchValue, setSearchValue] = useState<string>("");
   const [isSelectAll, setIsSelectAll] = useState<boolean>(false);
-  const [showAddPropertyModal, setShowAddPropertyModal] = useState<boolean>(false);
+  const [showAddPropertyModal, setShowAddPropertyModal] =
+    useState<boolean>(false);
   const tabs: TabItem[] = [
     { label: "Over View", value: "overview" },
     { label: "Properties", value: "properties" },
@@ -199,9 +200,14 @@ const ClientInfo: React.FC = () => {
             router.back();
           }}
         />
-        <Button title="Add Property" variant="primary" size="sm" onClick={() => {
-          setShowAddPropertyModal(true);  
-        }}/>
+        <Button
+          title="Add Property"
+          variant="primary"
+          size="sm"
+          onClick={() => {
+            setShowAddPropertyModal(true);
+          }}
+        />
       </div>
     );
   };
@@ -228,12 +234,7 @@ const ClientInfo: React.FC = () => {
               <p className={styles.client_info_overview_info_title}>
                 Users List
               </p>
-              <Button
-                title="Add New User"
-                variant="outline"
-                size="sm"
-                className={styles.client_info_overview_add_user_button}
-              />
+              <Button title="Add New User" variant="plain" size="sm" />
             </div>
             {/* Users List table */}
             <CommonTableWithPopover

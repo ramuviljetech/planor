@@ -43,7 +43,7 @@ const ClientValidationSchema = Yup.object().shape({
   primaryContactName: Yup.string().required("Primary contact name is required"),
   email: Yup.string()
     .email("Invalid email format")
-    .when('$isEmailRequired', {
+    .when("$isEmailRequired", {
       is: true,
       then: (schema) => schema.required("Email is required"),
       otherwise: (schema) => schema.optional(),
@@ -134,7 +134,8 @@ export default function AddClientUserModal({
   };
 
   const renderClinetInfo = (formikProps: any) => {
-    const { values, errors, touched, handleChange, handleBlur, isSubmitting } = formikProps;
+    const { values, errors, touched, handleChange, handleBlur, isSubmitting } =
+      formikProps;
 
     return (
       <div className={styles.client_info_section}>
@@ -188,9 +189,7 @@ export default function AddClientUserModal({
             placeholder="Enter address"
             inputStyle={styles.client_info_section_input_section_input}
             error={
-              touched.address && errors.address
-                ? errors.address
-                : undefined
+              touched.address && errors.address ? errors.address : undefined
             }
           />
           <Input
@@ -240,11 +239,7 @@ export default function AddClientUserModal({
             name="email"
             placeholder="Enter email"
             inputStyle={styles.client_info_section_input_section_input}
-            error={
-              touched.email && errors.email
-                ? errors.email
-                : undefined
-            }
+            error={touched.email && errors.email ? errors.email : undefined}
           />
           <SelectDropDown
             label="Role*"
@@ -266,11 +261,7 @@ export default function AddClientUserModal({
             name="phone"
             placeholder="Enter phone"
             inputStyle={styles.client_info_section_input_section_input}
-            error={
-              touched.phone && errors.phone
-                ? errors.phone
-                : undefined
-            }
+            error={touched.phone && errors.phone ? errors.phone : undefined}
           />
         </div>
         <div className={styles.client_info_input_bottom_section}>
@@ -431,12 +422,14 @@ export default function AddClientUserModal({
               </div>
             </div>
             <div className={styles.client_user_modal_content}>
-              {activeTab === "client" ? renderClinetInfo(formikProps) : renderUserInfo()}
+              {activeTab === "client"
+                ? renderClinetInfo(formikProps)
+                : renderUserInfo()}
             </div>
             <div className={styles.client_user_modal_footer}>
               <Button
                 title="Cancel"
-                className={styles.client_user_modal_footer_button_cancel}
+                variant="plain"
                 onClick={() => handleCancel(formikProps.resetForm)}
               />
               <Button
@@ -446,12 +439,16 @@ export default function AddClientUserModal({
                   if (activeTab === "client") {
                     formikProps.handleSubmit();
                   } else {
-                    handleSubmit(formikProps.values, { setSubmitting: () => {}, resetForm: formikProps.resetForm });
+                    handleSubmit(formikProps.values, {
+                      setSubmitting: () => {},
+                      resetForm: formikProps.resetForm,
+                    });
                   }
                 }}
                 disabled={
                   (activeTab === "user" && !isUserFormValid) ||
-                  (activeTab === "client" && (!formikProps.isValid || formikProps.isSubmitting))
+                  (activeTab === "client" &&
+                    (!formikProps.isValid || formikProps.isSubmitting))
                 }
               />
             </div>
