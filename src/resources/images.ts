@@ -1,3 +1,4 @@
+export { default as bannerIcon } from "@/assets/images/banner.svg";
 export { default as placeholder } from "@/assets/images/placeholder-icon.svg";
 export { default as checkWhite } from "@/assets/images/check-white-icon.svg";
 export { default as searchIcon } from "@/assets/images/search-gray-icon.svg";
@@ -73,6 +74,11 @@ export { default as folderIcon } from "@/assets/images/folder-icon.svg";
 export { default as downloadBlackIcon } from "@/assets/images/download-black-icon.svg";
 
 //
-
 export { default as recentUploadedFileDummyImg1 } from "@/assets/images/recent-uploaded-file-dummy-img-1.svg";
 export { default as recentUploadedFileDummyImg2 } from "@/assets/images/recent-uploaded-file-dummy-img-2.svg";
+
+export { default as xlsIcon } from "@/assets/images/xls-icon.svg";
+export { default as docIcon } from "@/assets/images/doc-icon.svg";
+
+export { default as openEyeIcon } from "@/assets/images/open-eye.svg";
+export { default as closeEyeIcon } from "@/assets/images/close-eye.svg";

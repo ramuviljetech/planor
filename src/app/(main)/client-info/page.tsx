@@ -1,16 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Breadcrumb from "@/components/ui/breadcrumb";
 import Button from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import CustomTabs, { TabItem } from "@/components/ui/tabs";
 import Info from "@/components/ui/info";
-import {
-  buildingMaintenancePlanRowsData,
-  clientInfoItems,
-  clientInfoUsersRowsData,
-} from "@/app/constants";
+import { clientInfoItems, clientInfoUsersRowsData } from "@/app/constants";
 import CommonTableWithPopover, {
   PopoverAction,
 } from "@/components/ui/common-table-with-popover";
@@ -21,11 +17,11 @@ import CommonTable, {
 import Capsule from "@/components/ui/capsule";
 import SearchBar from "@/components/ui/searchbar";
 import Avatar from "@/components/ui/avatar";
-import { downloadIcon, filterIcon } from "@/resources/images";
+import { filterIcon } from "@/resources/images";
 import ClientPropertiesList from "@/sections/clients-section/client-properties-list";
-import MetricCard from "@/components/ui/metric-card";
 import styles from "./styles.module.css";
 import AddPropertyModal from "@/components/add-property-modal";
+import MaintenancePlan from "@/components/maintenance-plan";
 
 const ClientInfo: React.FC = () => {
   const router = useRouter();
@@ -34,17 +30,11 @@ const ClientInfo: React.FC = () => {
     useState<string>("propertyList");
   const [searchValue, setSearchValue] = useState<string>("");
   const [isSelectAll, setIsSelectAll] = useState<boolean>(false);
-  const [showAddPropertyModal, setShowAddPropertyModal] = useState<boolean>(false);
+  const [showAddPropertyModal, setShowAddPropertyModal] =
+    useState<boolean>(false);
   const tabs: TabItem[] = [
     { label: "Over View", value: "overview" },
     { label: "Properties", value: "properties" },
-  ];
-
-  const maintenancePlanCardTitle = [
-    { title: "Total Objects", value: "900" },
-    { title: "Total Maintenance for 1 Year", value: "680" },
-    { title: "Total Maintenance for 5 Year", value: "320" },
-    { title: "Total Maintenance for 10 Year", value: "100" },
   ];
 
   const tabItems = [
@@ -75,49 +65,6 @@ const ClientInfo: React.FC = () => {
     },
   ];
 
-  // Table data and handlers
-  const maintenancePlanColumns: TableColumn[] = [
-    {
-      key: "objectName",
-      title: "Object Name",
-      width: "calc(100% / 4)",
-    },
-    {
-      key: "year1",
-      title: "1 Year",
-      width: "calc(100% / 4)",
-    },
-    {
-      key: "year5",
-      title: "5 Year",
-      width: "calc(100% / 4)",
-    },
-    {
-      key: "year10",
-      title: "10 Year",
-      width: "calc(100% / 4)",
-    },
-    {
-      key: "actions",
-      title: "",
-      width: "calc(100% / 4)",
-      render: (value, row, index) => (
-        <div
-          onClick={() => {
-            console.log("download");
-          }}
-          className={styles.actionIconContainer}
-        >
-          <Avatar
-            image={downloadIcon}
-            size="sm"
-            className={styles.actionIcon}
-          />
-        </div>
-      ),
-    },
-  ];
-
   const totalItems = clientInfoUsersRowsData?.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -126,17 +73,6 @@ const ClientInfo: React.FC = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentRows =
     clientInfoUsersRowsData?.slice(startIndex, endIndex) || [];
-
-  const maintenancePlanTotalItems = buildingMaintenancePlanRowsData?.length;
-  const maintenancePlanTotalPages = Math.ceil(
-    maintenancePlanTotalItems / itemsPerPage
-  );
-
-  // Get current page data
-  const maintenancePlanStartIndex = (currentPage - 1) * itemsPerPage;
-  const maintenancePlanEndIndex = maintenancePlanStartIndex + itemsPerPage;
-  const maintenancePlanCurrentRows =
-    buildingMaintenancePlanRowsData?.slice(startIndex, endIndex) || [];
 
   const handleRowClick = (row: TableRow, index: number) => {
     console.log("Row clicked:", {
@@ -152,11 +88,6 @@ const ClientInfo: React.FC = () => {
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    setSelectedRowId("");
-  };
-
-  const handleMaintenancePlanPageChange = (page: number) => {
     setCurrentPage(page);
     setSelectedRowId("");
   };
@@ -199,9 +130,14 @@ const ClientInfo: React.FC = () => {
             router.back();
           }}
         />
-        <Button title="Add Property" variant="primary" size="sm" onClick={() => {
-          setShowAddPropertyModal(true);  
-        }}/>
+        <Button
+          title="Add Property"
+          variant="primary"
+          size="sm"
+          onClick={() => {
+            setShowAddPropertyModal(true);
+          }}
+        />
       </div>
     );
   };
@@ -228,12 +164,7 @@ const ClientInfo: React.FC = () => {
               <p className={styles.client_info_overview_info_title}>
                 Users List
               </p>
-              <Button
-                title="Add New User"
-                variant="outline"
-                size="sm"
-                className={styles.client_info_overview_add_user_button}
-              />
+              <Button title="Add New User" variant="plain" size="sm" />
             </div>
             {/* Users List table */}
             <CommonTableWithPopover
@@ -291,48 +222,7 @@ const ClientInfo: React.FC = () => {
           {activePropertiesTab === "propertyList" && (
             <ClientPropertiesList showPropertyListSection={false} />
           )}
-          {activePropertiesTab === "maintenancePlan" && (
-            <div
-              className={
-                styles.client_info_properties_section_maintenance_plan_container
-              }
-            >
-              <div
-                className={
-                  styles.client_info_properties_section_maintenance_plan_card_container
-                }
-              >
-                {maintenancePlanCardTitle.map((card, index) => (
-                  <MetricCard
-                    key={index}
-                    title={card.title}
-                    value={Number(card.value)}
-                    className={
-                      styles.client_info_properties_section_maintenance_plan_card
-                    }
-                    titleStyle={
-                      styles.client_info_properties_section_maintenance_plan_card_title
-                    }
-                    showK={true}
-                  />
-                ))}
-              </div>
-              <CommonTable
-                columns={maintenancePlanColumns}
-                rows={maintenancePlanCurrentRows}
-                selectedRowId={selectedRowId}
-                disabled={false}
-                pagination={{
-                  currentPage,
-                  totalPages: maintenancePlanTotalPages,
-                  totalItems: maintenancePlanTotalItems,
-                  itemsPerPage,
-                  onPageChange: handleMaintenancePlanPageChange,
-                  showItemCount: true,
-                }}
-              />
-            </div>
-          )}
+          {activePropertiesTab === "maintenancePlan" && <MaintenancePlan />}
         </div>
       </div>
     );

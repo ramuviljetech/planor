@@ -8,7 +8,7 @@ import * as PopperJS from "@popperjs/core";
 import { StaticImageData } from "next/image";
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   title: string;
-  variant?: "primary" | "secondary" | "outline";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "plain";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
   disabled?: boolean;

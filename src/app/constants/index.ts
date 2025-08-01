@@ -40,7 +40,7 @@ export const MainMenu: MenuItem[] = [
     label: "Settings",
     icon: settingsGrayIcon,
     active_icon: settingsGrayIcon,
-    route: "/",
+    route: "/settings",
   },
 ];
 

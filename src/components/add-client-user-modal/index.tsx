@@ -43,7 +43,7 @@ const ClientValidationSchema = Yup.object().shape({
   primaryContactName: Yup.string().required("Primary contact name is required"),
   email: Yup.string()
     .email("Invalid email format")
-    .when('$isEmailRequired', {
+    .when("$isEmailRequired", {
       is: true,
       then: (schema) => schema.required("Email is required"),
       otherwise: (schema) => schema.optional(),
@@ -75,8 +75,10 @@ export default function AddClientUserModal({
 }: AddClientUserModalProps) {
   const [activeTab, setActiveTab] = useState("client");
 
-  const handleTabClick = (tab: string) => {
-    setActiveTab(tab);
+  const handleTabClick = () => {
+    if (activeTab === "user") {
+      setActiveTab("client");
+    }
   };
 
   const [users, setUsers] = useState<
@@ -134,7 +136,8 @@ export default function AddClientUserModal({
   };
 
   const renderClinetInfo = (formikProps: any) => {
-    const { values, errors, touched, handleChange, handleBlur, isSubmitting } = formikProps;
+    const { values, errors, touched, handleChange, handleBlur, isSubmitting } =
+      formikProps;
 
     return (
       <div className={styles.client_info_section}>
@@ -178,6 +181,14 @@ export default function AddClientUserModal({
             onSelect={(value) =>
               formikProps.setFieldValue("industryType", value as string)
             }
+            showError={
+              touched.industryType && errors.industryType ? true : false
+            }
+            errorMessage={
+              touched.industryType && errors.industryType
+                ? errors.industryType
+                : ""
+            }
           />
           <Input
             label="Address*"
@@ -188,9 +199,7 @@ export default function AddClientUserModal({
             placeholder="Enter address"
             inputStyle={styles.client_info_section_input_section_input}
             error={
-              touched.address && errors.address
-                ? errors.address
-                : undefined
+              touched.address && errors.address ? errors.address : undefined
             }
           />
           <Input
@@ -217,6 +226,8 @@ export default function AddClientUserModal({
             onSelect={(value) =>
               formikProps.setFieldValue("status", value as string)
             }
+            showError={touched.status && errors.status ? true : false}
+            errorMessage={touched.status && errors.status ? errors.status : ""}
           />
           <Input
             label="Primary Contact Name*"
@@ -240,11 +251,7 @@ export default function AddClientUserModal({
             name="email"
             placeholder="Enter email"
             inputStyle={styles.client_info_section_input_section_input}
-            error={
-              touched.email && errors.email
-                ? errors.email
-                : undefined
-            }
+            error={touched.email && errors.email ? errors.email : undefined}
           />
           <SelectDropDown
             label="Role*"
@@ -257,6 +264,8 @@ export default function AddClientUserModal({
             onSelect={(value) =>
               formikProps.setFieldValue("role", value as string)
             }
+            showError={touched.role && errors.role ? true : false}
+            errorMessage={touched.role && errors.role ? errors.role : ""}
           />
           <Input
             label="Phone*"
@@ -266,11 +275,7 @@ export default function AddClientUserModal({
             name="phone"
             placeholder="Enter phone"
             inputStyle={styles.client_info_section_input_section_input}
-            error={
-              touched.phone && errors.phone
-                ? errors.phone
-                : undefined
-            }
+            error={touched.phone && errors.phone ? errors.phone : undefined}
           />
         </div>
         <div className={styles.client_info_input_bottom_section}>
@@ -431,12 +436,14 @@ export default function AddClientUserModal({
               </div>
             </div>
             <div className={styles.client_user_modal_content}>
-              {activeTab === "client" ? renderClinetInfo(formikProps) : renderUserInfo()}
+              {activeTab === "client"
+                ? renderClinetInfo(formikProps)
+                : renderUserInfo()}
             </div>
             <div className={styles.client_user_modal_footer}>
               <Button
                 title="Cancel"
-                className={styles.client_user_modal_footer_button_cancel}
+                variant="plain"
                 onClick={() => handleCancel(formikProps.resetForm)}
               />
               <Button
@@ -444,14 +451,33 @@ export default function AddClientUserModal({
                 className={styles.client_user_modal_footer_button_submit}
                 onClick={() => {
                   if (activeTab === "client") {
-                    formikProps.handleSubmit();
+                    formikProps.validateForm().then((errors: any) => {
+                      if (Object.keys(errors).length === 0) {
+                        setActiveTab("user");
+                      } else {
+                        formikProps.setTouched(
+                          Object.keys(formikProps.values).reduce(
+                            (acc: any, key) => {
+                              acc[key] = true;
+                              return acc;
+                            },
+                            {}
+                          )
+                        );
+                      }
+                    });
                   } else {
-                    handleSubmit(formikProps.values, { setSubmitting: () => {}, resetForm: formikProps.resetForm });
+                    handleSubmit(formikProps.values, {
+                      setSubmitting: () => {},
+                      resetForm: formikProps.resetForm,
+                    });
                   }
                 }}
                 disabled={
-                  (activeTab === "user" && !isUserFormValid) ||
-                  (activeTab === "client" && (!formikProps.isValid || formikProps.isSubmitting))
+                  (activeTab === "user" &&
+                    users.length === 0 &&
+                    !isUserFormValid) ||
+                  (activeTab === "client" && formikProps.isSubmitting)
                 }
               />
             </div>

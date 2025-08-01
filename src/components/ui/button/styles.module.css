@@ -11,6 +11,8 @@
   padding: 10px 16px;
   width: fit-content;
   text-wrap: nowrap;
+  position: relative;
+  overflow: hidden;
 }
 
 .primary {
@@ -21,13 +23,22 @@
 .secondary {
   background-color: var(--dark-slate);
   color: var(--white);
-  border-radius: 8px;
 }
 
 .outline {
   background-color: transparent;
   border: 1px solid var(--silver-cloud);
   color: var(--dark-slate);
+}
+.ghost {
+  background-color: var(--platinum);
+  border: none;
+  color: var(--dark-slate);
+}
+.plain {
+  background-color: transparent;
+  border: none;
+  color: var(--rose-red);
 }
 .disabled {
   opacity: 0.5;
@@ -65,4 +76,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background-color: var(--pink-blush);
+  transform: scale(0);
+  animation: ripple-effect 0.8s linear;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes ripple-effect {
+  to {
+    transform: scale(3);
+    opacity: 0;
+  }
 }

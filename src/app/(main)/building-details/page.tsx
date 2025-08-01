@@ -188,12 +188,7 @@ const BuildingDetails: React.FC = () => {
           defaultTab="overview"
           onTabChange={handleTabChange}
         />
-        <Button
-          title="Add Revit"
-          variant="outline"
-          size="sm"
-          className={styles.building_details_revit_button}
-        />
+        <Button title="Add Revit" variant="plain" size="sm" />
       </div>
     );
   };

@@ -1,16 +1,19 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import { useSearchParams } from "next/navigation";
 import Button from "@/components/ui/button";
 import OTPInputComponent from "@/components/ui/otp-input";
 import styles from "./styles.module.css";
+import AuthAPI from "@/networking/auth-api";
+import { tokenManager } from "@/utils/token-manager";
+import { useRouter } from "next/navigation";
 
 // Validation schema
 const VerifyUserSchema = Yup.object().shape({
   otp: Yup.string()
-    .length(6, "Please enter a 6-digit code")
-    .matches(/^[0-9]+$/, "Code must contain only numbers")
+    .length(6, "Please enter a code")
     .required("Verification code is required")
     .trim(),
 });
@@ -23,6 +26,16 @@ const VerifyUser: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
+  const [email, setEmail] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setEmail(decodeURIComponent(emailParam));
+    }
+  }, [searchParams]);
 
   const initialValues: VerifyUserFormValues = {
     otp: "",
@@ -34,16 +47,19 @@ const VerifyUser: React.FC = () => {
   ) => {
     setIsSubmitting(true);
     try {
-      // TODO: Implement actual OTP verification logic here
-      console.log("OTP verification attempt with:", values);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Handle successful verification
-      console.log("OTP verification successful");
-      // Reset form after successful submission
+      const response = await AuthAPI.verifyOtp(email, values.otp);
+      console.log("OTP verification response:", response);
       resetForm();
-    } catch (error) {
-      console.error("OTP verification failed:", error);
+      // Pass the token to reset password page
+      const token = response.token || response.data?.token;
+      if (token) {
+        router.push(`/reset-password?token=${encodeURIComponent(token)}`);
+      } else {
+        router.push("/reset-password");
+      }
+    } catch (error: any) {
+      console.log("OTP verification error:", error);
+      setErrorMessage(error.message || "OTP verification failed");
     } finally {
       setIsSubmitting(false);
       setSubmitting(false);
@@ -52,14 +68,9 @@ const VerifyUser: React.FC = () => {
 
   const handleResendCode = async () => {
     setIsResending(true);
+    setErrorMessage("");
     try {
-      // TODO: Implement actual resend logic here
-      console.log("Resending verification code");
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Verification code resent successfully");
-
-      // Start countdown for resend
+      await AuthAPI.forgotPassword(email);
       setResendCountdown(30);
       const countdownInterval = setInterval(() => {
         setResendCountdown((prev) => {
@@ -70,17 +81,11 @@ const VerifyUser: React.FC = () => {
           return prev - 1;
         });
       }, 1000);
-    } catch (error) {
-      console.error("Resend failed:", error);
+    } catch (error: any) {
+      setErrorMessage(error.message || "Resend OTP failed");
     } finally {
       setIsResending(false);
     }
-  };
-
-  const handleOTPChange = (value: string) => {
-    // Filter out non-numeric characters
-    const numericValue = value.replace(/[^0-9]/g, "");
-    return numericValue;
   };
 
   const renderForm = () => {
@@ -90,19 +95,12 @@ const VerifyUser: React.FC = () => {
         validationSchema={VerifyUserSchema}
         onSubmit={handleSubmit}
       >
-        {({
-          values,
-          errors,
-          touched,
-          handleChange,
-          handleBlur,
-          setFieldValue,
-        }) => (
+        {({ values, errors, touched, setFieldValue }) => (
           <Form className={styles.verify_user_form_container}>
             {/* OTP Input */}
             <OTPInputComponent
               value={values.otp}
-              onChange={(value) => setFieldValue("otp", handleOTPChange(value))}
+              onChange={(value) => setFieldValue("otp", value)}
               disabled={isSubmitting}
               className={styles.otp_input_wrapper}
             />
@@ -113,38 +111,49 @@ const VerifyUser: React.FC = () => {
             )}
 
             {/* Verify Button */}
-            <Button
-              title="Send verification code"
-              type="submit"
-              variant="secondary"
-              className={styles.verify_user_sign_in_button}
-              loading={isSubmitting}
-              disabled={isSubmitting || values.otp.length !== 6}
-            />
+            <div className={styles.verify_button_container}>
+              <Button
+                title="Verify Code"
+                type="submit"
+                variant="primary"
+                className={styles.verify_user_sign_in_button}
+                loading={isSubmitting}
+                disabled={isSubmitting || values.otp.length !== 6}
+              />
 
-            {/* Resend Code */}
-            <div className={styles.resend_container}>
-              <span className={styles.resend_text}>
-                Don't receive any code?{" "}
-              </span>
-              {resendCountdown > 0 ? (
-                <span className={styles.resend_countdown}>
-                  Resend in {resendCountdown}s
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  disabled={isResending}
-                  className={styles.resend_button}
-                >
-                  {isResending ? "Sending..." : "Resend Code"}
-                </button>
-              )}
+              {/* Resend Code */}
+              <div className={styles.resend_container}>
+                <p className={styles.resend_text}>Don't receive any code? </p>
+                {resendCountdown > 0 ? (
+                  <p className={styles.resend_countdown}>
+                    Resend OTP in {resendCountdown}s
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={isResending}
+                    className={styles.resend_button}
+                  >
+                    {isResending ? "Sending..." : "Resend OTP"}
+                  </button>
+                )}
+              </div>
             </div>
           </Form>
         )}
       </Formik>
+    );
+  };
+
+  const renderErrorMessage = (message: string) => {
+    return (
+      <div className={styles.verify_user_form_failed_container}>
+        <p className={styles.verify_user_form_failed_title}>
+          That combo doesn't look right — give it another shot!
+        </p>
+        <p className={styles.verify_user_form_failed_subtitle}>{message}</p>
+      </div>
     );
   };
 
@@ -158,7 +167,12 @@ const VerifyUser: React.FC = () => {
             We've sent a 6-digit code to your registered email/phone. Enter it
             below to continue.
           </p>
+          {email && (
+            <p className={styles.email_display}>Code sent to: {email}</p>
+          )}
         </div>
+        {/* Failed */}
+        {errorMessage && renderErrorMessage(errorMessage)}
         {/* Form */}
         {renderForm()}
       </div>

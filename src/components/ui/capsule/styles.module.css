@@ -19,6 +19,7 @@
   padding: 8px 16px;
   background-color: transparent;
   cursor: pointer;
+  gap: 4px;
 }
 
 .capsule_item_text {
@@ -38,4 +39,14 @@
 
 .capsule_item_text_active {
   color: var(--crimson-red);
+}
+
+.capsule_item_left_image,
+.capsule_item_right_image {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-left: 4px;
+  cursor: pointer;
 }

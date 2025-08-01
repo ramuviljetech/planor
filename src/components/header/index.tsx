@@ -5,22 +5,16 @@ import {
   searchEnableIcon,
   searchIcon,
   avatarIcon,
-  building1,
-  building2,
-  building3,
-  building4,
-  building3d,
 } from "@/resources/images";
 import SearchBar from "../ui/searchbar";
 import { useState } from "react";
 import Image from "next/image";
-import { ImageCarousel } from "@/components/ui/image-carousel";
-import { ImageViewer } from "@/components/ui/image-viewer";
-import { CustomDatePicker } from "@/components/ui/date-picker";
 import styles from "./styles.module.css";
 import Avatar from "../ui/avatar";
+import { useAuth } from "@/providers";
 
 const Header: React.FC = () => {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
 
   return (
@@ -47,12 +41,6 @@ const Header: React.FC = () => {
           className={styles.questionmark_icon}
         />
 
-        {/* <CustomDatePicker
-          label="Set new Maintenance date*"
-          placeholder="Select Maintenance date"
-          onChange={handleDateChange}
-        /> */}
-
         <div className={styles.avatar_container}>
           <Image
             src={avatarIcon}
@@ -62,8 +50,8 @@ const Header: React.FC = () => {
             className={styles.avatar_image}
           />
           <div className={styles.avatar_name_container}>
-            <p className={styles.avatar_name}>John Smith</p>
-            <p className={styles.avatar_email}>Admin</p>
+            <p className={styles.avatar_name}>{user?.name}</p>
+            <p className={styles.avatar_email}>{user?.role}</p>
           </div>
         </div>
       </div>

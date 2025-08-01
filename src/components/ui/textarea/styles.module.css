@@ -51,17 +51,17 @@
 }
 
 .text_area_error {
-  border-color: #ff4444 !important;
-  box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.1);
+  border-color: var(--bright-crimson) !important;
+  box-shadow: 0 0 0 2px var(--bright-crimson-tint);
 }
 
 .text_area_error:focus {
-  border-color: #ff4444 !important;
-  box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2);
+  border-color: var(--bright-crimson) !important;
+  box-shadow: 0 0 0 2px var(--bright-crimson-tint);
 }
 
 .error_message {
-  color: red;
+  color: var(--bright-crimson);
   font-family: var(--font-lato-regular);
   font-size: 12px;
   line-height: 16px;
