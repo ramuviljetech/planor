@@ -7,7 +7,7 @@ import styles from "./styles.module.css";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import { useAuth } from "@/providers";
-import { plusRoseIcon } from "@/resources/images";
+import { closeEyeIcon, openEyeIcon, plusRoseIcon } from "@/resources/images";
 
 // Validation schema
 const LoginSchema = Yup.object().shape({
@@ -112,7 +112,7 @@ const Login: React.FC = () => {
                   ? errors.password
                   : undefined
               }
-              rightIcon={plusRoseIcon}
+              rightIcon={showPassword ? openEyeIcon : closeEyeIcon}
               onClickRightIcon={() => {
                 setShowPassword(!showPassword);
               }}
@@ -143,9 +143,6 @@ const Login: React.FC = () => {
 
   return (
     <div className={styles.login_container}>
-      <div className={styles.logo_container}>
-        <p className={styles.logo_text}>Planor</p>
-      </div>
       <div className={styles.sub_container}>
         {/* Title */}
         <div className={styles.title_container}>

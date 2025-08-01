@@ -11,8 +11,10 @@ import { useState } from "react";
 import Image from "next/image";
 import styles from "./styles.module.css";
 import Avatar from "../ui/avatar";
+import { useAuth } from "@/providers";
 
 const Header: React.FC = () => {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
 
   return (
@@ -48,8 +50,8 @@ const Header: React.FC = () => {
             className={styles.avatar_image}
           />
           <div className={styles.avatar_name_container}>
-            <p className={styles.avatar_name}>John Smith</p>
-            <p className={styles.avatar_email}>Admin</p>
+            <p className={styles.avatar_name}>{user?.name}</p>
+            <p className={styles.avatar_email}>{user?.role}</p>
           </div>
         </div>
       </div>

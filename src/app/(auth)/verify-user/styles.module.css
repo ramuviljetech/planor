@@ -54,7 +54,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 24px;
 }
 /* OTP Input Wrapper */
 .otp_input_wrapper {
@@ -68,6 +68,14 @@
   text-align: center;
   margin-top: -8px;
   margin-bottom: 8px;
+}
+.verify_button_container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }
 /* Button */
 .verify_user_sign_in_button {
@@ -84,7 +92,6 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  margin-top: 8px;
 }
 .resend_text {
   font-family: var(--font-lato-regular);

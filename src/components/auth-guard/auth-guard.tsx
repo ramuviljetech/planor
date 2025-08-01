@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers";
+import FallbackScreen from "../ui/fallback-screen";
+import { placeholder } from "@/resources/images";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -11,7 +13,14 @@ interface AuthGuardProps {
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({
   children,
-  fallback = <div>Loading...</div>,
+  fallback = (
+    <FallbackScreen
+      image={placeholder}
+      imageAlt="Loading"
+      title="Loading..."
+      subtitle="Please wait while we fetch your data..."
+    />
+  ),
 }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();

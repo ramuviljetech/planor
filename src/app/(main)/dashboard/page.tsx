@@ -20,6 +20,7 @@ import AddPropertyModal from "@/components/add-property-modal";
 import styles from "./styles.module.css";
 import Modal from "@/components/ui/modal";
 import ClientsFilter from "@/sections/clients-section/clients-filter";
+import { useAuth } from "@/providers";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -32,6 +33,7 @@ const titleColorMap: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [selectedFilter, setSelectedFilter] = useState<string>("clients");
   const [
     selectedYearlyMaintenanceSummary,
@@ -290,7 +292,7 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.dashboard_container}>
-      <p className={styles.dashboard_title}>Hey Vivek</p>
+      <p className={styles.dashboard_title}>Hey {user?.name}</p>
       {/* Yearly Maintenance Costs Summary */}
       <MaintenanceSection
         selectedFilter={selectedFilter}
@@ -302,21 +304,6 @@ export default function DashboardPage() {
         totalPercentageChange={mockApiData.totalPercentageChange}
       />
       {renderClients()}
-      {/* <PopOver
-        reference={clientsFilterRef}
-        show={showClientsFilter}
-        onClose={() => setShowClientsFilter(false)}
-      >
-        <TableFilter
-          title="Filters"
-          options={["Active", "Inactive"]}
-          selectedOptions={selectedClientsFilters}
-          onOptionsChange={(option) => {
-            setSelectedClientsFilters(option);
-            setShowClientsFilter(false);
-          }}
-        />
-      </PopOver> */}
       <BottomSheet
         isOpen={showBottomSheet}
         onClose={() => {

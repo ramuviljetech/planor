@@ -79,3 +79,6 @@ export { default as recentUploadedFileDummyImg2 } from "@/assets/images/recent-u
 
 export { default as xlsIcon } from "@/assets/images/xls-icon.svg";
 export { default as docIcon } from "@/assets/images/doc-icon.svg";
+
+export { default as openEyeIcon } from "@/assets/images/open-eye.svg";
+export { default as closeEyeIcon } from "@/assets/images/close-eye.svg";

@@ -26,6 +26,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  console.log("user", user);
   // Initialize auth state on mount
   useEffect(() => {
     initializeAuth();
@@ -34,32 +35,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   // Initialize authentication state
   const initializeAuth = async () => {
     try {
-      console.log("Initializing auth state...");
       setIsLoading(true);
       setError(null);
 
       // Check if we have a valid token
       if (tokenManager.isTokenValid()) {
-        console.log("Valid token found, getting user data...");
         const currentToken = tokenManager.getToken();
         const currentUser = storage.getUser();
 
         if (currentToken && currentUser) {
-          console.log("User data found, setting authenticated state");
           setUser(currentUser);
           setToken(currentToken);
           setIsAuthenticated(true);
           setIsLoading(false);
         } else {
           // Token exists but no user data, try to get user profile
-          console.log(
-            "Token exists but no user data, fetching user profile..."
-          );
           await getCurrentUser();
         }
       } else {
         // No valid token, clear any stale data
-        console.log("No valid token found, clearing auth state");
         tokenManager.clearTokens();
         setUser(null);
         setToken(null);
@@ -80,9 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   // Get current user profile
   const getCurrentUser = async () => {
     try {
-      console.log("Getting current user profile...");
       const currentUser = await AuthAPI.getCurrentUser();
-      console.log("Current user profile received:", currentUser);
       storage.setUser(currentUser);
       setUser(currentUser);
       setIsAuthenticated(true);
@@ -106,7 +98,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setError(null);
 
       const response = await AuthAPI.login(credentials);
-      console.log("response", response);
       // Store token and user data
       tokenManager.setToken(response.data.token, response.data.expiresIn);
       storage.setUser(response.data.user);

@@ -12,6 +12,7 @@
   line-height: 100%;
   letter-spacing: 0px;
   color: var(--black);
+  text-transform: capitalize;
 }
 .dashboard_clients_container {
   width: 100%;

@@ -102,32 +102,34 @@ const VerifyUser: React.FC = () => {
             )}
 
             {/* Verify Button */}
-            <Button
-              title="Verify Code"
-              type="submit"
-              variant="primary"
-              className={styles.verify_user_sign_in_button}
-              loading={isSubmitting}
-              disabled={isSubmitting || values.otp.length !== 6}
-            />
+            <div className={styles.verify_button_container}>
+              <Button
+                title="Verify Code"
+                type="submit"
+                variant="primary"
+                className={styles.verify_user_sign_in_button}
+                loading={isSubmitting}
+                disabled={isSubmitting || values.otp.length !== 6}
+              />
 
-            {/* Resend Code */}
-            <div className={styles.resend_container}>
-              <p className={styles.resend_text}>Don't receive any code? </p>
-              {resendCountdown > 0 ? (
-                <p className={styles.resend_countdown}>
-                  Resend OTP in {resendCountdown}s
-                </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  disabled={isResending}
-                  className={styles.resend_button}
-                >
-                  {isResending ? "Sending..." : "Resend OTP"}
-                </button>
-              )}
+              {/* Resend Code */}
+              <div className={styles.resend_container}>
+                <p className={styles.resend_text}>Don't receive any code? </p>
+                {resendCountdown > 0 ? (
+                  <p className={styles.resend_countdown}>
+                    Resend OTP in {resendCountdown}s
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={isResending}
+                    className={styles.resend_button}
+                  >
+                    {isResending ? "Sending..." : "Resend OTP"}
+                  </button>
+                )}
+              </div>
             </div>
           </Form>
         )}

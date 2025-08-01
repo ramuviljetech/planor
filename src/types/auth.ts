@@ -4,7 +4,7 @@ export interface User {
   name: string;
   role: string;
   status?: string;
-  lastLogin?: string;
+  lastLoginAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
