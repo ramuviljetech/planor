@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { useRouter } from "next/navigation";
-import styles from "./styles.module.css";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import { useAuth } from "@/providers";
-import { closeEyeIcon, openEyeIcon, plusRoseIcon } from "@/resources/images";
+import { closeEyeIcon, openEyeIcon } from "@/resources/images";
+import styles from "./styles.module.css";
 
 // Validation schema
 const LoginSchema = Yup.object().shape({

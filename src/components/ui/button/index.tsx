@@ -1,4 +1,4 @@
-import React from "react";
+import React, { MouseEvent, useRef } from "react";
 import classNames from "classnames";
 import { ButtonProps } from "@/types/ui";
 import styles from "./styles.module.css";
@@ -19,6 +19,7 @@ const Button: React.FC<ButtonProps> = ({
   loaderClass,
 }) => {
   const isDisabled = disabled || loading;
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const buttonClass = classNames(
     styles.button,
@@ -28,12 +29,35 @@ const Button: React.FC<ButtonProps> = ({
     className
   );
 
+  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
+    const button = buttonRef.current;
+    if (!button) return;
+
+    const ripple = document.createElement("span");
+    ripple.className = styles.ripple;
+
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = `${size}px`;
+
+    ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+    ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+
+    button.appendChild(ripple);
+
+    // Remove the ripple after animation
+    setTimeout(() => ripple.remove(), 600);
+
+    if (onClick && !isDisabled) onClick(e);
+  };
+
   return (
     <button
       type={type}
+      ref={buttonRef}
       className={buttonClass}
       style={style}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={isDisabled}
     >
       <div className={styles.buttonContent}>
