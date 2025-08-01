@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   placeholder,
   checkWhite,
@@ -13,6 +13,7 @@ import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import Image from "next/image";
 import AuthAPI from "@/networking/auth-api";
+import { tokenManager } from "@/utils/token-manager";
 import styles from "./styles.module.css";
 
 // Validation schema
@@ -35,7 +36,28 @@ const ResetPassword: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [token, setToken] = useState<string>("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const tokenParam = searchParams.get("token");
+    if (tokenParam) {
+      setToken(decodeURIComponent(tokenParam));
+    } else {
+      router.push("/login");
+    }
+  }, [searchParams, router]);
+
+  // Cleanup effect to clear tokens when component unmounts
+  useEffect(() => {
+    return () => {
+      // Clear tokens when component unmounts to ensure security
+      if (successMessage) {
+        tokenManager.clearTokens();
+      }
+    };
+  }, [successMessage]);
 
   const initialValues: ResetPasswordFormValues = {
     password: "",
@@ -51,12 +73,30 @@ const ResetPassword: React.FC = () => {
     setSuccessMessage("");
 
     try {
-      // const response = await AuthAPI.resetPassword(values.email, values.otp);
+      if (!token) {
+        setErrorMessage(
+          "Reset token is missing. Please try the verification process again."
+        );
+        return;
+      }
+      const response = await AuthAPI.resetPassword(token, values.password);
+      console.log("Password reset response:", response);
+      setSuccessMessage("Password reset successfully!");
       resetForm();
-      router.push(`/login`);
+      // Clear the reset token from URL and localStorage if it exists
+      if (typeof window !== "undefined") {
+        // Clear any stored tokens using token manager
+        tokenManager.clearTokens();
+        // Update URL to remove token parameter
+        window.history.replaceState({}, document.title, "/reset-password");
+      }
+      // Navigate to login after successful reset
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
     } catch (error: any) {
       setErrorMessage(
-        error.message || "Failed to send verification code. Please try again."
+        error.message || "Failed to reset password. Please try again."
       );
     } finally {
       setIsSubmitting(false);

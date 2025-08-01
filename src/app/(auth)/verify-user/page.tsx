@@ -7,6 +7,8 @@ import Button from "@/components/ui/button";
 import OTPInputComponent from "@/components/ui/otp-input";
 import styles from "./styles.module.css";
 import AuthAPI from "@/networking/auth-api";
+import { tokenManager } from "@/utils/token-manager";
+import { useRouter } from "next/navigation";
 
 // Validation schema
 const VerifyUserSchema = Yup.object().shape({
@@ -27,7 +29,7 @@ const VerifyUser: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const searchParams = useSearchParams();
-
+  const router = useRouter();
   useEffect(() => {
     const emailParam = searchParams.get("email");
     if (emailParam) {
@@ -48,6 +50,13 @@ const VerifyUser: React.FC = () => {
       const response = await AuthAPI.verifyOtp(email, values.otp);
       console.log("OTP verification response:", response);
       resetForm();
+      // Pass the token to reset password page
+      const token = response.token || response.data?.token;
+      if (token) {
+        router.push(`/reset-password?token=${encodeURIComponent(token)}`);
+      } else {
+        router.push("/reset-password");
+      }
     } catch (error: any) {
       console.log("OTP verification error:", error);
       setErrorMessage(error.message || "OTP verification failed");

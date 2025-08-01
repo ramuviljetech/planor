@@ -50,14 +50,19 @@ export class AuthAPI {
 
   // Reset password
   static async resetPassword(
-    token: string,
+    resetToken: string,
     password: string
   ): Promise<{ message: string }> {
     try {
-      const response = await apiClient.post("/auth/reset-password", {
-        token,
-        password,
-      });
+      const response = await apiClient.post(
+        "/auth/change-password",
+        { password },
+        {
+          headers: {
+            Authorization: `Bearer ${resetToken}`,
+          },
+        }
+      );
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.error || "Password reset failed");
@@ -68,7 +73,7 @@ export class AuthAPI {
   static async verifyOtp(
     email: string,
     otp: string
-  ): Promise<{ message: string }> {
+  ): Promise<{ message: string; token?: string; data?: { token: string } }> {
     try {
       const response = await apiClient.post("/auth/verify-otp", {
         email,
