@@ -2,9 +2,12 @@
 import { useState } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import { useRouter } from "next/navigation";
 import styles from "./styles.module.css";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
+import { useAuth } from "@/providers";
+import { plusRoseIcon } from "@/resources/images";
 
 // Validation schema
 const LoginSchema = Yup.object().shape({
@@ -12,14 +15,7 @@ const LoginSchema = Yup.object().shape({
     .email("Please enter a valid email address")
     .required("Email is required")
     .trim(),
-  password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .max(50, "Password must be less than 50 characters")
-    .required("Password is required")
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-    ),
+  password: Yup.string().required("Password is required"),
 });
 
 interface LoginFormValues {
@@ -29,8 +25,11 @@ interface LoginFormValues {
 }
 
 const Login: React.FC = () => {
+  const router = useRouter();
+  const { login, error, clearError } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const initialValues: LoginFormValues = {
     email: "",
     password: "",
@@ -42,23 +41,36 @@ const Login: React.FC = () => {
     { setSubmitting, resetForm }: any
   ) => {
     setIsSubmitting(true);
+    setErrorMessage("");
+    clearError();
+
     try {
-      // TODO: Implement actual login logic here
-      console.log("Login attempt with:", values);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Handle successful login
-      console.log("Login successful");
-      // Reset form after successful submission
-      resetForm();
-      setErrorMessage("");
-    } catch (error) {
+      await login({
+        email: values.email,
+        password: values.password,
+      });
+      // Redirect to dashboard on successful login
+      router.push("/dashboard");
+    } catch (error: any) {
       console.error("Login failed:", error);
-      setErrorMessage("Login failed. Double-check your email and password.");
+      setErrorMessage(
+        error.message || "Login failed. Double-check your email and password."
+      );
     } finally {
       setIsSubmitting(false);
       setSubmitting(false);
     }
+  };
+
+  const renderErrorMessage = (message: string) => {
+    return (
+      <div className={styles.login_form_failed_container}>
+        <p className={styles.login_form_failed_title}>
+          That combo doesn't look right — give it another shot!
+        </p>
+        <p className={styles.login_form_failed_subtitle}>{message}</p>
+      </div>
+    );
   };
 
   const renderForm = () => {
@@ -91,7 +103,7 @@ const Login: React.FC = () => {
               label="Password*"
               placeholder="Enter your password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={values.password}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -100,10 +112,19 @@ const Login: React.FC = () => {
                   ? errors.password
                   : undefined
               }
+              rightIcon={plusRoseIcon}
+              onClickRightIcon={() => {
+                setShowPassword(!showPassword);
+              }}
             />
 
             <div className={styles.forgot_password_container}>
-              <p className={styles.forgot_password}>Forgot password?</p>
+              <p
+                onClick={() => router.push("/forgot-password")}
+                className={styles.forgot_password}
+              >
+                Forgot password?
+              </p>
             </div>
 
             <Button
@@ -119,6 +140,7 @@ const Login: React.FC = () => {
       </Formik>
     );
   };
+
   return (
     <div className={styles.login_container}>
       <div className={styles.logo_container}>
@@ -133,16 +155,7 @@ const Login: React.FC = () => {
           </p>
         </div>
         {/* Failed */}
-        {errorMessage && (
-          <div className={styles.login_form_failed_container}>
-            <p className={styles.login_form_failed_title}>
-              That combo doesn’t look right — give it another shot!
-            </p>
-            <p className={styles.login_form_failed_subtitle}>
-              Login failed. Double-check your email and password.
-            </p>
-          </div>
-        )}
+        {(errorMessage || error) && renderErrorMessage(errorMessage)}
         {/* Form */}
         {renderForm()}
       </div>

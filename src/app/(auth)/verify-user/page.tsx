@@ -1,10 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import { useSearchParams } from "next/navigation";
 import Button from "@/components/ui/button";
 import OTPInputComponent from "@/components/ui/otp-input";
 import styles from "./styles.module.css";
+import AuthAPI from "@/networking/auth-api";
 
 // Validation schema
 const VerifyUserSchema = Yup.object().shape({
@@ -22,6 +24,16 @@ const VerifyUser: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
+  const [email, setEmail] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setEmail(decodeURIComponent(emailParam));
+    }
+  }, [searchParams]);
 
   const initialValues: VerifyUserFormValues = {
     otp: "",
@@ -33,16 +45,12 @@ const VerifyUser: React.FC = () => {
   ) => {
     setIsSubmitting(true);
     try {
-      // TODO: Implement actual OTP verification logic here
-      console.log("OTP verification attempt with:", values);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Handle successful verification
-      console.log("OTP verification successful");
-      // Reset form after successful submission
+      const response = await AuthAPI.verifyOtp(email, values.otp);
+      console.log("OTP verification response:", response);
       resetForm();
-    } catch (error) {
-      console.error("OTP verification failed:", error);
+    } catch (error: any) {
+      console.log("OTP verification error:", error);
+      setErrorMessage(error.message || "OTP verification failed");
     } finally {
       setIsSubmitting(false);
       setSubmitting(false);
@@ -51,14 +59,9 @@ const VerifyUser: React.FC = () => {
 
   const handleResendCode = async () => {
     setIsResending(true);
+    setErrorMessage("");
     try {
-      // TODO: Implement actual resend logic here
-      console.log("Resending verification code");
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Verification code resent successfully");
-
-      // Start countdown for resend
+      await AuthAPI.forgotPassword(email);
       setResendCountdown(30);
       const countdownInterval = setInterval(() => {
         setResendCountdown((prev) => {
@@ -69,8 +72,8 @@ const VerifyUser: React.FC = () => {
           return prev - 1;
         });
       }, 1000);
-    } catch (error) {
-      console.error("Resend failed:", error);
+    } catch (error: any) {
+      setErrorMessage(error.message || "Resend OTP failed");
     } finally {
       setIsResending(false);
     }
@@ -100,7 +103,7 @@ const VerifyUser: React.FC = () => {
 
             {/* Verify Button */}
             <Button
-              title="Send verification code"
+              title="Verify Code"
               type="submit"
               variant="primary"
               className={styles.verify_user_sign_in_button}
@@ -132,6 +135,17 @@ const VerifyUser: React.FC = () => {
     );
   };
 
+  const renderErrorMessage = (message: string) => {
+    return (
+      <div className={styles.verify_user_form_failed_container}>
+        <p className={styles.verify_user_form_failed_title}>
+          That combo doesn't look right — give it another shot!
+        </p>
+        <p className={styles.verify_user_form_failed_subtitle}>{message}</p>
+      </div>
+    );
+  };
+
   return (
     <div className={styles.verify_user_container}>
       <div className={styles.verify_user_sub_container}>
@@ -142,7 +156,12 @@ const VerifyUser: React.FC = () => {
             We've sent a 6-digit code to your registered email/phone. Enter it
             below to continue.
           </p>
+          {email && (
+            <p className={styles.email_display}>Code sent to: {email}</p>
+          )}
         </div>
+        {/* Failed */}
+        {errorMessage && renderErrorMessage(errorMessage)}
         {/* Form */}
         {renderForm()}
       </div>
