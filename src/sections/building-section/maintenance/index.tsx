@@ -3,40 +3,29 @@
 import React, { useRef, useState } from "react";
 import SearchBar from "@/components/ui/searchbar";
 import Button from "@/components/ui/button";
-import MetricCard from "@/components/ui/metric-card";
 import CommonTable, {
   TableColumn,
   TableRow,
 } from "@/components/ui/common-table";
 import Image from "next/image";
-import { downloadIcon, threeDotsIcon } from "@/resources/images";
-import { buildingMaintenancePlanRowsData, rowsData } from "@/app/constants";
+import { threeDotsIcon } from "@/resources/images";
 import { useRouter } from "next/navigation";
-import Avatar from "@/components/ui/avatar";
 import Capsule from "@/components/ui/capsule";
 import CustomCheckbox from "@/components/ui/checkbox";
 import UpdateLastDate from "@/components/ui/update-last-date";
 import styles from "./styles.module.css";
+import MaintenancePlan from "@/components/maintenance-plan";
 
 const tabItems = [
   { label: "Object View", value: "objectView" },
   { label: "Maintenance Plan", value: "maintenancePlan" },
 ];
 
-const maintenancePlanCardTitle = [
-  { title: "Total Objects", value: "900" },
-  { title: "Total Maintenance for 1 Year", value: "680" },
-  { title: "Total Maintenance for 5 Year", value: "320" },
-  { title: "Total Maintenance for 10 Year", value: "100" },
-];
-
 const Maintenance = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("objectView");
   const [searchValue, setSearchValue] = useState<string>("");
-  const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [isSelectAll, setIsSelectAll] = useState<boolean>(false);
   const [popoverState, setPopoverState] = useState<{
     show: boolean;
     rowId: string | number | null;
@@ -54,49 +43,6 @@ const Maintenance = () => {
 
   // Modal state
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-
-  // Table data and handlers
-  const columns: TableColumn[] = [
-    {
-      key: "objectName",
-      title: "Object Name",
-      width: "calc(100% / 4)",
-    },
-    {
-      key: "year1",
-      title: "1 Year",
-      width: "calc(100% / 4)",
-    },
-    {
-      key: "year5",
-      title: "5 Year",
-      width: "calc(100% / 4)",
-    },
-    {
-      key: "year10",
-      title: "10 Year",
-      width: "calc(100% / 4)",
-    },
-    {
-      key: "actions",
-      title: "",
-      width: "calc(100% / 4)",
-      render: (value, row, index) => (
-        <div
-          onClick={() => {
-            console.log("download");
-          }}
-          className={styles.actionIconContainer}
-        >
-          <Avatar
-            image={downloadIcon}
-            size="sm"
-            className={styles.actionIcon}
-          />
-        </div>
-      ),
-    },
-  ];
 
   const objectViewColumns: TableColumn[] = [
     {
@@ -214,15 +160,6 @@ const Maintenance = () => {
     },
   ];
 
-  const totalItems = buildingMaintenancePlanRowsData?.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  // Get current page data
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentRows =
-    buildingMaintenancePlanRowsData?.slice(startIndex, endIndex) || [];
-
   const totalObjectViewItems = objectViewRows?.length;
   const totalObjectViewPages = Math.ceil(totalObjectViewItems / itemsPerPage);
 
@@ -238,7 +175,6 @@ const Maintenance = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    setSelectedRowId("");
     setSelectedRows(new Set());
     setSelectedRowsData([]);
   };
@@ -412,38 +348,6 @@ const Maintenance = () => {
       </div>
     );
   };
-  const renderMaintenancePlan = () => {
-    return (
-      <div className={styles.building_maintenance_plan_container}>
-        <div className={styles.dashboard_clients_middle_container}>
-          {maintenancePlanCardTitle.map((card, index) => (
-            <MetricCard
-              key={index}
-              title={card.title}
-              value={Number(card.value)}
-              className={styles.dashboard_clients_static_card}
-              titleStyle={styles.dashboard_clients_static_card_title}
-              showK={true}
-            />
-          ))}
-        </div>
-        <CommonTable
-          columns={columns}
-          rows={currentRows}
-          selectedRowId={selectedRowId}
-          disabled={popoverState.show}
-          pagination={{
-            currentPage,
-            totalPages: totalPages,
-            totalItems: totalItems,
-            itemsPerPage,
-            onPageChange: handlePageChange,
-            showItemCount: true,
-          }}
-        />
-      </div>
-    );
-  };
   return (
     <section className={styles.building_maintenance_container}>
       <div className={styles.building_maintenance_top_section}>
@@ -451,7 +355,7 @@ const Maintenance = () => {
         {renderRightSection()}
       </div>
       {activeTab === "objectView" && renderObjectView()}
-      {activeTab === "maintenancePlan" && renderMaintenancePlan()}
+      {activeTab === "maintenancePlan" && <MaintenancePlan />}
 
       {/* Update Last Maintenance Date Modal */}
       <UpdateLastDate
