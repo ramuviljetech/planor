@@ -5,9 +5,6 @@ import { updateUserProfileSchema, sendOtpSchema, verifyOtpSchema, changePassword
 import { 
   getUserProfile, 
   updateUserProfile, 
-  sendOtp, 
-  verifyOtp,
-  changePassword,
   getusersAssociatedWithClient
 } from '../controllers/users.controller'
 
@@ -19,14 +16,14 @@ router.get('/profile/:id?', authMiddleware, getUserProfile)
 // ?Future Scope: PUT /api/users/profile - Update user profile
 router.put('/profile', authMiddleware, validateRequest(updateUserProfileSchema), updateUserProfile)
 
-// POST /api/users/send-otp - Send OTP to email
-router.post('/send-otp', validateRequest(sendOtpSchema), sendOtp)
+// // POST /api/users/send-otp - Send OTP to email
+// router.post('/send-otp', validateRequest(sendOtpSchema), sendOtp)
 
-// POST /api/users/verify-otp - Verify OTP
-router.post('/verify-otp', validateRequest(verifyOtpSchema), verifyOtp)
+// // POST /api/users/verify-otp - Verify OTP
+// router.post('/verify-otp', validateRequest(verifyOtpSchema), verifyOtp)
 
-// POST /api/users/change-password - Change password
-router.post('/change-password', validateRequest(changePasswordSchema), changePassword)
+// // POST /api/users/change-password - Change password
+
 
 // GET /api/users/get-users - Get users associated with client
 router.get('/get-users/:clientId?', authMiddleware, requireAdmin, getusersAssociatedWithClient)

@@ -17,131 +17,43 @@ import {
 } from '../entities/property.entity'
 
 // Get all properties (Admin only) or properties by client ID
-export const getAllPropertiesController = async (req: Request, res: Response) => {
-  try {
-    const authenticatedUser = (req as any).user
-    const { 
-      search, 
-      adminId, 
-      clientId, 
-    // Default to include statistics
-    } = req.query
-
-    let properties: Property[]
-    let statistics: any = null
-
-    // Build filters object
-    const filters: any = {}
-    if (adminId && typeof adminId === 'string') filters.adminId = adminId
-    if (clientId && typeof clientId === 'string') filters.clientId = clientId
-    if (search && typeof search === 'string') filters.search = search
-
-    // If clientId is provided, allow access without admin role
-    if (clientId && typeof clientId === 'string') {
-      // Get properties with all filters including clientId
-      properties = await getPropertiesWithFilters(filters)
-      
-      // Calculate statistics for client properties if requested
-      statistics = await calculatePropertyStatistics(filters)
-      
-      return res.json({
-        success: true,
-        message: 'Properties retrieved successfully for client',
-        data: {
-          properties,
-          count: properties.length,
-          clientId,
-          ...(statistics && { statistics })
-        }
-      })
-    }
-
-    // If no clientId, require admin access
-    if (!authenticatedUser || authenticatedUser.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Admin access required to view all properties'
-      })
-    }
-
-    // Get properties with filters (admin access)
-    if (Object.keys(filters).length > 0) {
-      properties = await getPropertiesWithFilters(filters)
-    } else {
-      properties = await getAllProperties()
-    }
-
-    // Calculate statistics if requested
-    statistics = await calculatePropertyStatistics(Object.keys(filters).length > 0 ? filters : undefined)
-
-    return res.json({
-      success: true,
-      message: 'Properties retrieved successfully',
-      data: {
-        properties,
-        count: properties.length,
-        ...(statistics && { statistics })
-      }
-    })
-  } catch (error) {
-    console.error('Get properties error:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    })
-  }
-}
-
 // export const getAllPropertiesController = async (req: Request, res: Response) => {
 //   try {
-//     const authenticatedUser = (req as any).user;
+//     const authenticatedUser = (req as any).user
 //     const { 
 //       search, 
 //       adminId, 
-//       clientId,
-//       page = '1',
-//       limit = '10'
-//     } = req.query;
+//       clientId, 
+//     // Default to include statistics
+//     } = req.query
 
-//     let properties: Property[] = [];
-//     let statistics: any = null;
-
-//     // Pagination values
-//     const currentPage = Math.max(1, parseInt(page as string, 10));
-//     const itemsPerPage = Math.max(1, parseInt(limit as string, 10));
-//     const startIndex = (currentPage - 1) * itemsPerPage;
-//     const endIndex = startIndex + itemsPerPage;
+//     let properties: Property[]
+//     let statistics: any = null
 
 //     // Build filters object
-//     const filters: any = {};
-//     if (adminId && typeof adminId === 'string') filters.adminId = adminId;
-//     if (clientId && typeof clientId === 'string') filters.clientId = clientId;
-//     if (search && typeof search === 'string') filters.search = search;
+//     const filters: any = {}
+//     if (adminId && typeof adminId === 'string') filters.adminId = adminId
+//     if (clientId && typeof clientId === 'string') filters.clientId = clientId
+//     if (search && typeof search === 'string') filters.search = search
 
 //     // If clientId is provided, allow access without admin role
 //     if (clientId && typeof clientId === 'string') {
-//       const allProperties = await getPropertiesWithFilters(filters);
-//       properties = allProperties.slice(startIndex, endIndex);
-//       statistics = await calculatePropertyStatistics(filters);
-
+//       // Get properties with all filters including clientId
+//       properties = await getPropertiesWithFilters(filters)
+      
+//       // Calculate statistics for client properties if requested
+//       statistics = await calculatePropertyStatistics(filters)
+      
 //       return res.json({
 //         success: true,
 //         message: 'Properties retrieved successfully for client',
 //         data: {
 //           properties,
-//           count: allProperties.length,
+//           count: properties.length,
 //           clientId,
-//           pagination: {
-//             currentPage,
-//             itemsPerPage,
-//             totalItems: allProperties.length,
-//             totalPages: Math.ceil(allProperties.length / itemsPerPage),
-//             hasNextPage: endIndex < allProperties.length,
-//             hasPreviousPage: startIndex > 0
-//           },
 //           ...(statistics && { statistics })
 //         }
-//       });
+//       })
 //     }
 
 //     // If no clientId, require admin access
@@ -149,43 +61,135 @@ export const getAllPropertiesController = async (req: Request, res: Response) =>
 //       return res.status(403).json({
 //         success: false,
 //         error: 'Admin access required to view all properties'
-//       });
+//       })
 //     }
 
-//     const allProperties = Object.keys(filters).length > 0
-//       ? await getPropertiesWithFilters(filters)
-//       : await getAllProperties();
+//     // Get properties with filters (admin access)
+//     if (Object.keys(filters).length > 0) {
+//       properties = await getPropertiesWithFilters(filters)
+//     } else {
+//       properties = await getAllProperties()
+//     }
 
-//     properties = allProperties.slice(startIndex, endIndex);
-//     statistics = await calculatePropertyStatistics(Object.keys(filters).length > 0 ? filters : undefined);
+//     // Calculate statistics if requested
+//     statistics = await calculatePropertyStatistics(Object.keys(filters).length > 0 ? filters : undefined)
 
 //     return res.json({
 //       success: true,
 //       message: 'Properties retrieved successfully',
 //       data: {
 //         properties,
-//         count: allProperties.length,
-//         pagination: {
-//           currentPage,
-//           itemsPerPage,
-//           totalItems: allProperties.length,
-//           totalPages: Math.ceil(allProperties.length / itemsPerPage),
-//           hasNextPage: endIndex < allProperties.length,
-//           hasPreviousPage: startIndex > 0
-//         },
+//         count: properties.length,
 //         ...(statistics && { statistics })
 //       }
-//     });
+//     })
 //   } catch (error) {
-//     console.error('Get properties error:', error);
+//     console.error('Get properties error:', error)
 //     return res.status(500).json({
 //       success: false,
 //       error: 'Internal server error'
-//     });
+//     })
 //   }
-// };
+// }
 
+export const getAllPropertiesController = async (req: Request, res: Response) => {
+  try {
+    const authenticatedUser = (req as any).user;
+    const { 
+      search, 
+      adminId, 
+      clientId,
+      page = '1',
+      limit = '10'
+    } = req.query;
+   
+    let properties: Property[] = [];
+    let statistics: any = null;
 
+    // Pagination values - ensure they are positive integers
+    const currentPage = Math.max(1, parseInt(page as string, 10) || 1);
+    const itemsPerPage = Math.max(1, Math.min(100, parseInt(limit as string, 10) || 10)); // Max 100 items per page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+
+    // Build filters object
+    const filters: any = {};
+    if (adminId && typeof adminId === 'string') filters.adminId = adminId;
+    if (clientId && typeof clientId === 'string') filters.clientId = clientId;
+    if (search && typeof search === 'string') filters.search = search;
+
+    // If clientId is provided, allow access without admin role
+    if (clientId && typeof clientId === 'string') {
+      const allProperties = await getPropertiesWithFilters(filters);
+      const totalItems = allProperties.length;
+      
+      // Apply pagination to the filtered results
+      properties = allProperties.slice(startIndex, endIndex);
+      statistics = await calculatePropertyStatistics(filters);
+
+      return res.json({
+        success: true,
+        message: 'Properties retrieved successfully for client',
+        data: {
+          properties,
+          count: totalItems,
+          clientId,
+          statistics,
+          pagination: {
+            currentPage,
+            itemsPerPage,
+            totalItems,
+            totalPages: Math.ceil(totalItems / itemsPerPage),
+            hasNextPage: endIndex < totalItems,
+            hasPreviousPage: currentPage > 1
+          },
+        }
+      });
+    }
+
+    // If no clientId, require admin access
+    if (!authenticatedUser || authenticatedUser.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required to view all properties'
+      });
+    }
+
+    const allProperties = Object.keys(filters).length > 0
+      ? await getPropertiesWithFilters(filters)
+      : await getAllProperties();
+
+    const totalItems = allProperties.length;
+    
+    // Apply pagination to the results
+    properties = allProperties.slice(startIndex, endIndex);
+    statistics = await calculatePropertyStatistics(Object.keys(filters).length > 0 ? filters : undefined);
+
+    return res.json({
+      success: true,
+      message: 'Properties retrieved successfully',
+      data: {
+        properties,
+        count: totalItems,
+        statistics,
+        pagination: {
+          currentPage,
+          itemsPerPage,
+          totalItems,
+          totalPages: Math.ceil(totalItems / itemsPerPage),
+          hasNextPage: endIndex < totalItems,
+          hasPreviousPage: currentPage > 1
+        },
+      }
+    });
+  } catch (error) {
+    console.error('Get properties error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+};
 
 
 // Get property by ID (Admin only)
@@ -272,7 +276,7 @@ export const createPropertyController = async (req: Request, res: Response) => {
   }
 }
 
-// Update property (Admin only)
+//? Update property (Admin only) future update
 export const updatePropertyController = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user
@@ -321,7 +325,7 @@ export const updatePropertyController = async (req: Request, res: Response) => {
   }
 }
 
-// Delete property (Admin only)
+// ?Delete property (Admin only) future update
 export const deletePropertyController = async (req: Request, res: Response) => {
   try {
     const { id } = req.params

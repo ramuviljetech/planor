@@ -104,51 +104,35 @@ export const validateUpdatePricelist = (req: Request, res: Response, next: NextF
     }
     return res.status(400).json(response)
   }
-
-  // Validate optional fields if provided
-  if (updateData.name !== undefined && typeof updateData.name !== 'string') {
+    if(!updateData.price){
     const response: ApiResponse = {
       success: false,
-      error: 'name must be a string',
+      error: 'price is required',
       statusCode: 400
     }
     return res.status(400).json(response)
   }
 
-  if (updateData.isGlobal !== undefined && typeof updateData.isGlobal !== 'boolean') {
+  const allowedFields = ['price']
+  const keys = Object.keys(updateData)
+
+  // Only allow "price" field to be updated
+  const hasInvalidFields = keys.some((key) => !allowedFields.includes(key))
+  if (hasInvalidFields) {
     const response: ApiResponse = {
       success: false,
-      error: 'isGlobal must be a boolean',
+      error: 'Only "price" field can be updated',
       statusCode: 400
     }
     return res.status(400).json(response)
   }
+  
 
-  if (updateData.isActive !== undefined && typeof updateData.isActive !== 'boolean') {
+  // Validate price
+  if (typeof updateData.price !== 'number' || isNaN(updateData.price)) {
     const response: ApiResponse = {
       success: false,
-      error: 'isActive must be a boolean',
-      statusCode: 400
-    }
-    return res.status(400).json(response)
-  }
-
-  if (updateData.effectiveFrom) {
-    const date = new Date(updateData.effectiveFrom)
-    if (isNaN(date.getTime())) {
-      const response: ApiResponse = {
-        success: false,
-        error: 'effectiveFrom must be a valid date',
-        statusCode: 400
-      }
-      return res.status(400).json(response)
-    }
-  }
-
-  if (updateData.prices && typeof updateData.prices !== 'object') {
-    const response: ApiResponse = {
-      success: false,
-      error: 'prices must be an object',
+      error: '"price" must be a valid number',
       statusCode: 400
     }
     return res.status(400).json(response)
@@ -156,6 +140,7 @@ export const validateUpdatePricelist = (req: Request, res: Response, next: NextF
 
   return next()
 }
+
 
 // Validation for query parameters
 export const validatePricelistQuery = (req: Request, res: Response, next: NextFunction) => {

@@ -66,7 +66,7 @@ export const createOtpRecord = async (otpData: {
   otp: string;
   createdAt: Date;
   used: boolean;
-}) => {
+  }) => {
   try {
     const otpContainer = getOtpContainer()
     
@@ -90,7 +90,18 @@ export const createOtpRecord = async (otpData: {
 export const deleteOtpRecord = async (email: string): Promise<void> => {
   try {
     const otpContainer = getOtpContainer()
-    await otpContainer.item(email, email).delete()
+    
+    // First find the OTP record by email
+    const query = {
+      query: "SELECT * FROM c WHERE c.email = @email",
+      parameters: [{ name: "@email", value: email }]
+    }
+    const { resources: otpRecords } = await otpContainer.items.query(query).fetchAll()
+    
+    // Delete the record if found, using email as partition key
+    if (otpRecords.length > 0) {
+      await otpContainer.item(otpRecords[0].id, email).delete()
+    }
   } catch (error) {
     console.error('Error deleting OTP record:', error)
     // Don't throw error as OTP might not exist
@@ -101,8 +112,18 @@ export const deleteOtpRecord = async (email: string): Promise<void> => {
 export const findOtpByEmail = async (email: string) => {
   try {
     const otpContainer = getOtpContainer()
-    const { resource: otpRecord } = await otpContainer.item(email, email).read()
-    return otpRecord || null
+    
+    // Use query instead of direct item access since document ID is user.id, not email
+    const query = {
+      query: "SELECT * FROM c WHERE c.email = @email",
+      parameters: [{ name: "@email", value: email }]
+    }
+    const { resources: otpRecords } = await otpContainer.items.query(query).fetchAll()
+    
+    // console.log(otpRecords, 'otpRecords')
+    // console.log(email, 'email')
+    
+    return otpRecords.length > 0 ? otpRecords[0] : null
   } catch (error) {
     console.error('Error finding OTP record:', error)
     return null
@@ -113,7 +134,20 @@ export const findOtpByEmail = async (email: string) => {
 export const updateOtpRecord = async (email: string, otpData: any) => {
   try {
     const otpContainer = getOtpContainer()
-    const { resource: result } = await otpContainer.item(email, email).replace(otpData)
+    
+    // First find the OTP record by email
+    const query = {
+      query: "SELECT * FROM c WHERE c.email = @email",
+      parameters: [{ name: "@email", value: email }]
+    }
+    const { resources: otpRecords } = await otpContainer.items.query(query).fetchAll()
+    
+    if (otpRecords.length === 0) {
+      throw new Error('OTP record not found')
+    }
+    
+    // Update the record using email as partition key and document ID
+    const { resource: result } = await otpContainer.item(otpRecords[0].id, email).replace(otpData)
     if (!result) {
       throw new Error('Failed to update OTP record')
     }

@@ -256,11 +256,15 @@ export const calculatePropertyStatistics = async (filters?: {
   totalProperties: number;
   totalArea: number;
   totalBuildings: number;
-  // activeProperties: number;
-  // inactiveProperties: number;
-  totalMaintenanceCost: number;
-  //   propertiesByType: { [key: string]: number };
-  //   propertiesByCity: { [key: string]: number };
+  totalMaintenanceCost: {
+    doors: number;
+    floors: number;
+    windows: number;
+    walls: number;
+    roofs: number;
+    areas: number;
+  };
+  // maintenanceUpdates: number;
 }> => {
   try {
     // Get properties based on filters
@@ -268,49 +272,94 @@ export const calculatePropertyStatistics = async (filters?: {
     
     // Import building functions
     const { getBuildingsByPropertyId } = await import('./building.entity')
+    const { getPricelistContainer } = await import('../config/database')
+    const pricelistContainer = getPricelistContainer()
     
-    // Calculate statistics
+    // Calculate statistics only for filtered properties
     let totalArea = 0
     let totalBuildings = 0
-    // let activeProperties = 0
-    // let inactiveProperties = 0
-    let totalMaintenanceCost = 0
-    const propertiesByType: { [key: string]: number } = {}
-    const propertiesByCity: { [key: string]: number } = {}
+    let totalMaintenanceCost = {
+      doors: 0,
+      floors: 0,
+      windows: 0,
+      walls: 0,
+      roofs: 0,
+      areas: 0
+    }
+    let maintenanceUpdates = 0
 
-    // Process each property
+    // Get all building IDs for efficient price querying
+    const allBuildingIds: string[] = []
+    
+    // Process each filtered property
     for (const property of properties) {
-      // Count by type
-      if (!propertiesByType[property.propertyType]) {
-        propertiesByType[property.propertyType] = 0
-      }
-      propertiesByType[property.propertyType]++
-
-      // Count by city
-      if (!propertiesByCity[property.city]) {
-        propertiesByCity[property.city] = 0
-      }
-      propertiesByCity[property.city]++
-
-      // Count active/inactive
-      // if (property.inactive) {
-      //   inactiveProperties++
-      // } else {
-      //   activeProperties++
-      // }
-
       // Calculate total area from metadata
       if (property.metadata?.grossArea) {
         totalArea += property.metadata.grossArea
       }
 
-      // Count buildings for this property
+      // Count buildings for this property and collect building IDs
       try {
         const buildings = await getBuildingsByPropertyId(property.id)
         totalBuildings += buildings.length
+        buildings.forEach(building => allBuildingIds.push(building.id))
       } catch (error) {
         console.error(`Error getting buildings for property ${property.id}:`, error)
         // Continue processing other properties
+      }
+    }
+
+    // Fetch all price items for all buildings in one query (optimized)
+    if (allBuildingIds.length > 0) {
+      // Cosmos DB doesn't support IN queries directly, so we need to build OR conditions
+      const buildingIdConditions = allBuildingIds.map((_, index) => `c.buildingId = @buildingId${index}`).join(' OR ')
+      const priceQuery = {
+        query: `SELECT * FROM c WHERE (${buildingIdConditions})`,
+        parameters: allBuildingIds.map((id, index) => ({ name: `@buildingId${index}`, value: id }))
+      }
+      
+      // console.log('Building IDs to search for:', allBuildingIds)
+      // console.log('Price query:', priceQuery)
+      
+      try {
+        const { resources: priceItems } = await pricelistContainer.items.query(priceQuery).fetchAll()
+        
+        // console.log('Found price items:', priceItems.length)
+        // console.log('Price items:', priceItems)
+        
+        // Calculate maintenance costs from price items
+        for (const priceItem of priceItems) {
+          // console.log('Processing price item:', priceItem)
+          if (priceItem.price && typeof priceItem.price === 'number' && priceItem.price > 0) {
+            maintenanceUpdates++ // Count items with prices as updates
+            
+            // console.log(`Adding ${priceItem.price} to ${priceItem.type} category`)
+            
+            // Add to appropriate category based on type
+            switch (priceItem.type) {
+              case 'door':
+                totalMaintenanceCost.doors += priceItem.price
+                break
+              case 'floor':
+                totalMaintenanceCost.floors += priceItem.price
+                break
+              case 'window':
+                totalMaintenanceCost.windows += priceItem.price
+                break
+              case 'wall':
+                totalMaintenanceCost.walls += priceItem.price
+                break
+              case 'roof':
+                totalMaintenanceCost.roofs += priceItem.price
+                break
+              case 'area':
+                totalMaintenanceCost.areas += priceItem.price
+                break
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching price items:', error)
       }
     }
 
@@ -318,11 +367,8 @@ export const calculatePropertyStatistics = async (filters?: {
       totalProperties: properties.length,
       totalArea,
       totalBuildings,
-      // activeProperties,
-      // inactiveProperties,
-      totalMaintenanceCost
-      // propertiesByType,
-      // propertiesByCity
+      totalMaintenanceCost,
+      // maintenanceUpdates
     }
   } catch (error) {
     console.error('Error calculating property statistics:', error)

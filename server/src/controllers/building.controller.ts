@@ -5,11 +5,13 @@ import {
   findBuildingById,
   createBuilding,
   calculateBuildingStatistics,
-  getBuildingsWithPaginationAndFilters
+  getBuildingsWithPaginationAndFilters,
+  updateBuilding
 } from '../entities/building.entity'
 import { findPropertyById } from '../entities/property.entity'
 
 // *Get all buildings with pagination and search filters
+//!maintanance cost and maintenance updates keys are remaining
 export const getAllBuildingsController = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user
@@ -45,10 +47,10 @@ export const getAllBuildingsController = async (req: Request, res: Response) => 
     // Add statistics to each building object
     const buildingsWithStats = buildings.map(building => ({
       ...building,
-      totalBuildings: total,
-      totalArea: totalArea,
-      totalMaintenanceCost: statistics.totalMaintenanceCost,
-      maintenanceUpdates: statistics.maintenanceUpdates
+      // totalBuildings: total,
+      // totalArea: totalArea,
+      // totalMaintenanceCost: statistics.totalMaintenanceCost,
+      // maintenanceUpdates: statistics.maintenanceUpdates
     }))
 
     return res.json({
@@ -187,5 +189,57 @@ export const createBuildingController = async (req: Request, res: Response) => {
     })
   }
 }
+
+// *Update building maintenance date (Admin only)
+export const updateBuildingController = async (req: Request, res: Response) => {
+  try {
+    const { buildingId, objectIds, maintenanceDate } = req.body;
+
+    if (!buildingId || !objectIds || !maintenanceDate) {
+      return res.status(400).json({
+        success: false,
+        error: 'buildingId, objectIds, and maintenanceDate are required'
+      });
+    }
+
+    const building = await findBuildingById(buildingId);
+    if (!building) {
+      return res.status(404).json({ success: false, error: 'Building not found' });
+    }
+
+    const idsToUpdate = Array.isArray(objectIds) ? objectIds : [objectIds];
+    let updatedCount = 0;
+
+    for (const section of Object.values(building.buildingObjects || {})) {
+      for (const obj of section) {
+        if (idsToUpdate.includes(obj.id)) {
+          obj.maintenanceDate = maintenanceDate;
+          updatedCount++;
+        }
+      }
+    }
+
+    if (updatedCount === 0) {
+      return res.status(404).json({ success: false, error: 'No matching object(s) found' });
+    }
+
+    building.updatedAt = new Date().toISOString();
+    await updateBuilding(buildingId, building);
+
+    return res.status(200).json({
+      success: true,
+      message: `${updatedCount} object(s) updated with maintenance date`
+    });
+
+  } catch (error) {
+    console.error('Update error:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
+
+
+
+
 
 

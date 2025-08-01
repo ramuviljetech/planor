@@ -175,14 +175,22 @@ export interface Building {
   metadata?: {
     totalArea?: number;
     yearBuilt?: number;
-    objects?: Array<{
-      id: string;
-      type: string;
-      count?: number; // For window/door types
-      area?: number; // For floor/wall/area types
-      object: string;
-    }>;
   };
+  buildingObjects?: Array<{
+    id: string;
+    type: string;
+    count?: number; // For window/door types
+    area?: number; // For floor/wall/area types
+    object: string;
+    maintenanceDate?: string;
+  }> | Record<string, Array<{
+    id: string;
+    type: string;
+    count?: number; // For window/door types
+    area?: number; // For floor/wall/area types
+    object: string;
+    maintenanceDate?: string;
+  }>>;
 }
 
 // File Types
@@ -400,14 +408,20 @@ export interface CreateBuildingRequest {
     floors?: number;
     totalArea?: number;
     yearBuilt?: number;
-    objects?: Array<{
-      id: string;
-      type: string;
-      count?: number; // For window/door types
-      area?: number; // For floor/wall/area types
-      object: string;
-    }>;
   };
+  buildingObjects?: Array<{
+    id: string;
+    type: string;
+    count?: number; // For window/door types
+    area?: number; // For floor/wall/area types
+    object: string;
+  }> | Record<string, Array<{
+    id: string;
+    type: string;
+    count?: number; // For window/door types
+    area?: number; // For floor/wall/area types
+    object: string;
+  }>>;
 }
 
 // Authentication Types

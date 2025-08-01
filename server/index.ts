@@ -61,7 +61,7 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', authMiddleware, adminRoutes);
-app.use('/api/users', usersRoutes); // !No authMiddleware here bcoz of otp
+app.use('/api/users',authMiddleware, usersRoutes); 
 app.use('/api/properties', authMiddleware, propertyRoutes);
 app.use('/api/buildings', authMiddleware, buildingRoutes);
 app.use('/api/files', authMiddleware, fileRoutes);

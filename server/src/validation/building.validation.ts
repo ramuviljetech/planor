@@ -96,7 +96,35 @@ export const createBuildingSchema = Joi.object({
 })
 
 // Update building validation schema
+
+
 export const updateBuildingSchema = Joi.object({
+  buildingId: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Building ID is required',
+      'string.empty': 'Building ID cannot be empty'
+    }),
+
+  objectIds: Joi.alternatives().try(
+    Joi.string(),
+    Joi.array().items(Joi.string())
+  )
+    .required()
+    .messages({
+      'any.required': 'Object ID(s) are required',
+      'string.empty': 'Object ID(s) cannot be empty'
+    }),
+
+  maintenanceDate: Joi.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .required()
+    .messages({
+      'any.required': 'Maintenance date is required',
+      'string.empty': 'Maintenance date cannot be empty',
+      'string.pattern.base': 'Maintenance date must be in YYYY-MM-DD format'
+    }),
+
   name: Joi.string()
     .min(2)
     .max(100)
@@ -106,6 +134,7 @@ export const updateBuildingSchema = Joi.object({
       'string.max': 'Building name cannot exceed 100 characters',
       'string.empty': 'Building name cannot be empty'
     }),
+
   description: Joi.string()
     .min(5)
     .max(500)
@@ -115,11 +144,13 @@ export const updateBuildingSchema = Joi.object({
       'string.max': 'Description cannot exceed 500 characters',
       'string.empty': 'Description cannot be empty'
     }),
+
   propertyId: Joi.string()
     .optional()
     .messages({
       'string.empty': 'Property ID cannot be empty'
     }),
+
   contactPerson: Joi.string()
     .min(2)
     .max(100)
@@ -129,6 +160,7 @@ export const updateBuildingSchema = Joi.object({
       'string.max': 'Contact person cannot exceed 100 characters',
       'string.empty': 'Contact person cannot be empty'
     }),
+
   contactEmail: Joi.string()
     .email({ tlds: { allow: false } })
     .optional()
@@ -136,6 +168,7 @@ export const updateBuildingSchema = Joi.object({
       'string.email': 'Please provide a valid email address',
       'string.empty': 'Contact email cannot be empty'
     }),
+
   contactPhone: Joi.string()
     .min(10)
     .max(20)
@@ -145,6 +178,7 @@ export const updateBuildingSchema = Joi.object({
       'string.max': 'Contact phone cannot exceed 20 characters',
       'string.empty': 'Contact phone cannot be empty'
     }),
+
   imageUrl: Joi.string()
     .uri()
     .optional()
@@ -181,4 +215,12 @@ export const updateBuildingSchema = Joi.object({
         'number.max': 'Year built cannot be in the future'
       })
   }).optional()
-}) 
+}).unknown(false);
+
+
+
+
+
+
+
+

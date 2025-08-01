@@ -186,7 +186,8 @@ export const registerClient = async (req: Request, res: Response) => {
 
 // Get clients with filters (Admin only)
 // This function retrieves clients based on various filters and pagination options.
-
+//filters: clientName, clientId, status, createdOn, maintananceCost, properties
+//!total file uploads pending
 export const getClients = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user;

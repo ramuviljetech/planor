@@ -25,8 +25,22 @@ export const comparePassword = async (password: string, hashedPassword: string):
     )
   }
 
+  // export const generateTempToken = (user: User): string => {
+  //   return jwt.sign(
+  //     {
+  //       id: user.id,
+  //       email: user.email,
+  //       role: user.role,
+  //       name: user.name
+  //     },
+  //     JWT_SECRET,
+  //     { expiresIn: process.env.TEMP_EXPIRES_IN || 5 * 60 * 1000 }
+  //   )
+  // }
   // Helper function to hash password
- export const hashPassword = async (password: string): Promise<string> => {
+
+
+  export const hashPassword = async (password: string): Promise<string> => {
     const saltRounds = 12
     return bcrypt.hash(password, saltRounds)
   }

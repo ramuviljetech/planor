@@ -479,7 +479,7 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
       const typedPriceData = priceData as any
       
       // Determine if this is a floor/wall type that should use area instead of count
-      const isAreaType = objectTypeFromFile === 'floor' || objectTypeFromFile === 'wall' || objectTypeFromFile === 'area'
+      const isAreaType = objectTypeFromFile === 'floor' || objectTypeFromFile === 'wall' || objectTypeFromFile === 'area'|| objectTypeFromFile === 'roof'
       
       // Check if a record with the same type and object already exists in the pricelist container
       const existingRecord = await checkExistingPriceItem(buildingId, objectTypeFromFile, typedPriceData.type)
@@ -519,40 +519,69 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
 
           // Update building metadata with individual price item data
       const buildingMetadata = building.metadata || {}
-      const pricelistMetadata = buildingMetadata.objects || []
+      let existingPricelistMetadata = building.buildingObjects || {}
+      
+      // Handle transition from array format to object format
+      if (Array.isArray(existingPricelistMetadata)) {
+        // Convert old array format to new object format
+        const newFormat: Record<string, any[]> = {}
+        for (const item of existingPricelistMetadata) {
+          const objectTypeKey = `${item.type}s` // e.g., "windows", "doors", "floors"
+          if (!newFormat[objectTypeKey]) {
+            newFormat[objectTypeKey] = []
+          }
+          newFormat[objectTypeKey].push(item)
+        }
+        existingPricelistMetadata = newFormat
+      }
+      
+      // Ensure it's an object with proper typing
+      const typedPricelistMetadata = existingPricelistMetadata as Record<string, any[]>
+      
+      // Initialize objects structure if it doesn't exist
+      if (!typedPricelistMetadata[`${objectTypeFromFile}s`]) {
+        typedPricelistMetadata[`${objectTypeFromFile}s`] = []
+      }
       
       // Add or update pricelist metadata for each document
       for (const { document: createdDocument, originalData, isAreaType } of documentDataForMetadata) {
-        const existingIndex = pricelistMetadata.findIndex((item: any) => 
-          item.type === createdDocument.type && item.object === createdDocument.object
+        const objectTypeKey = `${createdDocument.type}s` // e.g., "windows", "doors", "floors"
+        
+        // Initialize the array for this object type if it doesn't exist
+        if (!typedPricelistMetadata[objectTypeKey]) {
+          typedPricelistMetadata[objectTypeKey] = []
+        }
+        
+        const existingIndex = typedPricelistMetadata[objectTypeKey].findIndex((item: any) => 
+          item.object === createdDocument.object
         )
         
         if (existingIndex >= 0) {
           // Update existing item - increase count or area
           if (isAreaType) {
             // For area types, sum the areas
-            const currentArea = Number(pricelistMetadata[existingIndex].area) || 0
+            const currentArea = Number(typedPricelistMetadata[objectTypeKey][existingIndex].area) || 0
             const newArea = Number(originalData.area || 0)
-            pricelistMetadata[existingIndex].area = currentArea + newArea
-            console.log(`Updated area for ${createdDocument.type} - ${createdDocument.object}: ${currentArea} + ${newArea} = ${pricelistMetadata[existingIndex].area}`)
+            typedPricelistMetadata[objectTypeKey][existingIndex].area = currentArea + newArea
+            console.log(`Updated area for ${createdDocument.type} - ${createdDocument.object}: ${currentArea} + ${newArea} = ${typedPricelistMetadata[objectTypeKey][existingIndex].area}`)
             // Remove count field for area types
-            delete pricelistMetadata[existingIndex].count
+            delete typedPricelistMetadata[objectTypeKey][existingIndex].count
           } else {
             // For non-area types, sum the counts
-            const currentCount = Number(pricelistMetadata[existingIndex].count) || 0
+            const currentCount = Number(typedPricelistMetadata[objectTypeKey][existingIndex].count) || 0
             const newCount = Number(originalData.count) || 0
-            pricelistMetadata[existingIndex].count = currentCount + newCount
-            console.log(`Updated count for ${createdDocument.type} - ${createdDocument.object}: ${currentCount} + ${newCount} = ${pricelistMetadata[existingIndex].count}`)
+            typedPricelistMetadata[objectTypeKey][existingIndex].count = currentCount + newCount
+            console.log(`Updated count for ${createdDocument.type} - ${createdDocument.object}: ${currentCount} + ${newCount} = ${typedPricelistMetadata[objectTypeKey][existingIndex].count}`)
             // Remove area field for count types
-            delete pricelistMetadata[existingIndex].area
+            delete typedPricelistMetadata[objectTypeKey][existingIndex].area
           }
-          pricelistMetadata[existingIndex].id = createdDocument.id // Store individual document ID
+          typedPricelistMetadata[objectTypeKey][existingIndex].id = createdDocument.id // Store individual document ID
         } else {
           // Add new item with complete information
           const newItem: any = {
             id: createdDocument.id, // Individual document ID
-            type: createdDocument.type, // The actual type like "6x6 Fast"
-            object: createdDocument.object // window, door, floor, etc.
+            type: createdDocument.type, // window, door, floor, etc.
+            object: createdDocument.object // The actual type like "6x6 Fast"
           }
           
           if (isAreaType) {
@@ -565,16 +594,16 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
             console.log(`Added new count item: ${createdDocument.type} - ${createdDocument.object}: ${newItem.count}`)
           }
           
-          pricelistMetadata.push(newItem)
+          typedPricelistMetadata[objectTypeKey].push(newItem)
         }
       }
 
     // Update building with new metadata
     const updatedBuilding = await updateBuilding(buildingId, {
       metadata: {
-        ...buildingMetadata,
-        objects: pricelistMetadata
-      }
+        ...buildingMetadata
+      },
+      buildingObjects: typedPricelistMetadata
     })
 
     const response: ApiResponse = {
@@ -650,7 +679,7 @@ export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Re
 }
 
 /**
- * GET /api/pricelist/:id - Get pricelist by ID
+ * ??GET /api/pricelist/:id - Get pricelist by ID
  */
 export const getPricelistById = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -689,7 +718,7 @@ export const getPricelistById = async (req: AuthenticatedRequest, res: Response)
 }
 
 /**
- * PUT /api/pricelist/:id - Update pricelist
+ * ?PUT /api/pricelist/:id - Update pricelist
  */
 export const updatePricelistHandler = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -731,7 +760,7 @@ export const updatePricelistHandler = async (req: AuthenticatedRequest, res: Res
 }
 
 /**
- * DELETE /api/pricelist/:id - Delete pricelist
+ *? DELETE /api/pricelist/:id - Delete pricelist
  */
 export const deletePricelistHandler = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -771,11 +800,7 @@ export const deletePricelistHandler = async (req: AuthenticatedRequest, res: Res
 }
 
 /**
- * GET /api/pricelist/active - Get active pricelists
- */
-
-/**
- * GET /api/pricelist/test-azure-storage - Test Azure Storage configuration
+ * !GET /api/pricelist/test-azure-storage - Test Azure Storage configuration
  */
 export const testAzureStorageHandler = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -800,3 +825,5 @@ export const testAzureStorageHandler = async (req: AuthenticatedRequest, res: Re
     return res.status(500).json(response)
   }
 }
+
+

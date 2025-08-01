@@ -16,4 +16,4 @@ export const loginSchema = Joi.object({
       'any.required': 'Password is required',
       'string.empty': 'Password cannot be empty'
     })
-}) 
+}).unknown(false) 
