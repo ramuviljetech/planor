@@ -23,7 +23,7 @@ import {
   createClientOnlySchema, 
   createUserOnlySchema, 
 } from '../validation/admin.validation'
-import { getUsersContainer } from '../config/database'
+import { getBuildingStatisticsOptimized } from '../entities/building.entity'
 
 
 
@@ -234,7 +234,7 @@ export const updateUser = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        error: 'User not found'
+        error: 'User not found '
       })
     }
 
@@ -361,6 +361,151 @@ export const deleteStandardUser = async (req: Request, res: Response) => {
     })
   } catch (error) {
     console.error('Error deleting user:', error)
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    })
+  }
+} 
+
+// GET /api/admin/maintenance-costs - Get total maintenance costs and individual costs
+export const getMaintenanceCosts = async (req: Request, res: Response) => {
+  try {
+    const authenticatedUser = (req as any).user
+    const { propertyId, clientId } = req.query
+
+    // Import the building entity functions
+    // const { calculateBuildingStatistics } = await import('../entities/building.entity')
+    const { getPricelistContainer } = await import('../config/database')
+
+    // Get filters from query parameters
+    const filters: { propertyId?: string; clientId?: string } = {}
+    if (propertyId) filters.propertyId = propertyId as string
+    if (clientId) filters.clientId = clientId as string
+
+    // Calculate building statistics which includes maintenance costs
+    const statistics = await getBuildingStatisticsOptimized(filters)
+    
+    // Calculate total maintenance cost
+    const totalMaintenanceCost = Object.values(statistics.totalMaintenanceCost).reduce((sum, cost) => sum + cost, 0)
+
+    // Get detailed breakdown with additional database queries for more granular data
+    const pricelistContainer = getPricelistContainer()
+    
+    // Get all building IDs for detailed cost breakdown
+    const { getBuildingsContainer } = await import('../config/database')
+    const buildingsContainer = getBuildingsContainer()
+    
+    let buildingIdsQuery: {
+      query: string;
+      parameters: Array<{ name: string; value: string }>;
+    } = {
+      query: 'SELECT c.id FROM c WHERE c.type = "building"',
+      parameters: []
+    }
+
+    if (filters.propertyId) {
+      buildingIdsQuery = {
+        query: 'SELECT c.id FROM c WHERE c.type = "building" AND c.propertyId = @propertyId',
+        parameters: [{ name: '@propertyId', value: filters.propertyId }]
+      }
+    } else if (filters.clientId) {
+      buildingIdsQuery = {
+        query: 'SELECT c.id FROM c WHERE c.type = "building" AND c.clientId = @clientId',
+        parameters: [{ name: '@clientId', value: filters.clientId }]
+      }
+    }
+
+    const { resources: buildingIds } = await buildingsContainer.items.query(buildingIdsQuery).fetchAll()
+    const buildingIdList = buildingIds.map(b => b.id)
+
+    // Detailed cost breakdown with database aggregation
+    let detailedCosts = {
+      doors: { total: 0, count: 0 },
+      floors: { total: 0, count: 0 },
+      windows: { total: 0, count: 0 },
+      walls: { total: 0, count: 0 },
+      roofs: { total: 0, count: 0 },
+      areas: { total: 0, count: 0 }
+    }
+
+    if (buildingIdList.length > 0) {
+      // Use database aggregation for detailed cost breakdown
+      const detailedQuery = {
+        query: `
+          SELECT 
+            c.type,
+            SUM(c.price) as totalPrice,
+            COUNT(1) as itemCount,
+            AVG(c.price) as averagePrice,
+            MIN(c.price) as minPrice,
+            MAX(c.price) as maxPrice
+          FROM c 
+          WHERE c.buildingId IN (${buildingIdList.map((_, i) => `@buildingId${i}`).join(',')})
+          AND c.price > 0
+          GROUP BY c.type
+        `,
+        parameters: buildingIdList.map((id, i) => ({ name: `@buildingId${i}`, value: id }))
+      }
+
+      try {
+        const { resources: detailedResults } = await pricelistContainer.items.query(detailedQuery).fetchAll()
+        
+        for (const result of detailedResults) {
+          const type = result.type?.toLowerCase()
+          const total = result.totalPrice || 0
+          const count = result.itemCount || 0
+
+          switch (type) {
+            case 'door':
+              detailedCosts.doors = { total, count  }
+              break
+            case 'floor':
+              detailedCosts.floors = { total, count  }
+              break
+            case 'window':
+              detailedCosts.windows = { total, count }
+              break
+            case 'wall':
+              detailedCosts.walls = { total, count }
+              break
+            case 'roof':
+              detailedCosts.roofs = { total, count }
+              break
+            case 'area':
+              detailedCosts.areas = { total, count  }
+              break
+          }
+        }
+      } catch (error) {
+        console.error('Error getting detailed maintenance costs:', error)
+        // Fallback to basic statistics
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: 'Maintenance costs calculated successfully',
+      data: {
+        summary: {
+          totalMaintenanceCost,
+          // totalBuildings: statistics.totalBuildings,
+          // totalArea: statistics.totalArea,
+          // maintenanceUpdates: statistics.maintenanceUpdates
+        },
+        breakdown: {
+          totalCosts: statistics.totalMaintenanceCost,
+          detailedCosts
+        }
+        // filters: {
+        //   propertyId: filters.propertyId || null,
+        //   clientId: filters.clientId || null
+        // }
+      }
+    })
+
+  } catch (error) {
+    console.error('Error getting maintenance costs:', error)
     return res.status(500).json({
       success: false,
       error: 'Internal server error'

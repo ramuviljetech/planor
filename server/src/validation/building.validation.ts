@@ -3,7 +3,7 @@ import Joi from 'joi'
 // Create building validation schema
 // Note: One building belongs to exactly one property (one-to-one relationship)
 export const createBuildingSchema = Joi.object({
-  name: Joi.string()
+  buildingName: Joi.string()
     .min(2)
     .max(100)
     .required()

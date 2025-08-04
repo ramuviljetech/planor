@@ -37,10 +37,8 @@ router.get('/test-azure-storage', authMiddleware, testAzureStorageHandler)
  */
 router.get('/:id', authMiddleware, getPricelistById)
 
-/**
- * PUT /api/pricelist/:id - Update pricelist
- * Body: Partial PriceList object
- */
+
+// *PUT /api/pricelist/:id - Update pricelist
 router.put('/:id', authMiddleware, requireAdmin, validateUpdatePricelist, updatePricelistHandler)
 
 /**

@@ -160,36 +160,175 @@ export const updateBuilding = async (id: string, buildingData: Partial<Building>
   }
 }
 
-// Calculate building statistics (optimized for speed)
-export const calculateBuildingStatistics = async (): Promise<{
+// Calculate building statistics with optimized database queries
+export const calculateBuildingStatistics = async (filters?: {
+  propertyId?: string;
+  clientId?: string;
+}): Promise<{
   totalBuildings: number;
   totalArea: number;
-  totalMaintenanceCost: number;
+  totalMaintenanceCost: {
+    doors: number;
+    floors: number;
+    windows: number;
+    walls: number;
+    roofs: number;
+    areas: number;
+  };
   maintenanceUpdates: number;
 }> => {
   try {
     const buildingsContainer = getBuildingsContainer()
+    const { getPricelistContainer } = await import('../config/database')
+    const pricelistContainer = getPricelistContainer()
     
-    // Get total count and area in a single query for better performance
+    // Build WHERE clause for filters
+    let whereClause = ''
+    let parameters: any[] = []
+    
+    if (filters) {
+      const conditions: string[] = []
+      
+      if (filters.propertyId) {
+        conditions.push('c.propertyId = @propertyId')
+        parameters.push({ name: '@propertyId', value: filters.propertyId })
+      }
+      
+      if (filters.clientId) {
+        conditions.push('c.clientId = @clientId')
+        parameters.push({ name: '@clientId', value: filters.clientId })
+      }
+      
+      if (conditions.length > 0) {
+        whereClause = `WHERE ${conditions.join(' AND ')}`
+      }
+    }
+    
+    // Get total buildings and area in one optimized query
     const statsQuery = {
       query: `
         SELECT 
           COUNT(1) as totalBuildings,
           SUM(c.metadata.totalArea) as totalArea
-        FROM c
-      `
+        FROM c ${whereClause}
+      `,
+      parameters
     }
     
     const { resources: statsResult } = await buildingsContainer.items.query(statsQuery).fetchAll()
     const stats = statsResult[0] || { totalBuildings: 0, totalArea: 0 }
     
-    // For now, using simplified calculations for faster response
     const totalBuildings = stats.totalBuildings || 0
     const totalArea = stats.totalArea || 0
     
-    // Simplified maintenance calculations for faster response
-    const totalMaintenanceCost = 0 // Set to 0 as per your change
-    const maintenanceUpdates = Math.floor(totalBuildings * 0.5) // Simple calculation
+    // Get building IDs for maintenance cost calculation
+    const buildingIdsQuery = {
+      query: `SELECT c.id FROM c ${whereClause}`,
+      parameters
+    }
+    
+    const { resources: buildingIds } = await buildingsContainer.items.query(buildingIdsQuery).fetchAll()
+    const buildingIdList = buildingIds.map(b => b.id)
+    
+    // Calculate maintenance costs using database aggregation
+    let totalMaintenanceCost = {
+      doors: 0,
+      floors: 0,
+      windows: 0,
+      walls: 0,
+      roofs: 0,
+      areas: 0
+    }
+    let maintenanceUpdates = 0
+    
+    if (buildingIdList.length > 0) {
+      // Use database aggregation for better performance
+      const maintenanceQuery = {
+        query: `
+          SELECT 
+            c.type,
+            SUM(c.price) as totalPrice,
+            COUNT(1) as itemCount
+          FROM c 
+          WHERE c.buildingId IN (${buildingIdList.map((_, i) => `@buildingId${i}`).join(',')})
+          AND c.price > 0
+          GROUP BY c.type
+        `,
+        parameters: buildingIdList.map((id, i) => ({ name: `@buildingId${i}`, value: id }))
+      }
+      
+      try {
+        const { resources: maintenanceResults } = await pricelistContainer.items.query(maintenanceQuery).fetchAll()
+        
+        for (const result of maintenanceResults) {
+          const type = result.type?.toLowerCase()
+          const price = result.totalPrice || 0
+          const count = result.itemCount || 0
+          
+          maintenanceUpdates += count
+          
+          switch (type) {
+            case 'door':
+              totalMaintenanceCost.doors += price
+              break
+            case 'floor':
+              totalMaintenanceCost.floors += price
+              break
+            case 'window':
+              totalMaintenanceCost.windows += price
+              break
+            case 'wall':
+              totalMaintenanceCost.walls += price
+              break
+            case 'roof':
+              totalMaintenanceCost.roofs += price
+              break
+            case 'area':
+              totalMaintenanceCost.areas += price
+              break
+          }
+        }
+      } catch (error) {
+        console.log('Maintenance calculation fallback - using individual queries')
+        // Fallback to individual queries if aggregation fails
+        for (const buildingId of buildingIdList) {
+          const priceQuery = {
+            query: 'SELECT * FROM c WHERE c.buildingId = @buildingId AND c.price > 0',
+            parameters: [{ name: '@buildingId', value: buildingId }]
+          }
+          
+          const { resources: priceItems } = await pricelistContainer.items.query(priceQuery).fetchAll()
+          
+          for (const item of priceItems) {
+            const type = item.type?.toLowerCase()
+            const price = item.price || 0
+            
+            maintenanceUpdates++
+            
+            switch (type) {
+              case 'door':
+                totalMaintenanceCost.doors += price
+                break
+              case 'floor':
+                totalMaintenanceCost.floors += price
+                break
+              case 'window':
+                totalMaintenanceCost.windows += price
+                break
+              case 'wall':
+                totalMaintenanceCost.walls += price
+                break
+              case 'roof':
+                totalMaintenanceCost.roofs += price
+                break
+              case 'area':
+                totalMaintenanceCost.areas += price
+                break
+            }
+          }
+        }
+      }
+    }
 
     return {
       totalBuildings,
@@ -338,12 +477,13 @@ export const getTotalAreaByFilters = async (
   }
 }
 
-// Calculate building maintenance statistics using database queries
-export const calculateBuildingMaintenanceStats = async (filters?: {
-  adminId?: string;
-  clientId?: string;
+// Optimized function to get building statistics with database-level aggregations
+export const getBuildingStatisticsOptimized = async (filters?: {
   propertyId?: string;
+  clientId?: string;
 }): Promise<{
+  totalBuildings: number;
+  totalArea: number;
   totalMaintenanceCost: {
     doors: number;
     floors: number;
@@ -359,65 +499,56 @@ export const calculateBuildingMaintenanceStats = async (filters?: {
     const { getPricelistContainer } = await import('../config/database')
     const pricelistContainer = getPricelistContainer()
     
-    // Build query based on filters
-    let query: any
+    // Build WHERE clause for filters
+    let whereClause = ''
     let parameters: any[] = []
     
-    if (filters && Object.keys(filters).length > 0) {
-      let whereConditions: string[] = []
-      
-      if (filters.adminId) {
-        whereConditions.push('c.adminId = @adminId')
-        parameters.push({ name: '@adminId', value: filters.adminId })
-      }
-      
-      if (filters.clientId) {
-        whereConditions.push('c.clientId = @clientId')
-        parameters.push({ name: '@clientId', value: filters.clientId })
-      }
+    if (filters) {
+      const conditions: string[] = []
       
       if (filters.propertyId) {
-        whereConditions.push('c.propertyId = @propertyId')
+        conditions.push('c.propertyId = @propertyId')
         parameters.push({ name: '@propertyId', value: filters.propertyId })
       }
       
-      query = {
-        query: `SELECT * FROM c WHERE ${whereConditions.join(' AND ')}`,
+      if (filters.clientId) {
+        conditions.push('c.clientId = @clientId')
+        parameters.push({ name: '@clientId', value: filters.clientId })
+      }
+      
+      if (conditions.length > 0) {
+        whereClause = `WHERE ${conditions.join(' AND ')}`
+      }
+    }
+    
+    // Execute all queries in parallel for maximum performance
+    const [statsResult, buildingIdsResult] = await Promise.all([
+      // Get total buildings and area
+      buildingsContainer.items.query({
+        query: `
+          SELECT 
+            COUNT(1) as totalBuildings,
+            SUM(c.metadata.totalArea) as totalArea
+          FROM c ${whereClause}
+        `,
         parameters
-      }
-    } else {
-      query = {
-        query: 'SELECT * FROM c'
-      }
-    }
-    
-    const { resources: buildings } = await buildingsContainer.items.query(query).fetchAll()
-    
-    // Get building IDs to fetch their prices
-    const buildingIds = buildings.map(building => building.id)
-    
-    // Fetch all price items for these buildings
-    let allPriceItems: any[] = []
-    if (buildingIds.length > 0) {
-      // Cosmos DB doesn't support IN queries directly, so we need to build the query differently
-      const buildingIdConditions = buildingIds.map((_, index) => `c.buildingId = @buildingId${index}`).join(' OR ')
-      const priceQuery = {
-        query: `SELECT * FROM c WHERE (${buildingIdConditions})`,
-        parameters: buildingIds.map((id, index) => ({ name: `@buildingId${index}`, value: id }))
-      }
+      }).fetchAll(),
       
-      console.log('Building IDs to search for:', buildingIds)
-      console.log('Price query:', priceQuery)
-      
-      const { resources: priceItems } = await pricelistContainer.items.query(priceQuery).fetchAll()
-      allPriceItems = priceItems
-      
-      console.log('Found price items:', allPriceItems.length)
-      console.log('Price items:', allPriceItems)
-    }
+      // Get building IDs for maintenance calculation
+      buildingsContainer.items.query({
+        query: `SELECT c.id FROM c ${whereClause}`,
+        parameters
+      }).fetchAll()
+    ])
+    
+    const stats = statsResult.resources[0] || { totalBuildings: 0, totalArea: 0 }
+    const buildingIds = buildingIdsResult.resources.map(b => b.id)
+    
+    const totalBuildings = stats.totalBuildings || 0
+    const totalArea = stats.totalArea || 0
     
     // Initialize maintenance cost object
-    const totalMaintenanceCost = {
+    let totalMaintenanceCost = {
       doors: 0,
       floors: 0,
       windows: 0,
@@ -425,50 +556,110 @@ export const calculateBuildingMaintenanceStats = async (filters?: {
       roofs: 0,
       areas: 0
     }
-    
     let maintenanceUpdates = 0
     
-    // Calculate maintenance costs from price items
-    for (const priceItem of allPriceItems) {
-      console.log('Processing price item:', priceItem)
-      if (priceItem.price && typeof priceItem.price === 'number' && priceItem.price > 0) {
-        maintenanceUpdates++ // Count items with prices as updates
+    // Calculate maintenance costs using optimized database queries
+    if (buildingIds.length > 0) {
+      try {
+        // Use database aggregation for maximum performance
+        const maintenanceQuery = {
+          query: `
+            SELECT 
+              c.type,
+              SUM(c.price) as totalPrice,
+              COUNT(1) as itemCount
+            FROM c 
+            WHERE c.buildingId IN (${buildingIds.map((_, i) => `@buildingId${i}`).join(',')})
+            AND c.price > 0
+            GROUP BY c.type
+          `,
+          parameters: buildingIds.map((id, i) => ({ name: `@buildingId${i}`, value: id }))
+        }
         
-        console.log(`Adding ${priceItem.price} to ${priceItem.type} category`)
+        const { resources: maintenanceResults } = await pricelistContainer.items.query(maintenanceQuery).fetchAll()
         
-        // Add to appropriate category based on type
-        switch (priceItem.type) {
-          case 'door':
-            totalMaintenanceCost.doors += priceItem.price
-            break
-          case 'floor':
-            totalMaintenanceCost.floors += priceItem.price
-            break
-          case 'window':
-            totalMaintenanceCost.windows += priceItem.price
-            break
-          case 'wall':
-            totalMaintenanceCost.walls += priceItem.price
-            break
-          case 'roof':
-            totalMaintenanceCost.roofs += priceItem.price
-            break
-          case 'area':
-            totalMaintenanceCost.areas += priceItem.price
-            break
+        for (const result of maintenanceResults) {
+          const type = result.type?.toLowerCase()
+          const price = result.totalPrice || 0
+          const count = result.itemCount || 0
+          
+          maintenanceUpdates += count
+          
+          switch (type) {
+            case 'door':
+              totalMaintenanceCost.doors += price
+              break
+            case 'floor':
+              totalMaintenanceCost.floors += price
+              break
+            case 'window':
+              totalMaintenanceCost.windows += price
+              break
+            case 'wall':
+              totalMaintenanceCost.walls += price
+              break
+            case 'roof':
+              totalMaintenanceCost.roofs += price
+              break
+            case 'area':
+              totalMaintenanceCost.areas += price
+              break
+          }
+        }
+      } catch (error) {
+        console.log('Using fallback maintenance calculation')
+        // Fallback: calculate maintenance costs individually
+        const maintenancePromises = buildingIds.map(async (buildingId) => {
+          const priceQuery = {
+            query: 'SELECT * FROM c WHERE c.buildingId = @buildingId AND c.price > 0',
+            parameters: [{ name: '@buildingId', value: buildingId }]
+          }
+          
+          const { resources: priceItems } = await pricelistContainer.items.query(priceQuery).fetchAll()
+          return priceItems
+        })
+        
+        const allPriceItems = await Promise.all(maintenancePromises)
+        const flatPriceItems = allPriceItems.flat()
+        
+        for (const item of flatPriceItems) {
+          const type = item.type?.toLowerCase()
+          const price = item.price || 0
+          
+          maintenanceUpdates++
+          
+          switch (type) {
+            case 'door':
+              totalMaintenanceCost.doors += price
+              break
+            case 'floor':
+              totalMaintenanceCost.floors += price
+              break
+            case 'window':
+              totalMaintenanceCost.windows += price
+              break
+            case 'wall':
+              totalMaintenanceCost.walls += price
+              break
+            case 'roof':
+              totalMaintenanceCost.roofs += price
+              break
+            case 'area':
+              totalMaintenanceCost.areas += price
+              break
+          }
         }
       }
     }
-    
-    console.log('Final maintenance cost:', totalMaintenanceCost)
-    console.log('Maintenance updates count:', maintenanceUpdates)
-    
+
     return {
+      totalBuildings,
+      totalArea,
       totalMaintenanceCost,
       maintenanceUpdates
     }
   } catch (error) {
-    console.error('Error calculating building maintenance stats:', error)
+    console.error('Error calculating optimized building statistics:', error)
     throw error
   }
 }

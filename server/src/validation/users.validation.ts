@@ -1,5 +1,6 @@
 import Joi from 'joi'
 
+
 // Update user profile validation schema (for users)
 export const updateUserProfileSchema = Joi.object({
   name: Joi.string()

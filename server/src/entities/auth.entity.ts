@@ -1,6 +1,6 @@
 import { User, UserStatus } from '../types'
 import { getUsersContainer } from '../config/database'
-
+import jwt from 'jsonwebtoken'
 // Find user by email
 export const findUserByEmail = async (email: string): Promise<User | null> => {
   try {
@@ -43,3 +43,13 @@ export const updateUserLastLogin = async (userId: string, lastLoginAt: Date): Pr
     throw error
   }
 } 
+
+export const isTokenExpired = (token: string): boolean => {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { exp: number }
+    return decoded.exp < Date.now() / 1000
+  } catch (error) {
+    console.error('Error verifying token:', error)
+    return true
+  }
+}

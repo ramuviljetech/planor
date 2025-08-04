@@ -3,7 +3,7 @@ import {
   getAllBuildingsController,
   getBuildingById,
   createBuildingController,
-  updateBuildingController
+  updateBuildingController,
 } from '../controllers/building.controller';
 import { validateRequest } from '../middleware/validation.middleware';
 import { createBuildingSchema, updateBuildingSchema } from '../validation/building.validation';

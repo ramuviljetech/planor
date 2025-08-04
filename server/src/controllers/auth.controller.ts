@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { UserStatus,} from '../types'
 import { findUserByEmail, updateUserLastLogin } from '../entities/auth.entity'
-import { comparePassword, generateToken, JWT_EXPIRES_IN } from '../utils/common'
+import { comparePassword, generateTempToken, generateToken, JWT_EXPIRES_IN } from '../utils/common'
 import { generateNumericOTP } from '../utils/otp'
 import { createOtpRecord, deleteOtpRecord, findOtpByEmail, updateOtpRecord } from '../entities/users.entity'
 import { sendMail } from '../services/mail.service'
@@ -73,31 +73,23 @@ export const sendOtp = async (req: Request, res: Response) => {
   try {
     const { email } = req.body
 
-    // const user = await findUserByEmail(email)
-    // if(!user){
-    //   return res.status(400).json({
-    //     success: false,
-    //     error: 'User not found'
-    //   })
-    // }
-    // Generate OTP
-    const otp = generateNumericOTP()
-    const usersContainer = getUsersContainer()
     // Get user from database
     const user = await findUserByEmail(email)
     if(!user){        
       return res.status(400).json({
         success: false,
-        error: 'User not found'
+        error: 'User not found with this email'
       })
     } 
     
     if(user.status === UserStatus.BLOCK){
       return res.status(400).json({
         success: false,
-        error: 'User is blocked'
+        error: 'User is blocked with this email'
       })
     }
+    // Generate OTP
+    const otp = generateNumericOTP()
 
     // Store OTP in database
     const otpData = {
@@ -122,11 +114,7 @@ export const sendOtp = async (req: Request, res: Response) => {
 
     return res.json({
       success: true,
-      message: 'OTP sent successfully to your email',
-      data: {
-        email: email,
-        otp: otp
-      } 
+      message: 'OTP sent successfully to your email' 
     })
   } catch (error) {
     console.error('Send OTP error:', error)
@@ -194,7 +182,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
     
     // Generate JWT token 
     //!need to generate temp token
-    const token = generateToken(otpRecord)
+    const token = generateTempToken(otpRecord)
     // const tempToken = tempGenerateToken(otpRecord)
   
 

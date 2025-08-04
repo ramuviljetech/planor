@@ -6,7 +6,8 @@ import {
   createBuilding,
   calculateBuildingStatistics,
   getBuildingsWithPaginationAndFilters,
-  updateBuilding
+  updateBuilding,
+  getBuildingStatisticsOptimized
 } from '../entities/building.entity'
 import { findPropertyById } from '../entities/property.entity'
 
@@ -41,8 +42,8 @@ export const getAllBuildingsController = async (req: Request, res: Response) => 
     // Get buildings with pagination, filters, and area in one optimized call
     const { buildings, total, totalArea } = await getBuildingsWithPaginationAndFilters(pageNumber, limitNumber, filters)
     
-    // Get basic statistics
-    const statistics = await calculateBuildingStatistics()
+    // Get optimized statistics with database-level calculations
+    const statistics = await getBuildingStatisticsOptimized(filters)
 
     // Add statistics to each building object
     const buildingsWithStats = buildings.map(building => ({
@@ -59,11 +60,12 @@ export const getAllBuildingsController = async (req: Request, res: Response) => 
       data: {
         buildings: buildingsWithStats,
         count: buildings.length,
-        totalCount: statistics.totalBuildings,
-        totalBuildings: total,
-        totalArea: totalArea,
-        totalMaintenanceCost: statistics.totalMaintenanceCost,
-        maintenanceUpdates: statistics.maintenanceUpdates,
+        statistics: {
+          totalBuildings: statistics.totalBuildings,
+          totalArea: statistics.totalArea,
+          maintenanceUpdates: statistics.maintenanceUpdates,
+          totalMaintenanceCost: statistics.totalMaintenanceCost
+        },
         filters: Object.keys(filters).length > 0 ? filters : undefined,
         pagination: {
           page: pageNumber,
@@ -95,17 +97,19 @@ export const getBuildingById = async (req: Request, res: Response) => {
       })
     }
 
-    // Get basic statistics for this building
-    const statistics = await calculateBuildingStatistics()
-    const { total, totalArea } = await getBuildingsWithPaginationAndFilters(1, 1, {})
+    // Get optimized statistics for this building
+    // const statistics = await calculateBuildingStatistics()
+    // const { total, totalArea } = await getBuildingsWithPaginationAndFilters(1, 1, {})
 
     // Add statistics to the building object
     const buildingWithStats = {
       ...building,
-      totalBuildings: total,
-      totalArea: totalArea,
-      totalMaintenanceCost: statistics.totalMaintenanceCost,
-      maintenanceUpdates: statistics.maintenanceUpdates
+      // statistics: {
+      //   totalBuildings: total,
+      //   totalArea: totalArea,
+      //   maintenanceUpdates: statistics.maintenanceUpdates,
+      //   totalMaintenanceCost: statistics.totalMaintenanceCost
+      // }
     }
 
     return res.json({
@@ -189,6 +193,7 @@ export const createBuildingController = async (req: Request, res: Response) => {
     })
   }
 }
+
 
 // *Update building maintenance date (Admin only)
 export const updateBuildingController = async (req: Request, res: Response) => {

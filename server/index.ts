@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import path from 'path';
+import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
 // Load environment variables from server/.env
 dotenv.config({ path: path.join(__dirname, '.env') });
 
@@ -58,6 +60,12 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Swagger Documentation
+// swagger
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const swaggerDocument = require("../swagger.json");
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', authMiddleware, adminRoutes);
@@ -88,6 +96,7 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`🚀 Planör Portal API server running on port ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

@@ -96,6 +96,21 @@ export const validateUpdatePricelist = (req: Request, res: Response, next: NextF
   const { id } = req.params
   const updateData = req.body
 
+
+  const allowedFields = ['price']
+  const keys = Object.keys(updateData)
+
+  // Only allow "price" field to be updated
+  const hasInvalidFields = keys.some((key) => !allowedFields.includes(key))
+  if (hasInvalidFields) {
+    const response: ApiResponse = {
+      success: false,
+      error: 'Only "price" field can be updated',
+      statusCode: 400
+    }
+    return res.status(400).json(response)
+  }
+  
   if (!id) {
     const response: ApiResponse = {
       success: false,
@@ -113,20 +128,7 @@ export const validateUpdatePricelist = (req: Request, res: Response, next: NextF
     return res.status(400).json(response)
   }
 
-  const allowedFields = ['price']
-  const keys = Object.keys(updateData)
-
-  // Only allow "price" field to be updated
-  const hasInvalidFields = keys.some((key) => !allowedFields.includes(key))
-  if (hasInvalidFields) {
-    const response: ApiResponse = {
-      success: false,
-      error: 'Only "price" field can be updated',
-      statusCode: 400
-    }
-    return res.status(400).json(response)
-  }
-  
+ 
 
   // Validate price
   if (typeof updateData.price !== 'number' || isNaN(updateData.price)) {

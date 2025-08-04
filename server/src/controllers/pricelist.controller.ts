@@ -150,26 +150,7 @@ const streamToBuffer = async (stream: any): Promise<Uint8Array> => {
   })
 }
 
-// Helper function to parse CSV data
-// const parseCSV = (csvText: string): any[] => {
-//   const lines = csvText.trim().split('\n')
-//   const headers = lines[0].split(',').map(header => header.trim())
-//   const data: any[] = []
-
-//   for (let i = 1; i < lines.length; i++) {
-//     const values = lines[i].split(',').map(value => value.trim())
-//     const row: any = {}
-    
-//     headers.forEach((header, index) => {
-//       row[header] = values[index] || ''
-//     })
-    
-//     data.push(row)
-//   }
-
-//   return data
-// }
-
+// Parse CSV data
 const parseCSV = (csvText: string, fileName?: string): any[] => {
     console.log('Raw CSV text:', csvText.substring(0, 500) + '...') // Debug: show first 500 chars
     const lines = csvText.trim().split('\n').map(line => line.trim())
@@ -271,50 +252,8 @@ const parseCSV = (csvText: string, fileName?: string): any[] => {
     return data
   }
   
-  
-
-// Helper function to validate and transform extracted data with unique types
-// const validateAndTransformData = (data: any[]): { [key: string]: any } => {
-//   const prices: { [key: string]: any } = {}
-//   const typeCounts: { [key: string]: number } = {}
-//   console.log("files", data);
-  
-
-//   for (const item of data) {
-//     // Validate required fields
-//     if (!item.typ || !item.object || !item.count || !item.price) {
-//       console.warn('Skipping item with missing required fields:', item)
-//       continue
-//     }
-
-//     const type = item.type.toString()
-//     const object = item.object.toString()
-//     const count = parseInt(item.count) || 1
-//     const price = parseFloat(item.price) || 0
-
-//     // Create unique key for type and object combination
-//     const key = `${type}_${object}`
-    
-//     if (prices[key]) {
-//       // If same type exists, increase count
-//       prices[key].count += count
-//       typeCounts[type] = (typeCounts[type] || 0) + count
-//     } else {
-//       // Create new entry
-//       prices[key] = {
-//         type: type,
-//         object: object,
-//         count: count,
-//         price: price,
-//         totalPrice: price * count
-//       }
-//       typeCounts[type] = (typeCounts[type] || 0) + count
-//     }
-//   }
-
-//   return { prices, typeCounts }
-// }
-const validateAndTransformData = (data: any[], fileName?: string): { prices: { [key: string]: any }; typeCounts: { [key: string]: number }; typeAreas: { [key: string]: number } } => {
+// Validate and transform data
+const validateAndTransformData = (data: any[], fileName?: string): { prices: { [key: string]: any }; typeCounts: { [key: string]: number }; typeAreas: { [key: number]: number } } => {
   const prices: { [key: string]: any } = {}
   const typeCounts: { [key: string]: number } = {}
   const typeAreas: { [key: string]: number } = {}
@@ -389,7 +328,7 @@ const validateAndTransformData = (data: any[], fileName?: string): { prices: { [
  */
 export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { buildingId, fileUrl, name, isGlobal = false, isActive = true, effectiveFrom, sasToken } = req.body
+    const { buildingId, fileUrl, name,  isActive = true } = req.body
 
     // Validate required fields
     if (!buildingId || !fileUrl) {
@@ -421,7 +360,7 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
     const pathParts = url.pathname.split('/').filter(part => part.length > 0)
     const fileName = pathParts.length >= 2 ? pathParts[pathParts.length - 1] : undefined
     
-    const extractedData = await extractDataFromBlobUrl(fileUrl, sasToken, fileName)
+    const extractedData = await extractDataFromBlobUrl(fileUrl, fileName)
     
     if (!extractedData || extractedData.length === 0) {
       const response: ApiResponse = {
@@ -499,7 +438,6 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
       const documentData: PriceItem = {
         id: uuidv4(),
         type: objectTypeFromFile, // window, door, floor, etc.
-        isGlobal,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         buildingId,

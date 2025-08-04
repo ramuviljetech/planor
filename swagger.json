@@ -1,0 +1,893 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Property Management API",
+    "description": "Complete API for Property Management System",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001",
+      "description": "Development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": ["Health Check"],
+        "summary": "Health Check",
+        "description": "Check if the API server is running",
+        "responses": {
+          "200": {
+            "description": "Server is running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "OK"},
+                    "message": {"type": "string", "example": "Planör Portal API is running"},
+                    "timestamp": {"type": "string", "format": "date-time"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "User Login",
+        "description": "Login with email and password to get JWT token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {"type": "string", "format": "email", "example": "admin@example.com"},
+                  "password": {"type": "string", "example": "password123"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {"type": "object"},
+                        "token": {"type": "string"},
+                        "expiresIn": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {"description": "Invalid credentials"}
+        }
+      }
+    },
+    "/api/auth/send-otp": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Send OTP",
+        "description": "Send OTP to user's email for verification",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {"type": "string", "format": "email", "example": "user@example.com"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "OTP sent successfully"},
+          "400": {"description": "User not found"}
+        }
+      }
+    },
+    "/api/auth/verify-otp": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Verify OTP",
+        "description": "Verify OTP and get temporary token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "otp"],
+                "properties": {
+                  "email": {"type": "string", "format": "email", "example": "user@example.com"},
+                  "otp": {"type": "string", "example": "123456"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "OTP verified successfully"},
+          "400": {"description": "Invalid OTP"}
+        }
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Change Password",
+        "description": "Change user password (requires authentication)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["password"],
+                "properties": {
+                  "password": {"type": "string", "example": "newPassword123"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Password changed successfully"},
+          "401": {"description": "Unauthorized"}
+        }
+      }
+    },
+    "/api/properties": {
+      "get": {
+        "tags": ["Properties"],
+        "summary": "Get All Properties",
+        "description": "Get all properties with pagination and filters",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "search", "in": "query", "schema": {"type": "string"}},
+          {"name": "adminId", "in": "query", "schema": {"type": "string"}},
+          {"name": "clientId", "in": "query", "schema": {"type": "string"}},
+          {"name": "page", "in": "query", "schema": {"type": "integer", "default": 1}},
+          {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 10}}
+        ],
+        "responses": {
+          "200": {"description": "Properties retrieved successfully"}
+        }
+      },
+      "post": {
+        "tags": ["Properties"],
+        "summary": "Create Property",
+        "description": "Create a new property (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["propertyName", "propertyCode", "propertyType", "address", "city", "primaryContactName", "email", "phone", "clientId"],
+                "properties": {
+                  "propertyName": {"type": "string", "example": "Downtown Office Building"},
+                  "propertyCode": {"type": "string", "example": "DOB001"},
+                  "propertyType": {"type": "string", "example": "office"},
+                  "address": {"type": "string", "example": "123 Main St, Downtown"},
+                  "city": {"type": "string", "example": "New York"},
+                  "primaryContactName": {"type": "string", "example": "Jane Smith"},
+                  "email": {"type": "string", "format": "email", "example": "jane.smith@company.com"},
+                  "phone": {"type": "string", "example": "+1234567890"},
+                  "clientId": {"type": "string", "example": "client-id-here"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Property created successfully"},
+          "400": {"description": "Validation error"},
+          "409": {"description": "Property with this code already exists"}
+        }
+      }
+    },
+    "/api/properties/{id}": {
+      "get": {
+        "tags": ["Properties"],
+        "summary": "Get Property by ID",
+        "description": "Get property by ID (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"description": "Property retrieved successfully"},
+          "404": {"description": "Property not found"}
+        }
+      },
+      "put": {
+        "tags": ["Properties"],
+        "summary": "Update Property",
+        "description": "Update property (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "propertyName": {"type": "string"},
+                  "propertyCode": {"type": "string"},
+                  "address": {"type": "string"},
+                  "city": {"type": "string"},
+                  "primaryContactName": {"type": "string"},
+                  "email": {"type": "string", "format": "email"},
+                  "phone": {"type": "string"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Property updated successfully"},
+          "404": {"description": "Property not found"}
+        }
+      },
+      "delete": {
+        "tags": ["Properties"],
+        "summary": "Delete Property",
+        "description": "Delete property (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"description": "Property deleted successfully"},
+          "404": {"description": "Property not found"}
+        }
+      }
+    },
+    "/api/buildings/statistics": {
+      "get": {
+        "tags": ["Buildings"],
+        "summary": "Get Building Statistics",
+        "description": "Get optimized building statistics with database-level calculations (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "propertyId", "in": "query", "schema": {"type": "string"}},
+          {"name": "clientId", "in": "query", "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {
+            "description": "Building statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                                         "data": {
+                       "type": "object",
+                       "properties": {
+                         "statistics": {
+                           "type": "object",
+                           "properties": {
+                             "totalBuildings": {"type": "integer"},
+                             "totalArea": {"type": "number"},
+                             "maintenanceUpdates": {"type": "integer"},
+                             "totalMaintenanceCost": {
+                               "type": "object",
+                               "properties": {
+                                 "doors": {"type": "number"},
+                                 "floors": {"type": "number"},
+                                 "windows": {"type": "number"},
+                                 "walls": {"type": "number"},
+                                 "roofs": {"type": "number"},
+                                 "areas": {"type": "number"}
+                               }
+                             }
+                           }
+                         }
+                       }
+                     }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/buildings": {
+      "get": {
+        "tags": ["Buildings"],
+        "summary": "Get All Buildings",
+        "description": "Get all buildings with pagination and filters (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "page", "in": "query", "schema": {"type": "integer", "default": 1}},
+          {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 10}},
+          {"name": "propertyId", "in": "query", "schema": {"type": "string"}},
+          {"name": "clientId", "in": "query", "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"description": "Buildings retrieved successfully"}
+        }
+      },
+      "post": {
+        "tags": ["Buildings"],
+        "summary": "Create Building",
+        "description": "Create a new building (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["buildingName", "buildingId", "propertyId"],
+                "properties": {
+                  "buildingName": {"type": "string", "example": "Main Office Building"},
+                  "description": {"type": "string", "example": "Primary office building"},
+                  "buildingId": {"type": "string", "example": "MOB001"},
+                  "contactPerson": {"type": "string", "example": "Building Manager"},
+                  "contactEmail": {"type": "string", "format": "email", "example": "manager@building.com"},
+                  "contactPhone": {"type": "string", "example": "+1234567890"},
+                  "address": {"type": "string", "example": "123 Building St, City"},
+                  "constructionYear": {"type": "integer", "example": 2020},
+                  "propertyId": {"type": "string", "example": "property-id-here"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Building created successfully"},
+          "400": {"description": "Validation error"},
+          "404": {"description": "Property not found"}
+        }
+      }
+    },
+    "/api/buildings/{id}": {
+      "get": {
+        "tags": ["Buildings"],
+        "summary": "Get Building by ID",
+        "description": "Get building by ID (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"description": "Building retrieved successfully"},
+          "404": {"description": "Building not found"}
+        }
+      }
+    },
+    "/api/buildings/update-maintenance": {
+      "put": {
+        "tags": ["Buildings"],
+        "summary": "Update Building Maintenance",
+        "description": "Update building maintenance dates (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["buildingId", "objectIds", "maintenanceDate"],
+                "properties": {
+                  "buildingId": {"type": "string", "example": "building-id-here"},
+                  "objectIds": {"type": "array", "items": {"type": "string"}, "example": ["obj1", "obj2"]},
+                  "maintenanceDate": {"type": "string", "format": "date-time", "example": "2024-12-31T23:59:59.000Z"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Maintenance dates updated successfully"},
+          "400": {"description": "Validation error"},
+          "404": {"description": "Building not found"}
+        }
+      }
+    },
+    "/api/clients/register": {
+      "post": {
+        "tags": ["Clients"],
+        "summary": "Register Client",
+        "description": "Create a new client with optional user creation (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "organizationNumber", "primaryContactName", "primaryContactEmail", "primaryContactPhone", "address", "industryType", "timezone"],
+                "properties": {
+                  "name": {"type": "string", "example": "Acme Corporation"},
+                  "organizationNumber": {"type": "string", "example": "123456-7890"},
+                  "primaryContactName": {"type": "string", "example": "John Doe"},
+                  "primaryContactEmail": {"type": "string", "format": "email", "example": "john.doe@acme.com"},
+                  "primaryContactPhone": {"type": "string", "example": "+1234567890"},
+                  "address": {"type": "string", "example": "123 Business St, City, Country"},
+                  "industryType": {"type": "string", "example": "Technology"},
+                  "timezone": {"type": "string", "example": "UTC+1"},
+                  "user": {
+                    "type": "object",
+                    "properties": {
+                      "username": {"type": "string", "example": "acme.user"},
+                      "email": {"type": "string", "format": "email", "example": "user@acme.com"},
+                      "contact": {"type": "string", "example": "+1234567890"}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Client created successfully"},
+          "400": {"description": "Validation error"},
+          "409": {"description": "Client with this email already exists"}
+        }
+      }
+    },
+    "/api/clients/get-clients": {
+      "post": {
+        "tags": ["Clients"],
+        "summary": "Get Clients",
+        "description": "Get clients with filters and pagination (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientName": {"type": "string", "example": "Acme"},
+                  "clientId": {"type": "string", "example": "client-id-here"},
+                  "status": {"type": "string", "example": "active"},
+                  "createdOn": {"type": "string", "example": "2024-01-01"},
+                  "maintananceCost": {"type": "number", "example": 5000},
+                  "properties": {"type": "integer", "example": 10},
+                  "page": {"type": "integer", "default": 1},
+                  "limit": {"type": "integer", "default": 10}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Clients retrieved successfully"}
+        }
+      }
+    },
+    "/api/admin/register-user": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Register Standard User",
+        "description": "Create a new standard user (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "email", "clientId"],
+                "properties": {
+                  "username": {"type": "string", "example": "john.doe"},
+                  "email": {"type": "string", "format": "email", "example": "john.doe@example.com"},
+                  "contact": {"type": "string", "example": "+1234567890"},
+                  "clientId": {"type": "string", "example": "client-id-here"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "User created successfully"},
+          "400": {"description": "Validation error"},
+          "409": {"description": "User with this email already exists"}
+        }
+      }
+    },
+    "/api/admin/standard-users": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get Standard Users",
+        "description": "Get all standard users (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {"description": "Users retrieved successfully"}
+        }
+      }
+    },
+    "/api/admin/profile/{id}": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update User",
+        "description": "Update user profile (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {"type": "string", "example": "updated.username"},
+                  "email": {"type": "string", "format": "email", "example": "updated@example.com"},
+                  "contact": {"type": "string", "example": "+1234567890"},
+                  "status": {"type": "string", "example": "active"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "User updated successfully"},
+          "404": {"description": "User not found"}
+        }
+      }
+    },
+    "/api/admin/delete-users/{id}": {
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Delete Standard User",
+        "description": "Delete a standard user (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"description": "User deleted successfully"},
+          "404": {"description": "User not found"}
+        }
+      }
+    },
+    "/api/admin/maintenance-costs": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get Maintenance Costs",
+        "description": "Get total maintenance costs and individual costs for different building components using database aggregation queries (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "propertyId", "in": "query", "schema": {"type": "string"}, "description": "Filter costs by specific property ID"},
+          {"name": "clientId", "in": "query", "schema": {"type": "string"}, "description": "Filter costs by specific client ID"}
+        ],
+        "responses": {
+          "200": {
+            "description": "Maintenance costs calculated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "summary": {
+                          "type": "object",
+                          "properties": {
+                            "totalMaintenanceCost": {"type": "number", "description": "Total cost across all maintenance categories"},
+                            "totalBuildings": {"type": "number", "description": "Total number of buildings in scope"},
+                            "totalArea": {"type": "number", "description": "Total area of all buildings in scope"},
+                            "maintenanceUpdates": {"type": "number", "description": "Total number of maintenance items"}
+                          }
+                        },
+                        "breakdown": {
+                          "type": "object",
+                          "properties": {
+                            "totalCosts": {
+                              "type": "object",
+                              "properties": {
+                                "doors": {"type": "number", "description": "Total cost for door maintenance"},
+                                "floors": {"type": "number", "description": "Total cost for floor maintenance"},
+                                "windows": {"type": "number", "description": "Total cost for window maintenance"},
+                                "walls": {"type": "number", "description": "Total cost for wall maintenance"},
+                                "roofs": {"type": "number", "description": "Total cost for roof maintenance"},
+                                "areas": {"type": "number", "description": "Total cost for area maintenance"}
+                              }
+                            },
+                            "detailedCosts": {
+                              "type": "object",
+                              "properties": {
+                                "doors": {
+                                  "type": "object",
+                                  "properties": {
+                                    "total": {"type": "number", "description": "Total cost for doors"},
+                                    "count": {"type": "number", "description": "Number of door items"},
+                                    "average": {"type": "number", "description": "Average cost per door item"}
+                                  }
+                                },
+                                "floors": {
+                                  "type": "object",
+                                  "properties": {
+                                    "total": {"type": "number", "description": "Total cost for floors"},
+                                    "count": {"type": "number", "description": "Number of floor items"},
+                                    "average": {"type": "number", "description": "Average cost per floor item"}
+                                  }
+                                },
+                                "windows": {
+                                  "type": "object",
+                                  "properties": {
+                                    "total": {"type": "number", "description": "Total cost for windows"},
+                                    "count": {"type": "number", "description": "Number of window items"},
+                                    "average": {"type": "number", "description": "Average cost per window item"}
+                                  }
+                                },
+                                "walls": {
+                                  "type": "object",
+                                  "properties": {
+                                    "total": {"type": "number", "description": "Total cost for walls"},
+                                    "count": {"type": "number", "description": "Number of wall items"},
+                                    "average": {"type": "number", "description": "Average cost per wall item"}
+                                  }
+                                },
+                                "roofs": {
+                                  "type": "object",
+                                  "properties": {
+                                    "total": {"type": "number", "description": "Total cost for roofs"},
+                                    "count": {"type": "number", "description": "Number of roof items"},
+                                    "average": {"type": "number", "description": "Average cost per roof item"}
+                                  }
+                                },
+                                "areas": {
+                                  "type": "object",
+                                  "properties": {
+                                    "total": {"type": "number", "description": "Total cost for areas"},
+                                    "count": {"type": "number", "description": "Number of area items"},
+                                    "average": {"type": "number", "description": "Average cost per area item"}
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "filters": {
+                          "type": "object",
+                          "properties": {
+                            "propertyId": {"type": "string", "nullable": true, "description": "Applied property filter"},
+                            "clientId": {"type": "string", "nullable": true, "description": "Applied client filter"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {"description": "Unauthorized"},
+          "403": {"description": "Admin access required"},
+          "500": {"description": "Internal server error"}
+        }
+      }
+    },
+    "/api/users/profile/{id}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get User Profile",
+        "description": "Get user profile (Admin can get any user, standard users can only get their own)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": false, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"description": "User profile retrieved successfully"},
+          "404": {"description": "User not found"}
+        }
+      }
+    },
+    "/api/users/profile": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Update User Profile",
+        "description": "Update user profile (Standard users only)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {"type": "string", "example": "updated.username"},
+                  "email": {"type": "string", "format": "email", "example": "updated@example.com"},
+                  "contact": {"type": "string", "example": "+1234567890"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Profile updated successfully"},
+          "409": {"description": "User with this email already exists"}
+        }
+      }
+    },
+    "/api/users/get-users/{clientId}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get Users by Client",
+        "description": "Get users associated with a specific client (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "clientId", "in": "path", "required": false, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"description": "Users retrieved successfully"}
+        }
+      }
+    },
+    "/api/pricelist": {
+      "get": {
+        "tags": ["Pricelist"],
+        "summary": "Get All Pricelists",
+        "description": "Get all pricelists with optional filters",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "search", "in": "query", "schema": {"type": "string"}},
+          {"name": "isGlobal", "in": "query", "schema": {"type": "boolean"}},
+          {"name": "page", "in": "query", "schema": {"type": "integer", "default": 1}},
+          {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 10}}
+        ],
+        "responses": {
+          "200": {"description": "Pricelists retrieved successfully"}
+        }
+      },
+      "post": {
+        "tags": ["Pricelist"],
+        "summary": "Create Pricelist from Blob",
+        "description": "Create pricelist from Azure blob storage file (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["buildingId", "fileUrl"],
+                "properties": {
+                  "buildingId": {"type": "string", "example": "building-id-here"},
+                  "fileUrl": {"type": "string", "example": "https://storage.blob.core.windows.net/container/file.csv"},
+                  "name": {"type": "string", "example": "Building Pricelist"},
+                  "isGlobal": {"type": "boolean", "default": false},
+                  "isActive": {"type": "boolean", "default": true},
+                  "effectiveFrom": {"type": "string", "format": "date-time", "example": "2024-01-01T00:00:00.000Z"},
+                  "sasToken": {"type": "string", "example": "sv=2020-08-04&st=...&se=...&sp=r&sig=..."}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Pricelist created successfully"},
+          "400": {"description": "Validation error"},
+          "404": {"description": "Building not found"}
+        }
+      }
+    },
+    "/api/pricelist/{id}": {
+      "get": {
+        "tags": ["Pricelist"],
+        "summary": "Get Pricelist by ID",
+        "description": "Get pricelist by ID",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"description": "Pricelist retrieved successfully"},
+          "404": {"description": "Pricelist not found"}
+        }
+      },
+      "put": {
+        "tags": ["Pricelist"],
+        "summary": "Update Pricelist",
+        "description": "Update pricelist (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string", "example": "Updated Pricelist"},
+                  "isActive": {"type": "boolean", "default": true},
+                  "effectiveFrom": {"type": "string", "format": "date-time", "example": "2024-01-01T00:00:00.000Z"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Pricelist updated successfully"},
+          "404": {"description": "Pricelist not found"}
+        }
+      },
+      "delete": {
+        "tags": ["Pricelist"],
+        "summary": "Delete Pricelist",
+        "description": "Delete pricelist (Admin only)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"description": "Pricelist deleted successfully"},
+          "404": {"description": "Pricelist not found"}
+        }
+      }
+    },
+    "/api/pricelist/test-azure-storage": {
+      "get": {
+        "tags": ["Pricelist"],
+        "summary": "Test Azure Storage",
+        "description": "Test Azure Storage configuration",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {"description": "Azure Storage test completed"},
+          "500": {"description": "Azure Storage test failed"}
+        }
+      }
+    }
+  },
+  "tags": [
+    {"name": "Health Check", "description": "API health check endpoints"},
+    {"name": "Authentication", "description": "User authentication and authorization endpoints"},
+    {"name": "Properties", "description": "Property management endpoints"},
+    {"name": "Buildings", "description": "Building management endpoints"},
+    {"name": "Clients", "description": "Client management endpoints"},
+    {"name": "Admin", "description": "Admin-only user management endpoints"},
+    {"name": "Users", "description": "User profile management endpoints"},
+    {"name": "Pricelist", "description": "Pricelist management endpoints"}
+  ]
+} 
