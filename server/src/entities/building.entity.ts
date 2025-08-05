@@ -164,6 +164,7 @@ export const updateBuilding = async (id: string, buildingData: Partial<Building>
 export const calculateBuildingStatistics = async (filters?: {
   propertyId?: string;
   clientId?: string;
+  search?: string;
 }): Promise<{
   totalBuildings: number;
   totalArea: number;
@@ -197,6 +198,12 @@ export const calculateBuildingStatistics = async (filters?: {
       if (filters.clientId) {
         conditions.push('c.clientId = @clientId')
         parameters.push({ name: '@clientId', value: filters.clientId })
+      }
+      
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase()
+        conditions.push('(CONTAINS(LOWER(c.name), @search) OR CONTAINS(LOWER(c.description), @search) OR CONTAINS(LOWER(c.metadata.buildingType), @search))')
+        parameters.push({ name: '@search', value: searchTerm })
       }
       
       if (conditions.length > 0) {
@@ -346,7 +353,7 @@ export const calculateBuildingStatistics = async (filters?: {
 export const getBuildingsWithPaginationAndFilters = async (
   page: number, 
   limit: number, 
-  filters?: { propertyId?: string; clientId?: string }
+  filters?: { propertyId?: string; clientId?: string; search?: string }
 ): Promise<{
   buildings: Building[];
   total: number;
@@ -360,56 +367,90 @@ export const getBuildingsWithPaginationAndFilters = async (
     let countQuery: any
     let areaQuery: any
     
+    // Helper function to build search condition
+    const buildSearchCondition = (baseQuery: string, parameters: any[]) => {
+      if (filters?.search) {
+        const searchTerm = filters.search.toLowerCase()
+        const searchCondition = `AND (CONTAINS(LOWER(c.name), @search) OR CONTAINS(LOWER(c.description), @search) OR CONTAINS(LOWER(c.metadata.buildingType), @search))`
+        return {
+          query: baseQuery.replace('ORDER BY', searchCondition + ' ORDER BY'),
+          parameters: [...parameters, { name: '@search', value: searchTerm }]
+        }
+      }
+      return { query: baseQuery, parameters }
+    }
+    
     if (filters?.propertyId && filters?.clientId) {
       // Both filters applied
-      query = {
-        query: 'SELECT * FROM c WHERE c.propertyId = @propertyId AND c.clientId = @clientId ORDER BY c.createdAt DESC',
-        parameters: [
-          { name: '@propertyId', value: filters.propertyId },
-          { name: '@clientId', value: filters.clientId }
-        ]
-      }
-      countQuery = {
-        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.propertyId = @propertyId AND c.clientId = @clientId',
-        parameters: [
-          { name: '@propertyId', value: filters.propertyId },
-          { name: '@clientId', value: filters.clientId }
-        ]
-      }
-      areaQuery = {
-        query: 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.propertyId = @propertyId AND c.clientId = @clientId',
-        parameters: [
-          { name: '@propertyId', value: filters.propertyId },
-          { name: '@clientId', value: filters.clientId }
-        ]
-      }
+      const baseQuery = 'SELECT * FROM c WHERE c.propertyId = @propertyId AND c.clientId = @clientId ORDER BY c.createdAt DESC'
+      const baseParameters = [
+        { name: '@propertyId', value: filters.propertyId },
+        { name: '@clientId', value: filters.clientId }
+      ]
+      
+      const searchResult = buildSearchCondition(baseQuery, baseParameters)
+      query = searchResult
+      
+      // Build count query with search
+      const countBaseQuery = 'SELECT VALUE COUNT(1) FROM c WHERE c.propertyId = @propertyId AND c.clientId = @clientId'
+      const countSearchResult = buildSearchCondition(countBaseQuery, baseParameters)
+      countQuery = countSearchResult
+      
+      // Build area query with search
+      const areaBaseQuery = 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.propertyId = @propertyId AND c.clientId = @clientId'
+      const areaSearchResult = buildSearchCondition(areaBaseQuery, baseParameters)
+      areaQuery = areaSearchResult
+      
     } else if (filters?.propertyId) {
       // Only propertyId filter
-      query = {
-        query: 'SELECT * FROM c WHERE c.propertyId = @propertyId ORDER BY c.createdAt DESC',
-        parameters: [{ name: '@propertyId', value: filters.propertyId }]
-      }
-      countQuery = {
-        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.propertyId = @propertyId',
-        parameters: [{ name: '@propertyId', value: filters.propertyId }]
-      }
-      areaQuery = {
-        query: 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.propertyId = @propertyId',
-        parameters: [{ name: '@propertyId', value: filters.propertyId }]
-      }
+      const baseQuery = 'SELECT * FROM c WHERE c.propertyId = @propertyId ORDER BY c.createdAt DESC'
+      const baseParameters = [{ name: '@propertyId', value: filters.propertyId }]
+      
+      const searchResult = buildSearchCondition(baseQuery, baseParameters)
+      query = searchResult
+      
+      // Build count query with search
+      const countBaseQuery = 'SELECT VALUE COUNT(1) FROM c WHERE c.propertyId = @propertyId'
+      const countSearchResult = buildSearchCondition(countBaseQuery, baseParameters)
+      countQuery = countSearchResult
+      
+      // Build area query with search
+      const areaBaseQuery = 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.propertyId = @propertyId'
+      const areaSearchResult = buildSearchCondition(areaBaseQuery, baseParameters)
+      areaQuery = areaSearchResult
+      
     } else if (filters?.clientId) {
       // Only clientId filter
-      query = {
-        query: 'SELECT * FROM c WHERE c.clientId = @clientId ORDER BY c.createdAt DESC',
-        parameters: [{ name: '@clientId', value: filters.clientId }]
+      const baseQuery = 'SELECT * FROM c WHERE c.clientId = @clientId ORDER BY c.createdAt DESC'
+      const baseParameters = [{ name: '@clientId', value: filters.clientId }]
+      
+      const searchResult = buildSearchCondition(baseQuery, baseParameters)
+      query = searchResult
+      
+      // Build count query with search
+      const countBaseQuery = 'SELECT VALUE COUNT(1) FROM c WHERE c.clientId = @clientId'
+      const countSearchResult = buildSearchCondition(countBaseQuery, baseParameters)
+      countQuery = countSearchResult
+      
+      // Build area query with search
+      const areaBaseQuery = 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.clientId = @clientId'
+      const areaSearchResult = buildSearchCondition(areaBaseQuery, baseParameters)
+      areaQuery = areaSearchResult
+      
+    } else if (filters?.search) {
+      // Only search filter
+      const searchTerm = filters.search.toLowerCase()
+      const baseQuery = 'SELECT * FROM c WHERE (CONTAINS(LOWER(c.name), @search) OR CONTAINS(LOWER(c.description), @search) OR CONTAINS(LOWER(c.metadata.buildingType), @search)) ORDER BY c.createdAt DESC'
+      const baseParameters = [{ name: '@search', value: searchTerm }]
+      
+      query = { query: baseQuery, parameters: baseParameters }
+      countQuery = { 
+        query: 'SELECT VALUE COUNT(1) FROM c WHERE (CONTAINS(LOWER(c.name), @search) OR CONTAINS(LOWER(c.description), @search) OR CONTAINS(LOWER(c.metadata.buildingType), @search))',
+        parameters: baseParameters
       }
-      countQuery = {
-        query: 'SELECT VALUE COUNT(1) FROM c WHERE c.clientId = @clientId',
-        parameters: [{ name: '@clientId', value: filters.clientId }]
-      }
-      areaQuery = {
-        query: 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE c.clientId = @clientId',
-        parameters: [{ name: '@clientId', value: filters.clientId }]
+      areaQuery = { 
+        query: 'SELECT VALUE SUM(c.metadata.totalArea) FROM c WHERE (CONTAINS(LOWER(c.name), @search) OR CONTAINS(LOWER(c.description), @search) OR CONTAINS(LOWER(c.metadata.buildingType), @search))',
+        parameters: baseParameters
       }
     } else {
       // No filters - use existing pagination function
@@ -443,7 +484,7 @@ export const getBuildingsWithPaginationAndFilters = async (
 
 // Get total area based on filters
 export const getTotalAreaByFilters = async (
-  filters?: { propertyId?: string; clientId?: string }
+  filters?: { propertyId?: string; clientId?: string; search?: string }
 ): Promise<number> => {
   try {
     const buildingsContainer = getBuildingsContainer()
@@ -460,6 +501,12 @@ export const getTotalAreaByFilters = async (
     if (filters?.clientId) {
       conditions.push('c.clientId = @clientId')
       parameters.push({ name: '@clientId', value: filters.clientId })
+    }
+
+    if (filters?.search) {
+      const searchTerm = filters.search.toLowerCase()
+      conditions.push('(CONTAINS(LOWER(c.name), @search) OR CONTAINS(LOWER(c.description), @search) OR CONTAINS(LOWER(c.metadata.buildingType), @search))')
+      parameters.push({ name: '@search', value: searchTerm })
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
@@ -481,6 +528,7 @@ export const getTotalAreaByFilters = async (
 export const getBuildingStatisticsOptimized = async (filters?: {
   propertyId?: string;
   clientId?: string;
+  search?: string;
 }): Promise<{
   totalBuildings: number;
   totalArea: number;
@@ -514,6 +562,12 @@ export const getBuildingStatisticsOptimized = async (filters?: {
       if (filters.clientId) {
         conditions.push('c.clientId = @clientId')
         parameters.push({ name: '@clientId', value: filters.clientId })
+      }
+      
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase()
+        conditions.push('(CONTAINS(LOWER(c.name), @search) OR CONTAINS(LOWER(c.description), @search) OR CONTAINS(LOWER(c.metadata.buildingType), @search))')
+        parameters.push({ name: '@search', value: searchTerm })
       }
       
       if (conditions.length > 0) {
@@ -664,3 +718,51 @@ export const getBuildingStatisticsOptimized = async (filters?: {
   }
 }
 
+
+// Helper function to calculate total objects used from building objects
+export const calculateTotalObjectsUsed = (buildingObjects: any): number => {
+  if (!buildingObjects) return 0
+  
+  let totalObjects = 0
+  
+  // If buildingObjects is an array
+  if (Array.isArray(buildingObjects)) {
+    for (const obj of buildingObjects) {
+      // Add count if it exists (for doors, windows, etc.)
+      if (obj.count && typeof obj.count === 'number') {
+        totalObjects += obj.count
+      }
+      // For area-based objects, count as 1 if area exists
+      else if (obj.area && typeof obj.area === 'number') {
+        totalObjects += 1
+      }
+      // If neither count nor area, count as 1
+      else {
+        totalObjects += 1
+      }
+    }
+  }
+  // If buildingObjects is an object with sections
+  else if (typeof buildingObjects === 'object') {
+    for (const section of Object.values(buildingObjects)) {
+      if (Array.isArray(section)) {
+        for (const obj of section) {
+          // Add count if it exists (for doors, windows, etc.)
+          if (obj.count && typeof obj.count === 'number') {
+            totalObjects += obj.count
+          }
+          // For area-based objects, count as 1 if area exists
+          else if (obj.area && typeof obj.area === 'number') {
+            totalObjects += 1
+          }
+          // If neither count nor area, count as 1
+          else {
+            totalObjects += 1
+          }
+        }
+      }
+    }
+  }
+  
+  return totalObjects
+}

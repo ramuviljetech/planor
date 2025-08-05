@@ -3,11 +3,11 @@
   "info": {
     "title": "Property Management API",
     "description": "Complete API for Property Management System",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "servers": [
     {
-      "url": "http://localhost:3001",
+      "url": "http://192.168.0.9:3001",
       "description": "Development server"
     }
   ],
@@ -233,105 +233,9 @@
           "200": {"description": "Property retrieved successfully"},
           "404": {"description": "Property not found"}
         }
-      },
-      "put": {
-        "tags": ["Properties"],
-        "summary": "Update Property",
-        "description": "Update property (Admin only)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "propertyName": {"type": "string"},
-                  "propertyCode": {"type": "string"},
-                  "address": {"type": "string"},
-                  "city": {"type": "string"},
-                  "primaryContactName": {"type": "string"},
-                  "email": {"type": "string", "format": "email"},
-                  "phone": {"type": "string"}
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {"description": "Property updated successfully"},
-          "404": {"description": "Property not found"}
-        }
-      },
-      "delete": {
-        "tags": ["Properties"],
-        "summary": "Delete Property",
-        "description": "Delete property (Admin only)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
-        ],
-        "responses": {
-          "200": {"description": "Property deleted successfully"},
-          "404": {"description": "Property not found"}
-        }
       }
     },
-    "/api/buildings/statistics": {
-      "get": {
-        "tags": ["Buildings"],
-        "summary": "Get Building Statistics",
-        "description": "Get optimized building statistics with database-level calculations (Admin only)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [
-          {"name": "propertyId", "in": "query", "schema": {"type": "string"}},
-          {"name": "clientId", "in": "query", "schema": {"type": "string"}}
-        ],
-        "responses": {
-          "200": {
-            "description": "Building statistics retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {"type": "boolean"},
-                    "message": {"type": "string"},
-                                         "data": {
-                       "type": "object",
-                       "properties": {
-                         "statistics": {
-                           "type": "object",
-                           "properties": {
-                             "totalBuildings": {"type": "integer"},
-                             "totalArea": {"type": "number"},
-                             "maintenanceUpdates": {"type": "integer"},
-                             "totalMaintenanceCost": {
-                               "type": "object",
-                               "properties": {
-                                 "doors": {"type": "number"},
-                                 "floors": {"type": "number"},
-                                 "windows": {"type": "number"},
-                                 "walls": {"type": "number"},
-                                 "roofs": {"type": "number"},
-                                 "areas": {"type": "number"}
-                               }
-                             }
-                           }
-                         }
-                       }
-                     }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
+   
     "/api/buildings": {
       "get": {
         "tags": ["Buildings"],
@@ -342,7 +246,8 @@
           {"name": "page", "in": "query", "schema": {"type": "integer", "default": 1}},
           {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 10}},
           {"name": "propertyId", "in": "query", "schema": {"type": "string"}},
-          {"name": "clientId", "in": "query", "schema": {"type": "string"}}
+          {"name": "clientId", "in": "query", "schema": {"type": "string"}},
+          {"name": "search", "in": "query", "schema": {"type": "string"}}
         ],
         "responses": {
           "200": {"description": "Buildings retrieved successfully"}
@@ -486,7 +391,6 @@
                   "status": {"type": "string", "example": "active"},
                   "createdOn": {"type": "string", "example": "2024-01-01"},
                   "maintananceCost": {"type": "number", "example": 5000},
-                  "properties": {"type": "integer", "example": 10},
                   "page": {"type": "integer", "default": 1},
                   "limit": {"type": "integer", "default": 10}
                 }
@@ -540,60 +444,14 @@
         }
       }
     },
-    "/api/admin/profile/{id}": {
-      "put": {
-        "tags": ["Admin"],
-        "summary": "Update User",
-        "description": "Update user profile (Admin only)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "username": {"type": "string", "example": "updated.username"},
-                  "email": {"type": "string", "format": "email", "example": "updated@example.com"},
-                  "contact": {"type": "string", "example": "+1234567890"},
-                  "status": {"type": "string", "example": "active"}
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {"description": "User updated successfully"},
-          "404": {"description": "User not found"}
-        }
-      }
-    },
-    "/api/admin/delete-users/{id}": {
-      "delete": {
-        "tags": ["Admin"],
-        "summary": "Delete Standard User",
-        "description": "Delete a standard user (Admin only)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
-        ],
-        "responses": {
-          "200": {"description": "User deleted successfully"},
-          "404": {"description": "User not found"}
-        }
-      }
-    },
     "/api/admin/maintenance-costs": {
       "get": {
         "tags": ["Admin"],
         "summary": "Get Maintenance Costs",
-        "description": "Get total maintenance costs and individual costs for different building components using database aggregation queries (Admin only)",
+        "description": "Get total maintenance costs and individual costs for different building components using database aggregation queries (Admin only) ",
         "security": [{"bearerAuth": []}],
         "parameters": [
-          {"name": "propertyId", "in": "query", "schema": {"type": "string"}, "description": "Filter costs by specific property ID"},
+          {"name": "propertyId", "in": "query", "schema": {"type": "string"}, "description": "Filter costs by specific property ID "},
           {"name": "clientId", "in": "query", "schema": {"type": "string"}, "description": "Filter costs by specific client ID"}
         ],
         "responses": {
@@ -770,8 +628,6 @@
         "description": "Get all pricelists with optional filters",
         "security": [{"bearerAuth": []}],
         "parameters": [
-          {"name": "search", "in": "query", "schema": {"type": "string"}},
-          {"name": "isGlobal", "in": "query", "schema": {"type": "boolean"}},
           {"name": "page", "in": "query", "schema": {"type": "integer", "default": 1}},
           {"name": "limit", "in": "query", "schema": {"type": "integer", "default": 10}}
         ],
@@ -840,9 +696,8 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": {"type": "string", "example": "Updated Pricelist"},
-                  "isActive": {"type": "boolean", "default": true},
-                  "effectiveFrom": {"type": "string", "format": "date-time", "example": "2024-01-01T00:00:00.000Z"}
+                  "price": {"type": "number", "example": 1000}
+                 
                 }
               }
             }
@@ -850,19 +705,6 @@
         },
         "responses": {
           "200": {"description": "Pricelist updated successfully"},
-          "404": {"description": "Pricelist not found"}
-        }
-      },
-      "delete": {
-        "tags": ["Pricelist"],
-        "summary": "Delete Pricelist",
-        "description": "Delete pricelist (Admin only)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
-        ],
-        "responses": {
-          "200": {"description": "Pricelist deleted successfully"},
           "404": {"description": "Pricelist not found"}
         }
       }

@@ -55,7 +55,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     if (error instanceof jwt.JsonWebTokenError) {
       res.status(401).json({
         success: false,
-        error: 'Invalid token'
+        error: 'Invalid token or token expired'
       });
       return;
     }

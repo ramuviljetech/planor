@@ -209,31 +209,34 @@ export const updateUserSchema = Joi.object({
   name: Joi.string()
     .min(2)
     .max(100)
-    .optional()
+    .required()
     .messages({
       'string.min': 'Name must be at least 2 characters long',
       'string.max': 'Name cannot exceed 100 characters',
-      'string.empty': 'Name cannot be empty'
+      'string.empty': 'Name cannot be empty',
+      'any.required': 'Name is required'
     }),
   email: Joi.string()
     .email({ tlds: { allow: false } })
-    .optional()
+    .required()
     .messages({
       'string.email': 'Please provide a valid email address',
-      'string.empty': 'Email cannot be empty'
+      'string.empty': 'Email cannot be empty',
+      'any.required': 'Email is required'
     }),
   status: Joi.string()
     .valid('active', 'deactive', 'block')
-    .optional()
+    .required()
     .messages({
       'any.only': 'Status must be active, deactive, or block'
     }),
   password: Joi.string()
     .min(8)
-    .optional()
+      .required()
     .messages({
       'string.min': 'Password must be at least 8 characters long',
-      'string.empty': 'Password cannot be empty'
+      'string.empty': 'Password cannot be empty',
+      'any.required': 'Password is required'
     })
 })
 

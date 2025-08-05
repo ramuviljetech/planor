@@ -20,7 +20,6 @@ import {
 import { hashPassword } from '../utils/common'
 import { sendWelcomeMail, isMailjetConfigured } from '../services/mail.service'
 import { 
-  createClientOnlySchema, 
   createUserOnlySchema, 
 } from '../validation/admin.validation'
 import { getBuildingStatisticsOptimized } from '../entities/building.entity'
@@ -487,17 +486,18 @@ export const getMaintenanceCosts = async (req: Request, res: Response) => {
       success: true,
       message: 'Maintenance costs calculated successfully',
       data: {
-        summary: {
-          totalMaintenanceCost,
-          // totalBuildings: statistics.totalBuildings,
-          // totalArea: statistics.totalArea,
-          // maintenanceUpdates: statistics.maintenanceUpdates
-        },
-        breakdown: {
-          totalCosts: statistics.totalMaintenanceCost,
-          detailedCosts
-        }
-        // filters: {
+        totalCosts: statistics.totalMaintenanceCost
+        // summary: {
+        //   totalMaintenanceCost,
+        //   // totalBuildings: statistics.totalBuildings,
+        //   // totalArea: statistics.totalArea,
+        //   // maintenanceUpdates: statistics.maintenanceUpdates
+        // },
+        // breakdown: {
+        //   totalCosts: statistics.totalMaintenanceCost,
+        //   // detailedCosts
+        // }
+        // // filters: {
         //   propertyId: filters.propertyId || null,
         //   clientId: filters.clientId || null
         // }

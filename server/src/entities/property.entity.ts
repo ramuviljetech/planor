@@ -1,4 +1,4 @@
-import { Property, CreatePropertyRequest } from '../types'
+import { Property, CreatePropertyRequest, PropertyWithBuildingCount } from '../types'
 import { getPropertiesContainer } from '../config/database'
 
 // Find property by ID
@@ -375,3 +375,75 @@ export const calculatePropertyStatistics = async (filters?: {
     throw error
   }
 } 
+
+
+// Helper function to efficiently add building counts to properties
+export const addBuildingCountsToProperties = async (properties: Property[]): Promise<PropertyWithBuildingCount[]> => {
+  try {
+    if (properties.length === 0) {
+      return properties.map(property => ({ ...property, numOfBuildings: 0 }));
+    }
+
+    // Get all property IDs
+    const propertyIds = properties.map(property => property.id);
+    
+    // Import building functions
+    const { getBuildingsContainer } = await import('../config/database');
+    const buildingsContainer = getBuildingsContainer();
+
+    // Create a map to store building counts for each property
+    const buildingCountsMap = new Map<string, number>();
+    
+    // Initialize all properties with 0 building count
+    propertyIds.forEach(id => buildingCountsMap.set(id, 0));
+
+    try {
+      // For Cosmos DB, we'll use a more reliable approach by querying all buildings
+      // and filtering in memory since IN queries can be problematic
+      const allBuildingsQuery = {
+        query: 'SELECT c.propertyId FROM c'
+      };
+
+      const { resources: buildings } = await buildingsContainer.items.query(allBuildingsQuery).fetchAll();
+      
+      // Count buildings for each property using a more efficient approach
+      const propertyIdSet = new Set(propertyIds);
+      buildings.forEach(building => {
+        const propertyId = building.propertyId;
+        if (propertyIdSet.has(propertyId)) {
+          buildingCountsMap.set(propertyId, buildingCountsMap.get(propertyId)! + 1);
+        }
+      });
+    } catch (error) {
+      console.error('Error counting buildings efficiently:', error);
+      // Fallback: count buildings individually for each property
+      const { getBuildingsByPropertyId } = await import('../entities/building.entity');
+      
+      // Use Promise.all for parallel execution to improve performance
+      const buildingCountPromises = properties.map(async (property) => {
+        try {
+          const buildings = await getBuildingsByPropertyId(property.id);
+          return { propertyId: property.id, count: buildings.length };
+        } catch (buildingError) {
+          console.error(`Error counting buildings for property ${property.id}:`, buildingError);
+          return { propertyId: property.id, count: 0 };
+        }
+      });
+      
+      const buildingCounts = await Promise.all(buildingCountPromises);
+      buildingCounts.forEach(({ propertyId, count }) => {
+        buildingCountsMap.set(propertyId, count);
+      });
+    }
+
+    // Add building counts to properties
+    return properties.map(property => ({
+      ...property,
+      numOfBuildings: buildingCountsMap.get(property.id) || 0
+    }));
+  } catch (error) {
+    console.error('Error adding building counts to properties:', error);
+    // Return properties with 0 building count as fallback
+    return properties.map(property => ({ ...property, numOfBuildings: 0 }));
+  }
+};

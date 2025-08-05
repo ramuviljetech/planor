@@ -63,7 +63,7 @@ app.get('/api/health', (req, res) => {
 // Swagger Documentation
 // swagger
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const swaggerDocument = require("../swagger.json");
+import swaggerDocument from "../swagger.json";
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // API Routes
@@ -96,7 +96,7 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`🚀 Planör Portal API server running on port ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-      console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
+      console.log(`📚 API Documentation:http://192.168.0.9:3001/api-docs`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

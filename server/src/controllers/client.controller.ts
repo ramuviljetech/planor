@@ -10,7 +10,6 @@ import {
 import {
     findUserByEmail,
     createUser,
-    getStandardUsers 
 } from '../entities/admin.entity'
 import { findClientByEmail, createClient } from '../entities/client.entity'
 import { hashPassword } from '../utils/common'
@@ -19,7 +18,7 @@ import {
     createClientOnlySchema,
     createClientAndUserSchema
 } from '../validation/admin.validation'
-import { getUsersContainer,getBuildingsContainer } from '../config/database'
+import { getUsersContainer, getBuildingsContainer, getPropertiesContainer, getPricelistContainer } from '../config/database'
 
 // Create new client (Admin only) - can create client only or client + users
 export const registerClient = async (req: Request, res: Response) => {
@@ -185,7 +184,6 @@ export const registerClient = async (req: Request, res: Response) => {
 }
 
 // Get clients with filters (Admin only)
-// This function retrieves clients based on various filters and pagination options.
 //filters: clientName, clientId, status, createdOn, maintananceCost, properties
 //!total file uploads pending
 export const getClients = async (req: Request, res: Response) => {
@@ -202,6 +200,8 @@ export const getClients = async (req: Request, res: Response) => {
 
     const usersContainer = getUsersContainer();
     const buildingsContainer = getBuildingsContainer();
+    const propertiesContainer = getPropertiesContainer();
+    const pricelistContainer = getPricelistContainer();
 
     // --- Build client query with filters ---
     let query = 'SELECT * FROM c WHERE c.role = "client"';
@@ -253,11 +253,10 @@ export const getClients = async (req: Request, res: Response) => {
     ] = await Promise.all([
       usersContainer.items.query({ query, parameters }).fetchAll(),
 
-      usersContainer.items.query({
+      propertiesContainer.items.query({
         query: `
           SELECT c.clientId, COUNT(1) AS propertyCount
           FROM c 
-          WHERE c.type = "property"
           GROUP BY c.clientId
         `
       }).fetchAll(),
@@ -284,6 +283,109 @@ export const getClients = async (req: Request, res: Response) => {
       propertyCountMap.set(row.clientId, row.propertyCount);
     }
 
+    // --- Get maintenance costs for each client ---
+    const clientMaintenanceCosts = new Map<string, {
+      doors: number;
+      floors: number;
+      windows: number;
+      walls: number;
+      roofs: number;
+      areas: number;
+    }>();
+
+    // Get all buildings for the filtered clients
+    const clientIdsForMaintenance = clients.map(client => client.id);
+    
+    if (clientIdsForMaintenance.length > 0) {
+      const buildingsQuery = `
+        SELECT c.clientId, c.id as buildingId
+        FROM c
+        WHERE c.type = "building" AND ARRAY_CONTAINS(@clientIds, c.clientId)
+      `;
+
+      const buildingsResult = await buildingsContainer.items.query({
+        query: buildingsQuery,
+        parameters: [{ name: '@clientIds', value: clientIdsForMaintenance }]
+      }).fetchAll();
+
+      const buildingIds = buildingsResult.resources.map(b => b.buildingId);
+      
+      if (buildingIds.length > 0) {
+        // Get maintenance costs for all buildings
+        const maintenanceQuery = `
+          SELECT 
+            c.buildingId,
+            c.type,
+            SUM(c.price) as totalPrice
+          FROM c 
+          WHERE c.buildingId IN (${buildingIds.map((_, i) => `@buildingId${i}`).join(',')})
+          AND c.price > 0
+          GROUP BY c.buildingId, c.type
+        `;
+
+        const maintenanceResult = await pricelistContainer.items.query({
+          query: maintenanceQuery,
+          parameters: buildingIds.map((id, i) => ({ name: `@buildingId${i}`, value: id }))
+        }).fetchAll();
+
+        // Group maintenance costs by client
+        const clientBuildingMap = new Map<string, string[]>();
+        for (const building of buildingsResult.resources) {
+          const clientId = building.clientId;
+          if (!clientBuildingMap.has(clientId)) {
+            clientBuildingMap.set(clientId, []);
+          }
+          clientBuildingMap.get(clientId)!.push(building.buildingId);
+        }
+
+        // Calculate maintenance costs per client
+        for (const [clientId, buildingIds] of clientBuildingMap) {
+          let totalMaintenanceCost = {
+            doors: 0,
+            floors: 0,
+            windows: 0,
+            walls: 0,
+            roofs: 0,
+            areas: 0
+          };
+
+          for (const buildingId of buildingIds) {
+            const buildingMaintenance = maintenanceResult.resources.filter(
+              item => item.buildingId === buildingId
+            );
+
+            for (const item of buildingMaintenance) {
+              const type = item.type.toLowerCase();
+              const price = item.totalPrice || 0;
+
+              switch (type) {
+                case 'door':
+                  totalMaintenanceCost.doors += price;
+                  break;
+                case 'floor':
+                  totalMaintenanceCost.floors += price;
+                  break;
+                case 'window':
+                  totalMaintenanceCost.windows += price;
+                  break;
+                case 'wall':
+                  totalMaintenanceCost.walls += price;
+                  break;
+                case 'roof':
+                  totalMaintenanceCost.roofs += price;
+                  break;
+                case 'area':
+                  totalMaintenanceCost.areas += price;
+                  break;
+              }
+            }
+          }
+
+          clientMaintenanceCosts.set(clientId, totalMaintenanceCost);
+        }
+      }
+    }
+
     // --- Filter + transform clients ---
     const processedClients = clients
       .map(client => {
@@ -292,6 +394,15 @@ export const getClients = async (req: Request, res: Response) => {
         if (filters.properties !== undefined && propertiesCount !== filters.properties) {
           return null;
         }
+
+        const totalMaintenanceCost = clientMaintenanceCosts.get(client.id) ?? {
+          doors: 0,
+          floors: 0,
+          windows: 0,
+          walls: 0,
+          roofs: 0,
+          areas: 0
+        };
 
         return {
           id: client.id,
@@ -305,7 +416,8 @@ export const getClients = async (req: Request, res: Response) => {
           address: client.address,
           industryType: client.industryType,
           timezone: client.timezone,
-          updatedAt: client.updatedAt
+          updatedAt: client.updatedAt,
+          totalMaintenanceCost
         };
       })
       .filter(Boolean);

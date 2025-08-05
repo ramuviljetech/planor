@@ -7,7 +7,6 @@ import { createOtpRecord, deleteOtpRecord, findOtpByEmail, updateOtpRecord } fro
 import { sendMail } from '../services/mail.service'
 import { getUsersContainer } from '../config/database'
 import { hashPassword } from '../utils/common'
-import { updateUserProfile } from './users.controller'
 
 
 // User login

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
-import { Property, CreatePropertyRequest } from '../types'
+import { Property, CreatePropertyRequest, PropertyWithBuildingCount } from '../types'
 import {
   findPropertyById,
   findPropertyByCode,
@@ -13,7 +13,8 @@ import {
   deleteProperty,
   searchProperties,
   getPropertiesWithFilters,
-  calculatePropertyStatistics
+  calculatePropertyStatistics,
+  addBuildingCountsToProperties
 } from '../entities/property.entity'
 
 // Get all properties (Admin only) or properties by client ID
@@ -127,11 +128,14 @@ export const getAllPropertiesController = async (req: Request, res: Response) =>
       properties = allProperties.slice(startIndex, endIndex);
       statistics = await calculatePropertyStatistics(filters);
 
+      // Add numOfBuildings to each property efficiently
+      const propertiesWithBuildingCounts = await addBuildingCountsToProperties(properties);
+
       return res.json({
         success: true,
         message: 'Properties retrieved successfully for client',
         data: {
-          properties,
+          properties: propertiesWithBuildingCounts,
           count: totalItems,
           clientId,
           statistics,
@@ -165,11 +169,14 @@ export const getAllPropertiesController = async (req: Request, res: Response) =>
     properties = allProperties.slice(startIndex, endIndex);
     statistics = await calculatePropertyStatistics(Object.keys(filters).length > 0 ? filters : undefined);
 
+    // Add numOfBuildings to each property efficiently
+    const propertiesWithBuildingCounts = await addBuildingCountsToProperties(properties);
+
     return res.json({
       success: true,
       message: 'Properties retrieved successfully',
       data: {
-        properties,
+        properties: propertiesWithBuildingCounts,
         count: totalItems,
         statistics,
         pagination: {
@@ -205,11 +212,15 @@ export const getPropertyById = async (req: Request, res: Response) => {
       })
     }
 
+    // Add building count to the property
+    const propertyWithBuildingCount = await addBuildingCountsToProperties([property]);
+    const propertyWithCount = propertyWithBuildingCount[0];
+
     return res.json({
       success: true,
       message: 'Property retrieved successfully',
       data: {
-        property
+        property: propertyWithCount
       }
     })
   } catch (error) {

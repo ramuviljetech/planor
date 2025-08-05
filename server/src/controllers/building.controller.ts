@@ -4,33 +4,42 @@ import { Building, CreateBuildingRequest } from '../types'
 import {
   findBuildingById,
   createBuilding,
-  calculateBuildingStatistics,
   getBuildingsWithPaginationAndFilters,
   updateBuilding,
-  getBuildingStatisticsOptimized
+  getBuildingStatisticsOptimized,
+  calculateTotalObjectsUsed
 } from '../entities/building.entity'
 import { findPropertyById } from '../entities/property.entity'
 
-// *Get all buildings with pagination and search filters
-//!maintanance cost and maintenance updates keys are remaining
+
+
+
+// *Get all buildings with pagination and search filters  
+  //! calculate total objects using count..what about area?
 export const getAllBuildingsController = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user
-    const { page , limit, propertyId, clientId } = req.query
+    const { page , limit, propertyId, clientId ,search} = req.query
 
     // Parse pagination parameters
     const pageNumber = parseInt(page as string) || 1
     const limitNumber = parseInt(limit as string) || 10
 
     // Parse search filters
-    const filters: { propertyId?: string; clientId?: string } = {}
+    const filters: {
+      search?: string;
+      propertyId?: string;
+      clientId?: string 
+} = {}
     if (propertyId && typeof propertyId === 'string') {
       filters.propertyId = propertyId
     }
     if (clientId && typeof clientId === 'string') {
       filters.clientId = clientId
     }
-
+    if (search && typeof search === 'string') {
+      filters.search = search
+    }
     // Require admin access
     if (!authenticatedUser || authenticatedUser.role !== 'admin') {
       return res.status(403).json({
@@ -48,10 +57,7 @@ export const getAllBuildingsController = async (req: Request, res: Response) => 
     // Add statistics to each building object
     const buildingsWithStats = buildings.map(building => ({
       ...building,
-      // totalBuildings: total,
-      // totalArea: totalArea,
-      // totalMaintenanceCost: statistics.totalMaintenanceCost,
-      // maintenanceUpdates: statistics.maintenanceUpdates
+      total_objects_used: calculateTotalObjectsUsed(building.buildingObjects)
     }))
 
     return res.json({
@@ -104,12 +110,7 @@ export const getBuildingById = async (req: Request, res: Response) => {
     // Add statistics to the building object
     const buildingWithStats = {
       ...building,
-      // statistics: {
-      //   totalBuildings: total,
-      //   totalArea: totalArea,
-      //   maintenanceUpdates: statistics.maintenanceUpdates,
-      //   totalMaintenanceCost: statistics.totalMaintenanceCost
-      // }
+      total_objects_used: calculateTotalObjectsUsed(building.buildingObjects)
     }
 
     return res.json({

@@ -148,6 +148,11 @@ export interface Property {
   };
 }
 
+// Property with building count for API responses
+export interface PropertyWithBuildingCount extends Property {
+  numOfBuildings: number;
+}
+
 // Building Types
 // Note: One building belongs to exactly one property (one-to-one relationship)
 export interface Building {

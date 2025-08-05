@@ -1,20 +1,14 @@
 import { Request, Response } from 'express'
 import { ApiResponse, PriceList, PriceItem, AuthenticatedRequest } from '../types'
 import { 
-  createPricelist, 
   createPriceItem,
   checkExistingPriceItem,
-  getAllPricelists, 
   findPricelistById, 
   updatePricelist, 
   deletePricelist,
-  getPricelistsByAdminId,
-  getActivePricelists,
-  searchPricelists,
   getPricelistsWithFilters
 } from '../entities/pricelist.entity'
 import { v4 as uuidv4 } from 'uuid'
-import { BlobClient } from '@azure/storage-blob'
 import { 
   isAzureStorageConfigured, 
   getAzureStorageConfig, 
@@ -323,9 +317,7 @@ const validateAndTransformData = (data: any[], fileName?: string): { prices: { [
 }
   
 
-/**
- * POST /api/pricelist - Create a new pricelist from Azure blob URL for a building
- */
+//* POST /api/pricelist - Create a new pricelist from Azure blob URL for a building
 export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { buildingId, fileUrl, name,  isActive = true } = req.body
@@ -570,9 +562,7 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
   }
 }
 
-/**
- * GET /api/pricelist - Get all pricelists
- */
+//* GET /api/pricelist - Get all pricelists
 export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { search, isGlobal, page , limit } = req.query
@@ -588,17 +578,50 @@ export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Re
 
     const pricelists = await getPricelistsWithFilters()
 
-    // Apply pagination
+    // Group pricelists by category (windows, doors, etc.)
+    const groupedPricelists: { [key: string]: any[] } = {}
+    
+    pricelists.forEach((pricelist, index) => {
+      // Each pricelist is actually a price item with a 'type' field
+      const category = (pricelist as any).type
+      
+      if (category) {
+        if (!groupedPricelists[category]) {
+          groupedPricelists[category] = []
+        }
+        
+        // Add the price item to the appropriate category
+        groupedPricelists[category].push({
+          id: pricelist.id,
+          type: (pricelist as any).type,
+          object: (pricelist as any).object,
+          price: (pricelist as any).price,
+          buildingId: (pricelist as any).buildingId,
+          createdAt: pricelist.createdAt,
+          updatedAt: pricelist.updatedAt
+        })
+      }
+    })
+    
+    console.log('Debug: Final grouped categories:', Object.keys(groupedPricelists))
+
+    // Apply pagination to each category
     const pageNum = parseInt(page as string) || 1
     const limitNum = parseInt(limit as string) || 10
     const startIndex = (pageNum - 1) * limitNum
     const endIndex = startIndex + limitNum
-    const paginatedPricelists = pricelists.slice(startIndex, endIndex)
+
+    const paginatedGroupedData: { [key: string]: any[] } = {}
+    
+    Object.keys(groupedPricelists).forEach(category => {
+      const categoryData = groupedPricelists[category]
+      paginatedGroupedData[category] = categoryData.slice(startIndex, endIndex)
+    })
 
     const response: ApiResponse = {
       success: true,
-      data: paginatedPricelists,
-      message: `Found ${pricelists.length} pricelists`,
+      data: paginatedGroupedData,
+      message: `Found ${pricelists.length} pricelists grouped by categories`,
       statusCode: 200
     }
 
@@ -616,9 +639,7 @@ export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Re
   }
 }
 
-/**
- * ??GET /api/pricelist/:id - Get pricelist by ID
- */
+//* GET /api/pricelist/:id - Get pricelist by ID
 export const getPricelistById = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params
@@ -655,9 +676,8 @@ export const getPricelistById = async (req: AuthenticatedRequest, res: Response)
   }
 }
 
-/**
- * ?PUT /api/pricelist/:id - Update pricelist
- */
+//* PUT /api/pricelist/:id - Update pricelist
+//!can we update multiple pricelists at once? 
 export const updatePricelistHandler = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params
@@ -697,9 +717,7 @@ export const updatePricelistHandler = async (req: AuthenticatedRequest, res: Res
   }
 }
 
-/**
- *? DELETE /api/pricelist/:id - Delete pricelist
- */
+//? DELETE /api/pricelist/:id - Delete pricelist
 export const deletePricelistHandler = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params
@@ -737,9 +755,7 @@ export const deletePricelistHandler = async (req: AuthenticatedRequest, res: Res
   }
 }
 
-/**
- * !GET /api/pricelist/test-azure-storage - Test Azure Storage configuration
- */
+//! GET /api/pricelist/test-azure-storage - Test Azure Storage configuration
 export const testAzureStorageHandler = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const result = await testAzureStorageConnection()
