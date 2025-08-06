@@ -127,23 +127,6 @@
   overflow-y: auto;
   min-height: 0;
 }
-
-.add_property_modal_footer_button_cancel {
-  /* width: 66; */
-  height: 36px;
-  display: flex;
-  gap: 8px;
-  border-radius: 8px;
-  padding-right: 12px;
-  padding-left: 12px;
-  background-color: transparent;
-  color: rgba(136, 18, 60, 1);
-  font-family: var(--font-lato-regular);
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: -0.16px;
-}
 .add_property_modal_footer_button_submit {
   /* width: 140; */
   height: 42px;

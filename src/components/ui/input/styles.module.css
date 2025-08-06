@@ -48,7 +48,7 @@
   border-radius: 8px;
   padding: 8px;
   outline: none;
-  background: var(--snow-white);
+  background: transparent;
   border: 1px solid var(--concrete);
 }
 .input::placeholder {
@@ -64,14 +64,18 @@
   gap: 4px;
   width: 100%;
   position: relative;
-  border: 1px solid var(--rose-red-25);
   border-radius: 8px;
-  border-color: var(--rose-red) !important;
-  outline: 1px solid var(--rose-red);
-  box-shadow: 0px 0px 0px 2px var(--rose-red-25);
+}
+.error_input {
+  border-color: var(--bright-crimson) !important;
+  box-shadow: 0 0 0 2px var(--bright-crimson-tint);
+}
+.error_input:focus {
+  border-color: var(--bright-crimson) !important;
+  box-shadow: 0 0 0 2px var(--bright-crimson-tint);
 }
 .error {
-  color: var(--rose-red);
+  color: var(--bright-crimson) !important;
   font-family: var(--font-lato-semi-bold);
   font-size: 13px;
 }

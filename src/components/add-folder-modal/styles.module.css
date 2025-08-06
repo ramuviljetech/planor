@@ -1,77 +1,76 @@
 .add_folder_modal_container_style {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    max-width: 756px;
-    max-height: calc(100vh - 152px);
-    background-color: var(--white);
-    border-radius: 24px;
-    border: 1px solid var(--silver-cloud);
-    box-shadow: 0px 1px 2px 0px rgba(26, 26, 26, 0.08);
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-  }
-  .add_folder_modal_overlay_style {
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-  .add_folder_modal_header {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    /* gap: 8px; */
-    flex-shrink: 0;
-    padding-bottom: 10px;
-  }
-  .add_folder_modal_header_left {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    gap: 16px;
-    align-items: center;
-  }
-  .add_folder_modal_header_left_text {
-    font-family: var(--font-lato-regular);
-    font-weight: 400;
-    font-style: Regular;
-    font-size: 18px;
-    line-height: 24px;
-    letter-spacing: -0.36px;
-    color: var(--jet-black);
-  }
-  
-  .add_folder_modal_header_close_icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 24px;
-    display: flex;
-    gap: 4px;
-    padding: 12px;
-    background-color: var(--rose-tint);
-    cursor: pointer;
-  }
-  .add_folder_modal_content {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 15px 0px 15px 0px;
-    overflow-y: auto;
-  }
-  .add_folder_modal_folder_info_input {
-    width: 100%;
-    /* height: 36px; */
-    display: flex;
-    gap: 8px;       
-    border: 1px solid var(--concrete);
-    background: transparent;
-    box-shadow: none;
-    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  }
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 625px;
+  max-height: calc(100vh - 152px);
+  background-color: var(--white);
+  border-radius: 24px;
+  border: 1px solid var(--silver-cloud);
+  box-shadow: 0px 1px 2px 0px rgba(26, 26, 26, 0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+.add_folder_modal_overlay_style {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.add_folder_modal_header {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  /* gap: 8px; */
+  flex-shrink: 0;
+  padding-bottom: 10px;
+}
+.add_folder_modal_header_left {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
+}
+.add_folder_modal_header_left_text {
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -0.36px;
+  color: var(--jet-black);
+}
 
+.add_folder_modal_header_close_icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 24px;
+  display: flex;
+  gap: 4px;
+  padding: 12px;
+  background-color: var(--rose-tint);
+  cursor: pointer;
+}
+.add_folder_modal_content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 15px 0px 15px 0px;
+  overflow-y: auto;
+}
+.add_folder_modal_folder_info_input {
+  width: 100%;
+  /* height: 36px; */
+  display: flex;
+  gap: 8px;
+  border: 1px solid var(--concrete);
+  background: transparent;
+  box-shadow: none;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
 
-  /* .add_folder_modal_select_dropdown_selected_text{
+/* .add_folder_modal_select_dropdown_selected_text{
     font-family: var(--font-lato-regular) !important;
     font-weight: 400 !important;
     font-size: 15px !important;
@@ -79,14 +78,14 @@
     letter-spacing: 0% !important;
     color: var(--fog-gray) !important;
   } */
-  
-  .add_folder_modal_content {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-  }
-  
-  /* .add_folder_modal_select_dropdown::placeholder {
+
+.add_folder_modal_content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* .add_folder_modal_select_dropdown::placeholder {
     font-family: var(--font-lato-regular);
     font-weight: 400;
     font-size: 14px;
@@ -95,46 +94,59 @@
     
   } */
 
+.add_folder_modal_footer {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+  flex-shrink: 0;
+  /* margin-top: 16px; */
+}
 
-  .add_folder_modal_footer {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-    justify-content: flex-end;
-    align-items: center;
-    flex-shrink: 0;
-    /* margin-top: 16px; */
-  }
-  
-  .add_folder_modal_footer_button_cancel {
-    /* width: 66; */
-    height: 36px;
-    display: flex;
-    gap: 8px;
-    border-radius: 8px;
-    padding-right: 12px;
-    padding-left: 12px;
-    background-color: transparent;  
-    color: rgba(136, 18, 60, 1);
-    font-family: var(--font-lato-regular);
-    font-weight: 400;
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: -0.16px;
-  }
-  .add_folder_modal_footer_button_submit {
-    /* width: 140; */
-    height: 42px;
-    display: flex;
-    gap: 8px;
-    border-radius: 24px;
-    padding: 12px 16px 12px 16px;
-    font-family: var(--font-lato-bold);
-    font-weight: 700;
-    font-size: 14px;
-    line-height: 18px;
-    letter-spacing: -0.5px;
-    text-align: center;
-    color: var(--white);
-  }
+.add_folder_modal_footer_button_submit {
+  height: 42px;
+  padding: 12px 16px 12px 16px !important;
+  border-radius: 24px !important;
+  letter-spacing: -0.5px;
+  text-align: center;
+  color: var(--white);
+}
+.add_folder_modal_selected_file {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.add_folder_modal_selected_file_item {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+  border: 1px solid var(--concrete);
+  border-radius: 12px;
+  background-color: transparent;
+  padding: 8px;
+}
+.add_folder_modal_selected_file_item_image {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.add_folder_modal_selected_file_item_text {
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.16px;
+  color: var(--jet-black);
+}
+.add_folder_modal_selected_file_item_close_icon_image {
+  cursor: pointer;
+}

@@ -469,18 +469,8 @@ const PriceListPage: React.FC = () => {
 
         {/* Action Buttons */}
         <div className={styles.action_buttons}>
-          <Button
-            title="Cancel"
-            variant="outline"
-            onClick={handleCancel}
-            className={styles.cancel_button}
-          />
-          <Button
-            title="Submit"
-            variant="primary"
-            onClick={handleSubmit}
-            className={styles.submit_button}
-          />
+          <Button title="Cancel" variant="plain" onClick={handleCancel} />
+          <Button title="Submit" variant="primary" onClick={handleSubmit} />
         </div>
       </div>
     );

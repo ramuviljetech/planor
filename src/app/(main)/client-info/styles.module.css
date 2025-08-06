@@ -92,10 +92,7 @@
   align-items: flex-start;
   gap: 16px;
 }
-.client_info_overview_add_user_button {
-  border: none;
-  color: var(--rose-red);
-}
+
 .client_info_overview_action_icon {
   cursor: pointer;
   align-self: flex-end;
@@ -231,4 +228,11 @@
   line-height: 100%;
   letter-spacing: 0px;
   color: var(--granite-gray);
+}
+
+.maintenance_plan_value_container {
+  width: fit-content;
+  height: 100%;
+  display: flex;
+  cursor: pointer;
 }

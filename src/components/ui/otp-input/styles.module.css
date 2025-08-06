@@ -14,7 +14,7 @@
   line-height: 21px;
   letter-spacing: -0.24px;
   text-align: center !important;
-  background: var(--platinum) !important;
+  background: transparent !important;
   border-radius: 8px !important;
   border: 1px solid var(--concrete) !important;
   color: var(--jet-black) !important;
@@ -30,15 +30,15 @@
 /* Focus state */
 .otp_input_container input[type="text"]:focus,
 .otp_input_container input[type="number"]:focus {
-  border-color: var(--ocean-blue) !important;
-  box-shadow: 0 0 0 3px var(--ice-blue) !important;
+  border-color: var(--rose-red) !important;
+  box-shadow: 0 0 0 3px var(--rose-tint) !important;
 }
 
 /* When input has value (not empty) */
 .otp_input_container input[type="text"]:not(:placeholder-shown),
 .otp_input_container input[type="number"]:not(:placeholder-shown) {
-  box-shadow: 0px 0px 4px 0px var(--ash-gray) !important;
-  border: 1px solid var(--concrete) !important;
+  box-shadow: 0px 0px 4px 0px var(--rose-red) !important;
+  border: 1px solid var(--rose-red) !important;
   background: var(--platinum) !important;
 }
 

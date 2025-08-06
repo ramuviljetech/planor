@@ -9,13 +9,15 @@
   padding: 16px 24px;
   gap: 16px;
 }
-.header_container {
+.header_title {
   font-family: var(--font-lato-bold);
   font-size: 18px;
   line-height: 100%;
   letter-spacing: 0px;
   color: var(--black);
+  width: 240px;
 }
+
 .header_middle_container {
   width: 488px;
 }

@@ -51,7 +51,11 @@ const Input: React.FC<InputProps> = ({
           type={type}
           name={name}
           value={value}
-          className={classNames(styles.input, inputStyle)}
+          className={classNames(
+            styles.input,
+            inputStyle,
+            error && styles.error_input
+          )}
           onChange={onChange}
           placeholder={placeholder || ""}
           onKeyDown={onKeyDown}

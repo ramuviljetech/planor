@@ -64,6 +64,10 @@
   --sky-glow: rgb(219, 234, 254);
   --charcoal-soft: rgba(87, 87, 87, 0.6);
   --neutral-gray: rgba(68, 68, 68, 0.13);
+  --bright-crimson: rgb(255, 68, 68);
+  --bright-crimson-tint: rgba(255, 68, 68, 0.1);
+  --crimson-rose: rgba(171, 73, 75, 1);
+  --blush-petal: rgba(255, 235, 238, 1);
 }
 
 html,
