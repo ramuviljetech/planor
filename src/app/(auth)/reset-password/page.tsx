@@ -73,23 +73,23 @@ const ResetPassword: React.FC = () => {
     setSuccessMessage("");
 
     try {
-      if (!token) {
-        setErrorMessage(
-          "Reset token is missing. Please try the verification process again."
-        );
-        return;
-      }
-      const response = await AuthAPI.resetPassword(token, values.password);
-      console.log("Password reset response:", response);
-      setSuccessMessage("Password reset successfully!");
-      resetForm();
-      // Clear the reset token from URL and localStorage if it exists
-      if (typeof window !== "undefined") {
-        // Clear any stored tokens using token manager
-        tokenManager.clearTokens();
-        // Update URL to remove token parameter
-        window.history.replaceState({}, document.title, "/reset-password");
-      }
+      // if (!token) {
+      //   setErrorMessage(
+      //     "Reset token is missing. Please try the verification process again."
+      //   );
+      //   return;
+      // }
+      // const response = await AuthAPI.resetPassword(token, values.password);
+      // console.log("Password reset response:", response);
+      // setSuccessMessage("Password reset successfully!");
+      // resetForm();
+      // // Clear the reset token from URL and localStorage if it exists
+      // if (typeof window !== "undefined") {
+      //   // Clear any stored tokens using token manager
+      //   tokenManager.clearTokens();
+      //   // Update URL to remove token parameter
+      //   window.history.replaceState({}, document.title, "/reset-password");
+      // }
       // Navigate to login after successful reset
       setTimeout(() => {
         router.push("/login");

@@ -40,19 +40,22 @@ const ForgotPassword: React.FC = () => {
     setErrorMessage("");
     setSuccessMessage("");
 
-    try {
-      const response = await AuthAPI.forgotPassword(values.email);
+    console.log(values);
+    router.push(`/verify-user`);
 
-      resetForm();
-      router.push(`/verify-user?email=${encodeURIComponent(values.email)}`);
-    } catch (error: any) {
-      setErrorMessage(
-        error.message || "Failed to send verification code. Please try again."
-      );
-    } finally {
-      setIsSubmitting(false);
-      setSubmitting(false);
-    }
+    // try {
+    //   const response = await AuthAPI.forgotPassword(values.email);
+
+    //   resetForm();
+    //   router.push(`/verify-user?email=${encodeURIComponent(values.email)}`);
+    // } catch (error: any) {
+    //   setErrorMessage(
+    //     error.message || "Failed to send verification code. Please try again."
+    //   );
+    // } finally {
+    //   setIsSubmitting(false);
+    //   setSubmitting(false);
+    // }
   };
 
   const renderErrorMessage = (message: string) => {

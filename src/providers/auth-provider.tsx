@@ -26,7 +26,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log("user", user);
   // Initialize auth state on mount
   useEffect(() => {
     initializeAuth();
@@ -97,12 +96,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setIsLoading(true);
       setError(null);
 
-      const response = await AuthAPI.login(credentials);
-      // Store token and user data
-      tokenManager.setToken(response.data.token, response.data.expiresIn);
-      storage.setUser(response.data.user);
-      setUser(response.data.user);
-      setToken(response.data.token);
+      // const response = await AuthAPI.login(credentials);
+      // // Store token and user data
+      // tokenManager.setToken(response.data.token, response.data.expiresIn);
+      // storage.setUser(response.data.user);
+      // setUser(response.data.user);
+      // setToken(response.data.token);
       setIsAuthenticated(true);
       setIsLoading(false);
     } catch (error: any) {
