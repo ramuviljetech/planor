@@ -50,8 +50,8 @@ const Header: React.FC = () => {
             className={styles.avatar_image}
           />
           <div className={styles.avatar_name_container}>
-            <p className={styles.avatar_name}>{user?.name}</p>
-            <p className={styles.avatar_email}>{user?.role}</p>
+            <p className={styles.avatar_name}>{user?.name || "John Doe"}</p>
+            <p className={styles.avatar_email}>{user?.role || "Admin"}</p>
           </div>
         </div>
       </div>

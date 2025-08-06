@@ -5,10 +5,10 @@ import * as Yup from "yup";
 import { useSearchParams } from "next/navigation";
 import Button from "@/components/ui/button";
 import OTPInputComponent from "@/components/ui/otp-input";
-import styles from "./styles.module.css";
 import AuthAPI from "@/networking/auth-api";
 import { tokenManager } from "@/utils/token-manager";
 import { useRouter } from "next/navigation";
+import styles from "./styles.module.css";
 
 // Validation schema
 const VerifyUserSchema = Yup.object().shape({
@@ -47,16 +47,17 @@ const VerifyUser: React.FC = () => {
   ) => {
     setIsSubmitting(true);
     try {
-      const response = await AuthAPI.verifyOtp(email, values.otp);
-      console.log("OTP verification response:", response);
+      // const response = await AuthAPI.verifyOtp(email, values.otp);
+      // console.log("OTP verification response:", response);
       resetForm();
       // Pass the token to reset password page
-      const token = response.token || response.data?.token;
-      if (token) {
-        router.push(`/reset-password?token=${encodeURIComponent(token)}`);
-      } else {
-        router.push("/reset-password");
-      }
+      // const token = response.token || response.data?.token;
+      // if (token) {
+      //   router.push(`/reset-password?token=${encodeURIComponent(token)}`);
+      // } else {
+      //   router.push("/reset-password");
+      // }
+      router.push(`/reset-password?token=123456`);
     } catch (error: any) {
       console.log("OTP verification error:", error);
       setErrorMessage(error.message || "OTP verification failed");

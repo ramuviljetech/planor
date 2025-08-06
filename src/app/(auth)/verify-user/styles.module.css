@@ -79,7 +79,7 @@
 }
 /* Button */
 .verify_user_sign_in_button {
-  width: 100%;
+  width: 100% !important;
   height: 40px;
   font-family: var(--font-lato-bold);
   font-size: 16px;
