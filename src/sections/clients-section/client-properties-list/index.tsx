@@ -11,6 +11,7 @@ import CommonTableWithPopover, {
 } from "@/components/ui/common-table-with-popover";
 import { TableColumn, TableRow } from "@/components/ui/common-table";
 import styles from "./styles.module.css";
+import AddPropertyModal from "@/components/add-property-modal";
 
 interface ClientPropertiesListProps {
   showPropertyListSection?: boolean;
@@ -26,7 +27,7 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
+  const [showAddPropertyModal, setShowAddPropertyModal] = useState(false);
   // Table data and handlers
   const columns: TableColumn[] = [
     {
@@ -136,7 +137,7 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
           onSearchChange={setSearchValue}
           searchPlaceholder="Search properties..."
           actionButtonTitle="Add  Property"
-          onActionButtonClick={() => router.push("/property-details")}
+          onActionButtonClick={() => setShowAddPropertyModal(true)}
           filterComponent={
             <div ref={clientsFilterRef} onClick={() => {}}>
               <Image src={filterIcon} alt="filter" width={24} height={24} />
@@ -163,6 +164,10 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
         actionIconClassName={styles.actionIcon}
         popoverMenuClassName={styles.action_popoverMenu}
         popoverMenuItemClassName={styles.action_popoverMenuItem}
+      />
+      <AddPropertyModal
+        show={showAddPropertyModal}
+        onClose={() => setShowAddPropertyModal(false)}
       />
     </div>
   );

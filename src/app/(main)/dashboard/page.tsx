@@ -17,10 +17,10 @@ import { TableColumn, TableRow } from "@/components/ui/common-table";
 import { useRouter } from "next/navigation";
 import AddClientUserModal from "@/components/add-client-user-modal";
 import AddPropertyModal from "@/components/add-property-modal";
-import styles from "./styles.module.css";
 import Modal from "@/components/ui/modal";
 import ClientsFilter from "@/sections/clients-section/clients-filter";
 import { useAuth } from "@/providers";
+import styles from "./styles.module.css";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
