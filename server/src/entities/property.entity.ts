@@ -311,55 +311,100 @@ export const calculatePropertyStatistics = async (filters?: {
 
     // Fetch all price items for all buildings in one query (optimized)
     if (allBuildingIds.length > 0) {
-      // Cosmos DB doesn't support IN queries directly, so we need to build OR conditions
-      const buildingIdConditions = allBuildingIds.map((_, index) => `c.buildingId = @buildingId${index}`).join(' OR ')
-      const priceQuery = {
-        query: `SELECT * FROM c WHERE (${buildingIdConditions})`,
-        parameters: allBuildingIds.map((id, index) => ({ name: `@buildingId${index}`, value: id }))
-      }
-      
-      // console.log('Building IDs to search for:', allBuildingIds)
-      // console.log('Price query:', priceQuery)
-      
       try {
-        const { resources: priceItems } = await pricelistContainer.items.query(priceQuery).fetchAll()
+        // Get all buildings with their buildingObjects to calculate maintenance costs
+        const { getBuildingsContainer } = await import('../config/database')
+        const buildingsContainer = getBuildingsContainer()
         
-        // console.log('Found price items:', priceItems.length)
-        // console.log('Price items:', priceItems)
+        const buildingsQuery = {
+          query: `SELECT c.id, c.buildingObjects FROM c WHERE c.id IN (${allBuildingIds.map((_, i) => `@buildingId${i}`).join(',')})`,
+          parameters: allBuildingIds.map((id, i) => ({ name: `@buildingId${i}`, value: id }))
+        }
         
-        // Calculate maintenance costs from price items
-        for (const priceItem of priceItems) {
-          // console.log('Processing price item:', priceItem)
-          if (priceItem.price && typeof priceItem.price === 'number' && priceItem.price > 0) {
-            maintenanceUpdates++ // Count items with prices as updates
-            
-            // console.log(`Adding ${priceItem.price} to ${priceItem.type} category`)
-            
-            // Add to appropriate category based on type
-            switch (priceItem.type) {
-              case 'door':
-                totalMaintenanceCost.doors += priceItem.price
-                break
-              case 'floor':
-                totalMaintenanceCost.floors += priceItem.price
-                break
-              case 'window':
-                totalMaintenanceCost.windows += priceItem.price
-                break
-              case 'wall':
-                totalMaintenanceCost.walls += priceItem.price
-                break
-              case 'roof':
-                totalMaintenanceCost.roofs += priceItem.price
-                break
-              case 'area':
-                totalMaintenanceCost.areas += priceItem.price
-                break
+        const { resources: buildingsWithObjects } = await buildingsContainer.items.query(buildingsQuery).fetchAll()
+        
+        // Count maintenance updates from building objects
+        for (const building of buildingsWithObjects) {
+          if (building.buildingObjects) {
+            for (const [sectionKey, section] of Object.entries(building.buildingObjects)) {
+              if (Array.isArray(section)) {
+                for (const obj of section) {
+                  if (obj.maintenanceDate) {
+                    maintenanceUpdates++
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        // Get all price items for maintenance cost calculation
+        const { resources: allPriceItems } = await pricelistContainer.items.query({
+          query: 'SELECT * FROM c WHERE c.price > 0',
+          parameters: []
+        }).fetchAll()
+        
+        // Create a map of price items by type and object for quick lookup
+        const priceMap = new Map<string, number>()
+        for (const priceItem of allPriceItems) {
+          const key = `${priceItem.type}_${priceItem.object}`
+          priceMap.set(key, priceItem.price)
+        }
+        
+        // Calculate maintenance costs by matching building objects with price items
+        for (const building of buildingsWithObjects) {
+          if (building.buildingObjects) {
+            for (const [sectionKey, section] of Object.entries(building.buildingObjects)) {
+              if (Array.isArray(section)) {
+                for (const obj of section) {
+                  const type = obj.type?.toLowerCase()
+                  const object = obj.object
+                  
+                  if (type && object) {
+                    const priceKey = `${type}_${object}`
+                    const price = priceMap.get(priceKey) || 0
+                    
+                    if (price > 0) {
+                      let totalPrice = 0
+                      
+                      // Calculate total price based on count or area
+                      if (obj.count && typeof obj.count === 'number' && obj.count > 0) {
+                        totalPrice = price * obj.count
+                      } else if (obj.area && typeof obj.area === 'number' && obj.area > 0) {
+                        totalPrice = price * obj.area
+                      } else {
+                        totalPrice = price
+                      }
+                      
+                      switch (type) {
+                        case 'door':
+                          totalMaintenanceCost.doors += totalPrice
+                          break
+                        case 'floor':
+                          totalMaintenanceCost.floors += totalPrice
+                          break
+                        case 'window':
+                          totalMaintenanceCost.windows += totalPrice
+                          break
+                        case 'wall':
+                          totalMaintenanceCost.walls += totalPrice
+                          break
+                        case 'roof':
+                          totalMaintenanceCost.roofs += totalPrice
+                          break
+                        case 'area':
+                          totalMaintenanceCost.areas += totalPrice
+                          break
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
       } catch (error) {
-        console.error('Error fetching price items:', error)
+        console.error('Error calculating maintenance costs from building objects:', error)
       }
     }
 

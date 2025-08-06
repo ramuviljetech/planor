@@ -170,26 +170,35 @@ const parseCSV = (csvText: string, fileName?: string): any[] => {
       // Extract the single key and value from each object (bad CSV parse result)
       const rawLine = entries[0][1]
   
-      if (!rawLine || !rawLine.includes(';')) continue
+            if (!rawLine) continue
+
+      // Handle both tab and semicolon separators
+      let fields: string[]
+      if (rawLine.includes('\t')) {
+        fields = rawLine.split('\t').map(f => f.trim())
+      } else if (rawLine.includes(';')) {
+        fields = rawLine.split(';').map(f => f.trim())
+      } else {
+        continue // Skip lines without proper separators
+      }
   
-      const fields = rawLine.split(';').map(f => f.trim())
-  
-      // Skip if it's a header or empty line
+            // Skip if it's a header or empty line
       if (fields.length < 3 || fields.every(f => f === '')) continue
-  
+
+      console.log('Processing fields:', fields) // Debug: show fields being processed
       let item: any = {}
       
       if (fileType === 'floor' || fileType === 'wall' || fileType === 'area') {
-        // Floor/Wall/Area structure: Typ;Project Name;Area;Level;Element ID
+        // Floor/Wall/Area structure: Typ;Project Name;Antal;Area;Element ID
         if (fields.length >= 5) {
-          const [type, object, area, level, elementId] = fields
+          const [type, object, count, area, elementId] = fields
           item = {
             Typ: type,
             'Project Name': object,
-            Antal: '1', // Default count to 1 since there's no Antal field
-            Level: level,
+            Antal: count || '1',
+            Level: '', // No level field in this structure
             'Element ID': elementId,
-            Area: area || '0' // Area is in 3rd position
+            Area: area || '0'  // Area is in 4th position
           }
         }
       } else if (fileType === 'window' || fileType === 'door') {
@@ -208,28 +217,39 @@ const parseCSV = (csvText: string, fileName?: string): any[] => {
       } else {
         // Generic structure - try to detect
         if (fields.length >= 4) {
-          const [type, object, thirdField, level, elementId] = fields
+          const [type, object, thirdField, fourthField, elementId] = fields
           // Check if third field is a number (count) or has m² (area)
-          const isCount = !isNaN(parseFloat(thirdField))
-          const isArea = thirdField.includes('m²')
+          const isThirdFieldCount = !isNaN(parseFloat(thirdField))
+          const isThirdFieldArea = thirdField.includes('m²')
+          const isFourthFieldArea = fourthField && fourthField.includes('m²')
           
-          if (isArea) {
-            // Area structure
+          if (isThirdFieldArea) {
+            // Area structure: Typ;Project Name;Area;Level;Element ID
             item = {
               Typ: type,
               'Project Name': object,
               Antal: '1',
-              Level: level,
+              Level: fourthField || '',
               'Element ID': elementId,
               Area: thirdField || '0'
             }
-          } else if (isCount) {
-            // Count structure
+          } else if (isFourthFieldArea) {
+            // Count + Area structure: Typ;Project Name;Antal;Area;Element ID
+            item = {
+              Typ: type,
+              'Project Name': object,
+              Antal: thirdField || '1',
+              Level: '',
+              'Element ID': elementId,
+              Area: fourthField || '0'
+            }
+          } else if (isThirdFieldCount) {
+            // Count structure: Typ;Project Name;Antal;Level;Element ID
             item = {
               Typ: type,
               'Project Name': object,
               Antal: thirdField,
-              Level: level,
+              Level: fourthField || '',
               'Element ID': elementId,
               Area: '0'
             }
@@ -240,6 +260,8 @@ const parseCSV = (csvText: string, fileName?: string): any[] => {
       if (Object.keys(item).length > 0) {
         console.log('Parsed item:', item) // Debug: show each parsed item
         data.push(item)
+      } else {
+        console.log('Skipped line - no valid item created:', rawLine)
       }
     }
   
@@ -278,9 +300,16 @@ const validateAndTransformData = (data: any[], fileName?: string): { prices: { [
     const type = item['Typ']
     const object = item['Project Name'] || objectTypeFromFile // Use file name object type as fallback
     const count = parseInt(item['Antal']) || 1
-    // Handle area values with "m²" suffix like "355,8 m²"
+    // Handle area values with "m²" suffix like "355,8 m²" or "15,8 m²"
     const areaString = item['Area'] || '0'
-    const area = parseFloat(areaString.replace(' m²', '').replace(',', '.')) || 0
+    // Remove m² suffix and convert Swedish comma to decimal point
+    const cleanAreaString = areaString.replace(/ m²/g, '').replace(',', '.')
+    const area = parseFloat(cleanAreaString) || 0
+    
+    // Debug logging for area parsing
+    if (areaString !== '0') {
+      console.log(`Area parsing: "${areaString}" -> "${cleanAreaString}" -> ${area}`)
+    }
     const price = 0  // Default price is 0
 
     if (!type || !object) {
@@ -320,7 +349,7 @@ const validateAndTransformData = (data: any[], fileName?: string): { prices: { [
 //* POST /api/pricelist - Create a new pricelist from Azure blob URL for a building
 export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { buildingId, fileUrl, name,  isActive = true } = req.body
+    const { buildingId, fileUrl, isActive = true } = req.body
 
     // Validate required fields
     if (!buildingId || !fileUrl) {
@@ -380,7 +409,8 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
     // Create individual documents for each type
     const createdDocuments = []
     const documentDataForMetadata: Array<{document: any, originalData: any, isAreaType: boolean}> = []
-    const pricelistId = uuidv4()
+    
+          // We'll use the created price item's ID as the pricelistId
 
     // Extract object type from file name
     let objectTypeFromFile = 'unknown'
@@ -417,6 +447,8 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
       
       if (existingRecord) {
         console.log(`Found existing record: ${objectTypeFromFile} - ${typedPriceData.type}, will update building metadata`)
+        // Use the existing record's ID as the pricelistId (same type and object)
+        existingRecord.pricelistId = existingRecord.id
         // Add existing record to createdDocuments for building metadata update
         createdDocuments.push(existingRecord)
         documentDataForMetadata.push({
@@ -432,9 +464,10 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
         type: objectTypeFromFile, // window, door, floor, etc.
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        buildingId,
+        // buildingId,
         object: typedPriceData.type, // The actual type like "11x13 Fast"
         price: typedPriceData.price
+        // pricelistId will be set to the created document's ID after creation
       }
 
       // Save individual document to database
@@ -489,15 +522,18 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
         if (existingIndex >= 0) {
           // Update existing item - increase count or area
           if (isAreaType) {
-            // For area types, sum the areas
+            // For area types (floor, wall, roof, area), sum both areas and counts
             const currentArea = Number(typedPricelistMetadata[objectTypeKey][existingIndex].area) || 0
             const newArea = Number(originalData.area || 0)
             typedPricelistMetadata[objectTypeKey][existingIndex].area = currentArea + newArea
-            console.log(`Updated area for ${createdDocument.type} - ${createdDocument.object}: ${currentArea} + ${newArea} = ${typedPricelistMetadata[objectTypeKey][existingIndex].area}`)
-            // Remove count field for area types
-            delete typedPricelistMetadata[objectTypeKey][existingIndex].count
+            
+            const currentCount = Number(typedPricelistMetadata[objectTypeKey][existingIndex].count) || 0
+            const newCount = Number(originalData.count || 1)
+            typedPricelistMetadata[objectTypeKey][existingIndex].count = currentCount + newCount
+            
+            console.log(`Updated area and count for ${createdDocument.type} - ${createdDocument.object}: area=${currentArea} + ${newArea} = ${typedPricelistMetadata[objectTypeKey][existingIndex].area}, count=${currentCount} + ${newCount} = ${typedPricelistMetadata[objectTypeKey][existingIndex].count}`)
           } else {
-            // For non-area types, sum the counts
+            // For non-area types (doors, windows), sum the counts only
             const currentCount = Number(typedPricelistMetadata[objectTypeKey][existingIndex].count) || 0
             const newCount = Number(originalData.count) || 0
             typedPricelistMetadata[objectTypeKey][existingIndex].count = currentCount + newCount
@@ -506,20 +542,23 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
             delete typedPricelistMetadata[objectTypeKey][existingIndex].area
           }
           typedPricelistMetadata[objectTypeKey][existingIndex].id = createdDocument.id // Store individual document ID
+          typedPricelistMetadata[objectTypeKey][existingIndex].pricelistId = createdDocument.id // Store the pricelist item ID (same type and object)
         } else {
           // Add new item with complete information
           const newItem: any = {
             id: createdDocument.id, // Individual document ID
             type: createdDocument.type, // window, door, floor, etc.
-            object: createdDocument.object // The actual type like "6x6 Fast"
+            object: createdDocument.object, // The actual type like "6x6 Fast"
+            pricelistId: createdDocument.id // Store the pricelist item ID (same type and object)
           }
           
           if (isAreaType) {
-            // For area types, store area only
+            // For area types (floor, wall, roof, area), store both area and count
             newItem.area = Number(originalData.area || 0)
-            console.log(`Added new area item: ${createdDocument.type} - ${createdDocument.object}: ${newItem.area}`)
+            newItem.count = Number(originalData.count || 1) // Default count to 1 if not provided
+            console.log(`Added new area item with count: ${createdDocument.type} - ${createdDocument.object}: area=${newItem.area}, count=${newItem.count}`)
           } else {
-            // For non-area types, store count only
+            // For non-area types (doors, windows), store count only
             newItem.count = Number(originalData.count)
             console.log(`Added new count item: ${createdDocument.type} - ${createdDocument.object}: ${newItem.count}`)
           }
@@ -541,10 +580,9 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
       data: {
         documents: createdDocuments,
         building: updatedBuilding,
-        typeCounts: typeCounts,
-        pricelistId: pricelistId
+        typeCounts: typeCounts
       },
-      message: `Created ${createdDocuments.length} individual documents for pricelist "${name}" with ${Object.keys(typeCounts).length} types`,
+      message: `Created ${createdDocuments.length} individual documents for pricelist }" with ${Object.keys(typeCounts).length} types`,
       statusCode: 201
     }
 

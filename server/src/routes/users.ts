@@ -17,6 +17,6 @@ router.get('/profile/:id?', authMiddleware, getUserProfile)
 router.put('/profile', authMiddleware, validateRequest(updateUserProfileSchema), updateUserProfile)
 
 //* GET /api/users/get-users - Get users associated with client
-router.get('/get-users/:clientId?', authMiddleware, requireAdmin, getusersAssociatedWithClient)
+router.get('/get-users/:clientId?', authMiddleware, getusersAssociatedWithClient)
 
 export { router as usersRoutes }

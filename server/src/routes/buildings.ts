@@ -8,14 +8,15 @@ import {
 import { validateRequest } from '../middleware/validation.middleware';
 import { createBuildingSchema, updateBuildingSchema } from '../validation/building.validation';
 import { authMiddleware, requireAdmin } from '../middleware/auth';
+import { AccessControl } from '../middleware/accessController';
 
 const router = Router();
 
 // Get all buildings (with optional clientId or propertyId query parameters)
-router.get('/', authMiddleware, requireAdmin, getAllBuildingsController);
+router.get('/', authMiddleware, AccessControl, getAllBuildingsController);
 
 // Get building by ID
-router.get('/:id', authMiddleware, requireAdmin, getBuildingById);
+router.get('/:id', authMiddleware, getBuildingById);
 
 // Create new building (Admin only)
 router.post('/', authMiddleware, requireAdmin, validateRequest(createBuildingSchema), createBuildingController);

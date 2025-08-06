@@ -12,7 +12,7 @@ export const createClientOnlySchema = Joi.object({
   timezone: Joi.string().required(),
   primaryContactName: Joi.string().min(2).max(100).required(),
   primaryContactEmail: Joi.string().email({ tlds: { allow: false } }).required(),
-  primaryContactRole: Joi.string().required(),
+  // primaryContactRole: Joi.string().optional().allow(''),
   primaryContactPhoneNumber: Joi.string().required(),
   description: Joi.string().optional().allow('')
 })
@@ -114,12 +114,12 @@ export const createClientAndUserSchema = Joi.object({
       'any.required': 'Primary contact email is required',
       'string.empty': 'Primary contact email cannot be empty'
     }),
-  primaryContactRole: Joi.string()
-    .required()
-    .messages({
-      'any.required': 'Primary contact role is required',
-      'string.empty': 'Primary contact role cannot be empty'
-    }),
+  // primaryContactRole: Joi.string()
+  //   .required()
+  //   .messages({
+  //     'any.required': 'Primary contact role is required',
+  //     'string.empty': 'Primary contact role cannot be empty'
+  //   }),
   primaryContactPhoneNumber: Joi.string()
     .required()
     .messages({

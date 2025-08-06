@@ -188,6 +188,7 @@ export interface Building {
     area?: number; // For floor/wall/area types
     object: string;
     maintenanceDate?: string;
+    pricelistId?: string; // Reference to the pricelist this item belongs to
   }> | Record<string, Array<{
     id: string;
     type: string;
@@ -195,6 +196,7 @@ export interface Building {
     area?: number; // For floor/wall/area types
     object: string;
     maintenanceDate?: string;
+    pricelistId?: string; // Reference to the pricelist this item belongs to
   }>>;
 }
 
@@ -249,6 +251,7 @@ export interface PriceItem {
   buildingId?: string;
   object: string; // The actual type like "11x13 Fast"
   price: number;
+  pricelistId?: string; // Reference to the pricelist this item belongs to
 }
 
 // Building Element Types
@@ -420,12 +423,14 @@ export interface CreateBuildingRequest {
     count?: number; // For window/door types
     area?: number; // For floor/wall/area types
     object: string;
+    pricelistId?: string; // Reference to the pricelist this item belongs to
   }> | Record<string, Array<{
     id: string;
     type: string;
     count?: number; // For window/door types
     area?: number; // For floor/wall/area types
     object: string;
+    pricelistId?: string; // Reference to the pricelist this item belongs to
   }>>;
 }
 

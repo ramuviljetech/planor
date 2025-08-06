@@ -6,7 +6,7 @@ import {
   createBuilding,
   getBuildingsWithPaginationAndFilters,
   updateBuilding,
-  getBuildingStatisticsOptimized,
+  getBuildingStatisticsUltraOptimized,
   calculateTotalObjectsUsed
 } from '../entities/building.entity'
 import { findPropertyById } from '../entities/property.entity'
@@ -15,7 +15,7 @@ import { findPropertyById } from '../entities/property.entity'
 
 
 // *Get all buildings with pagination and search filters  
-  //! calculate total objects using count..what about area?
+  //! calculate total objects using count..what about area.?? area does not have count key.
 export const getAllBuildingsController = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user
@@ -41,18 +41,18 @@ export const getAllBuildingsController = async (req: Request, res: Response) => 
       filters.search = search
     }
     // Require admin access
-    if (!authenticatedUser || authenticatedUser.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Admin access required to view all buildings'
-      })
-    }
+    // if (!authenticatedUser || authenticatedUser.role !== 'admin') {
+    //   return res.status(403).json({
+    //     success: false,
+    //     error: 'Admin access required to view all buildings'
+    //   })
+    // }
 
     // Get buildings with pagination, filters, and area in one optimized call
     const { buildings, total, totalArea } = await getBuildingsWithPaginationAndFilters(pageNumber, limitNumber, filters)
     
-    // Get optimized statistics with database-level calculations
-    const statistics = await getBuildingStatisticsOptimized(filters)
+    // Get ultra-optimized statistics with database-level calculations
+    const statistics = await getBuildingStatisticsUltraOptimized(filters)
 
     // Add statistics to each building object
     const buildingsWithStats = buildings.map(building => ({

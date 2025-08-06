@@ -19,8 +19,9 @@ const router = express.Router()
 
 //* POST /api/pricelist - Create a new pricelist from Azure blob UR
 router.post('/', authMiddleware, requireAdmin, validateCreatePricelistFromBlob, createPricelistFromBlob)
+
 //* GET /api/pricelist - Get all pricelists with optional filters
-router.get('/', authMiddleware, validatePricelistQuery, getAllPricelistsHandler)
+router.get('/', authMiddleware,  getAllPricelistsHandler)
 
 //! GET /api/pricelist/test-azure-storage - Test Azure Storage configuration
 router.get('/test-azure-storage', authMiddleware, testAzureStorageHandler)

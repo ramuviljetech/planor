@@ -1,0 +1,1203 @@
+{
+  "info": {
+    "name": "Property Management API v2",
+    "description": "Complete API collection for the Property Management System with authentication, user management, properties, buildings, clients, pricelist, and maintenance functionality.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Check if the API server is running"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email and password to get JWT token"
+          },
+          "response": []
+        },
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/send-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "send-otp"]
+            },
+            "description": "Send OTP to user's email for verification"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "verify-otp"]
+            },
+            "description": "Verify OTP and get temporary token"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"newPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "change-password"]
+            },
+            "description": "Change user password (requires authentication)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin Management",
+      "item": [
+        {
+          "name": "Register Standard User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john.doe\",\n  \"email\": \"john.doe@example.com\",\n  \"contact\": \"+1234567890\",\n  \"clientId\": \"client-id-here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/register-user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "register-user"]
+            },
+            "description": "Create a new standard user (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"updated.username\",\n  \"email\": \"updated@example.com\",\n  \"contact\": \"+1234567890\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/profile/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "profile", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user-id-here"
+                }
+              ]
+            },
+            "description": "Update user profile (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Standard Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/standard-users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "standard-users"]
+            },
+            "description": "Get all standard users (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Standard User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/delete-users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "delete-users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user-id-here"
+                }
+              ]
+            },
+            "description": "Delete a standard user (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Maintenance Costs Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dashboard?propertyId=property-id&clientId=client-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "dashboard"],
+              "query": [
+                {
+                  "key": "propertyId",
+                  "value": "property-id",
+                  "description": "Filter by property ID (optional)"
+                },
+                {
+                  "key": "clientId",
+                  "value": "client-id",
+                  "description": "Filter by client ID (optional)"
+                }
+              ]
+            },
+            "description": "Get total maintenance costs and individual costs breakdown (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Client Management",
+      "item": [
+        {
+          "name": "Register Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme Corporation\",\n  \"organizationNumber\": \"123456-7890\",\n  \"primaryContactName\": \"John Doe\",\n  \"primaryContactEmail\": \"john.doe@acme.com\",\n  \"primaryContactPhone\": \"+1234567890\",\n  \"address\": \"123 Business St, City, Country\",\n  \"industryType\": \"Technology\",\n  \"timezone\": \"UTC+1\",\n  \"user\": {\n    \"username\": \"acme.user\",\n    \"email\": \"user@acme.com\",\n    \"contact\": \"+1234567890\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "register"]
+            },
+            "description": "Create a new client with optional user creation (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Clients",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientName\": \"Acme\",\n  \"clientId\": \"client-id-here\",\n  \"status\": \"active\",\n  \"createdOn\": \"2024-01-01\",\n  \"maintananceCost\": 5000,\n  \"properties\": 10,\n  \"page\": 1,\n  \"limit\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/get-clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "get-clients"]
+            },
+            "description": "Get clients with filters and pagination (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Property Management",
+      "item": [
+        {
+          "name": "Get All Properties",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/properties?search=office&adminId=admin-id&clientId=client-id&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "properties"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "office",
+                  "description": "Search term for property name or code"
+                },
+                {
+                  "key": "adminId",
+                  "value": "admin-id",
+                  "description": "Filter by admin ID"
+                },
+                {
+                  "key": "clientId",
+                  "value": "client-id",
+                  "description": "Filter by client ID"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page"
+                }
+              ]
+            },
+            "description": "Get all properties with pagination and filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Property by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/properties/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "properties", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "property-id-here"
+                }
+              ]
+            },
+            "description": "Get property by ID (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Property",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"propertyName\": \"Downtown Office Building\",\n  \"propertyCode\": \"DOB001\",\n  \"propertyType\": \"office\",\n  \"address\": \"123 Main St, Downtown\",\n  \"city\": \"New York\",\n  \"primaryContactName\": \"Jane Smith\",\n  \"email\": \"jane.smith@company.com\",\n  \"role\": \"Property Manager\",\n  \"phone\": \"+1234567890\",\n  \"description\": \"Modern office building in downtown area\",\n  \"inactive\": false,\n  \"clientId\": \"client-id-here\",\n  \"metadata\": {\n    \"floors\": 10,\n    \"totalArea\": 50000\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/properties",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "properties"]
+            },
+            "description": "Create a new property (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Property",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"propertyName\": \"Updated Office Building\",\n  \"propertyCode\": \"DOB001\",\n  \"address\": \"456 Updated St, Downtown\",\n  \"city\": \"New York\",\n  \"primaryContactName\": \"John Updated\",\n  \"email\": \"john.updated@company.com\",\n  \"phone\": \"+1234567890\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/properties/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "properties", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "property-id-here"
+                }
+              ]
+            },
+            "description": "Update property (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Property",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/properties/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "properties", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "property-id-here"
+                }
+              ]
+            },
+            "description": "Delete property (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Building Management",
+      "item": [
+        {
+          "name": "Get All Buildings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/buildings?page=1&limit=10&propertyId=property-id&clientId=client-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "buildings"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "propertyId",
+                  "value": "property-id",
+                  "description": "Filter by property ID"
+                },
+                {
+                  "key": "clientId",
+                  "value": "client-id",
+                  "description": "Filter by client ID"
+                }
+              ]
+            },
+            "description": "Get all buildings with pagination and filters (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Building by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/buildings/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "buildings", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "building-id-here"
+                }
+              ]
+            },
+            "description": "Get building by ID (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Building",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buildingName\": \"Main Office Building\",\n  \"description\": \"Primary office building\",\n  \"buildingId\": \"MOB001\",\n  \"contactPerson\": \"Building Manager\",\n  \"contactEmail\": \"manager@building.com\",\n  \"contactPhone\": \"+1234567890\",\n  \"address\": \"123 Building St, City\",\n  \"constructionYear\": 2020,\n  \"imageUrl\": \"https://example.com/building-image.jpg\",\n  \"propertyId\": \"property-id-here\",\n  \"metadata\": {\n    \"floors\": 5,\n    \"totalArea\": 25000\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/buildings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "buildings"]
+            },
+            "description": "Create a new building (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Building Maintenance",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buildingId\": \"building-id-here\",\n  \"objectIds\": [\"obj1\", \"obj2\"],\n  \"maintenanceDate\": \"2024-12-31T23:59:59.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/buildings/update-maintenance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "buildings", "update-maintenance"]
+            },
+            "description": "Update building maintenance dates (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "profile", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user-id-here",
+                  "description": "User ID (optional for admin, required for standard users)"
+                }
+              ]
+            },
+            "description": "Get user profile (Admin can get any user, standard users can only get their own)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"updated.username\",\n  \"email\": \"updated@example.com\",\n  \"contact\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "profile"]
+            },
+            "description": "Update user profile (Standard users only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Users by Client",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/get-users/:clientId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "get-users", ":clientId"],
+              "variable": [
+                {
+                  "key": "clientId",
+                  "value": "client-id-here",
+                  "description": "Client ID (optional - if not provided, returns all standard users)"
+                }
+              ]
+            },
+            "description": "Get users associated with a specific client (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pricelist Management",
+      "item": [
+        {
+          "name": "Create Pricelist from Blob",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buildingId\": \"building-id-here\",\n  \"fileUrl\": \"https://storage.blob.core.windows.net/container/file.csv\",\n  \"name\": \"Building Pricelist\",\n  \"isGlobal\": false,\n  \"isActive\": true,\n  \"effectiveFrom\": \"2024-01-01T00:00:00.000Z\",\n  \"sasToken\": \"sv=2020-08-04&st=...&se=...&sp=r&sig=...\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pricelist",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pricelist"]
+            },
+            "description": "Create pricelist from Azure blob storage file (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Pricelists",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pricelist?search=office&isGlobal=false&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pricelist"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "office",
+                  "description": "Search term"
+                },
+                {
+                  "key": "isGlobal",
+                  "value": "false",
+                  "description": "Filter by global status"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page"
+                }
+              ]
+            },
+            "description": "Get all pricelists with optional filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pricelist by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pricelist/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pricelist", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "pricelist-id-here"
+                }
+              ]
+            },
+            "description": "Get pricelist by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Pricelist",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Pricelist\",\n  \"isActive\": true,\n  \"effectiveFrom\": \"2024-01-01T00:00:00.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/pricelist/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pricelist", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "pricelist-id-here"
+                }
+              ]
+            },
+            "description": "Update pricelist (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Pricelist",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pricelist/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pricelist", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "pricelist-id-here"
+                }
+              ]
+            },
+            "description": "Delete pricelist (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Test Azure Storage",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pricelist/test-azure-storage",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "pricelist", "test-azure-storage"]
+            },
+            "description": "Test Azure Storage configuration"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "File Management",
+      "item": [
+        {
+          "name": "Get Files by Building",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/files/building/:buildingId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "files", "building", ":buildingId"],
+              "variable": [
+                {
+                  "key": "buildingId",
+                  "value": "building-id-here"
+                }
+              ]
+            },
+            "description": "Get all files for a building"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/files/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "files", "upload"]
+            },
+            "description": "Upload file (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get File by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/files/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "files", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "file-id-here"
+                }
+              ]
+            },
+            "description": "Get file by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete File",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/files/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "files", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "file-id-here"
+                }
+              ]
+            },
+            "description": "Delete file (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Process Files",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileIds\": [\"file1\", \"file2\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/files/process/:buildingId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "files", "process", ":buildingId"],
+              "variable": [
+                {
+                  "key": "buildingId",
+                  "value": "building-id-here"
+                }
+              ]
+            },
+            "description": "Process uploaded files for a building (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Maintenance Management",
+      "item": [
+        {
+          "name": "Get All Maintenance Plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maintenance"]
+            },
+            "description": "Get all maintenance plans"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Maintenance Plan by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maintenance", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "plan-id-here"
+                }
+              ]
+            },
+            "description": "Get maintenance plan by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Maintenance Plans by Building",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance/building/:buildingId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maintenance", "building", ":buildingId"],
+              "variable": [
+                {
+                  "key": "buildingId",
+                  "value": "building-id-here"
+                }
+              ]
+            },
+            "description": "Get maintenance plans by building ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Maintenance Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planType\": \"preventive\",\n  \"startDate\": \"2024-01-01T00:00:00.000Z\",\n  \"endDate\": \"2024-12-31T23:59:59.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance/generate/:buildingId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maintenance", "generate", ":buildingId"],
+              "variable": [
+                {
+                  "key": "buildingId",
+                  "value": "building-id-here"
+                }
+              ]
+            },
+            "description": "Generate maintenance plan for a building (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Export Maintenance Plan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance/:id/export",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maintenance", ":id", "export"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "plan-id-here"
+                }
+              ]
+            },
+            "description": "Export maintenance plan"
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Maintenance Plan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approved\": true,\n  \"comments\": \"Plan approved for implementation\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance/:id/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "maintenance", ":id", "approve"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "plan-id-here"
+                }
+              ]
+            },
+            "description": "Approve maintenance plan (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+} 

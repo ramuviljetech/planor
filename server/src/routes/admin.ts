@@ -28,6 +28,6 @@ router.get('/standard-users', authMiddleware, requireAdmin, getStandardUsers)
 router.delete('/delete-users/:id', authMiddleware, requireAdmin, deleteStandardUser)
 
 // !GET /api/admin/dashboard   - Get total maintenance costs and individual costs
-router.get('/dashboard', authMiddleware, requireAdmin, getMaintenanceCosts)
+router.get('/dashboard', authMiddleware, getMaintenanceCosts)
 
 export { router as adminRoutes }

@@ -5,11 +5,13 @@ import {
     UserRole,
     UserStatus,
     CreateStandardUserRequest,
-    ClientFilters
+    ClientFilters,
+    ApiResponse
 } from '../types'
 import {
     findUserByEmail,
     createUser,
+    findClientById,
 } from '../entities/admin.entity'
 import { findClientByEmail, createClient } from '../entities/client.entity'
 import { hashPassword } from '../utils/common'
@@ -176,10 +178,12 @@ export const registerClient = async (req: Request, res: Response) => {
         });
     } catch (error) {
         console.error('Client creation error:', error);
-        return res.status(500).json({
+        const response: ApiResponse = {
             success: false,
-            error: 'Internal server error'
-        });
+            error: error instanceof Error ? error.message : 'Unknown error occurred',
+            statusCode: 500
+          }
+        return res.status(500).json(response);
     }
 }
 
@@ -311,22 +315,30 @@ export const getClients = async (req: Request, res: Response) => {
       const buildingIds = buildingsResult.resources.map(b => b.buildingId);
       
       if (buildingIds.length > 0) {
-        // Get maintenance costs for all buildings
-        const maintenanceQuery = `
-          SELECT 
-            c.buildingId,
-            c.type,
-            SUM(c.price) as totalPrice
-          FROM c 
-          WHERE c.buildingId IN (${buildingIds.map((_, i) => `@buildingId${i}`).join(',')})
-          AND c.price > 0
-          GROUP BY c.buildingId, c.type
+        // Get maintenance costs for all buildings using building objects
+        const buildingsQuery = `
+          SELECT c.clientId, c.id as buildingId, c.buildingObjects
+          FROM c
+          WHERE c.id IN (${buildingIds.map((_, i) => `@buildingId${i}`).join(',')})
         `;
 
-        const maintenanceResult = await pricelistContainer.items.query({
-          query: maintenanceQuery,
+        const buildingsResult = await buildingsContainer.items.query({
+          query: buildingsQuery,
           parameters: buildingIds.map((id, i) => ({ name: `@buildingId${i}`, value: id }))
         }).fetchAll();
+
+        // Get all price items for maintenance cost calculation
+        const { resources: allPriceItems } = await pricelistContainer.items.query({
+          query: 'SELECT * FROM c WHERE c.price > 0',
+          parameters: []
+        }).fetchAll();
+        
+        // Create a map of price items by type and object for quick lookup
+        const priceMap = new Map<string, number>()
+        for (const priceItem of allPriceItems) {
+          const key = `${priceItem.type}_${priceItem.object}`
+          priceMap.set(key, priceItem.price)
+        }
 
         // Group maintenance costs by client
         const clientBuildingMap = new Map<string, string[]>();
@@ -338,7 +350,7 @@ export const getClients = async (req: Request, res: Response) => {
           clientBuildingMap.get(clientId)!.push(building.buildingId);
         }
 
-        // Calculate maintenance costs per client
+        // Calculate maintenance costs per client from building objects
         for (const [clientId, buildingIds] of clientBuildingMap) {
           let totalMaintenanceCost = {
             doors: 0,
@@ -349,34 +361,61 @@ export const getClients = async (req: Request, res: Response) => {
             areas: 0
           };
 
-          for (const buildingId of buildingIds) {
-            const buildingMaintenance = maintenanceResult.resources.filter(
-              item => item.buildingId === buildingId
-            );
+          // Get buildings for this client
+          const clientBuildings = buildingsResult.resources.filter(
+            building => building.clientId === clientId
+          );
 
-            for (const item of buildingMaintenance) {
-              const type = item.type.toLowerCase();
-              const price = item.totalPrice || 0;
-
-              switch (type) {
-                case 'door':
-                  totalMaintenanceCost.doors += price;
-                  break;
-                case 'floor':
-                  totalMaintenanceCost.floors += price;
-                  break;
-                case 'window':
-                  totalMaintenanceCost.windows += price;
-                  break;
-                case 'wall':
-                  totalMaintenanceCost.walls += price;
-                  break;
-                case 'roof':
-                  totalMaintenanceCost.roofs += price;
-                  break;
-                case 'area':
-                  totalMaintenanceCost.areas += price;
-                  break;
+          for (const building of clientBuildings) {
+            if (building.buildingObjects) {
+              // Iterate through all sections in buildingObjects
+              for (const [sectionKey, section] of Object.entries(building.buildingObjects)) {
+                if (Array.isArray(section)) {
+                  for (const obj of section) {
+                    // Calculate maintenance costs based on price and count/area
+                    const type = obj.type?.toLowerCase()
+                    const object = obj.object
+                    
+                    if (type && object) {
+                      const priceKey = `${type}_${object}`
+                      const price = priceMap.get(priceKey) || 0
+                      
+                      if (price > 0) {
+                        let totalPrice = 0
+                        
+                        // Calculate total price based on count or area
+                        if (obj.count && typeof obj.count === 'number' && obj.count > 0) {
+                          totalPrice = price * obj.count
+                        } else if (obj.area && typeof obj.area === 'number' && obj.area > 0) {
+                          totalPrice = price * obj.area
+                        } else {
+                          totalPrice = price
+                        }
+                        
+                        switch (type) {
+                          case 'door':
+                            totalMaintenanceCost.doors += totalPrice
+                            break
+                          case 'floor':
+                            totalMaintenanceCost.floors += totalPrice
+                            break
+                          case 'window':
+                            totalMaintenanceCost.windows += totalPrice
+                            break
+                          case 'wall':
+                            totalMaintenanceCost.walls += totalPrice
+                            break
+                          case 'roof':
+                            totalMaintenanceCost.roofs += totalPrice
+                            break
+                          case 'area':
+                            totalMaintenanceCost.areas += totalPrice
+                            break
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -491,6 +530,7 @@ export const getClients = async (req: Request, res: Response) => {
     });
   }
 };
+
 
 
 

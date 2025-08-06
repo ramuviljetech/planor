@@ -152,12 +152,12 @@ export const getAllPropertiesController = async (req: Request, res: Response) =>
     }
 
     // If no clientId, require admin access
-    if (!authenticatedUser || authenticatedUser.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Admin access required to view all properties'
-      });
-    }
+    // if (!authenticatedUser || authenticatedUser.role !== 'admin') {
+    //   return res.status(403).json({
+    //     success: false,
+    //     error: 'Admin access required to view all properties'
+    //   });
+    // }
 
     const allProperties = Object.keys(filters).length > 0
       ? await getPropertiesWithFilters(filters)
