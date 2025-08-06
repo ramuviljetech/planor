@@ -1,8 +1,8 @@
 import React, { MouseEvent, useRef } from "react";
 import classNames from "classnames";
 import { ButtonProps } from "@/types/ui";
-import styles from "./styles.module.css";
 import Image from "next/image";
+import styles from "./styles.module.css";
 
 const Button: React.FC<ButtonProps> = ({
   title,
@@ -22,10 +22,10 @@ const Button: React.FC<ButtonProps> = ({
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const buttonClass = classNames(
-    styles.button,
+    styles.button_container,
     styles[variant],
     styles[size],
-    isDisabled && styles.disabled,
+    isDisabled && styles.button_disabled,
     className
   );
 
@@ -34,7 +34,7 @@ const Button: React.FC<ButtonProps> = ({
     if (!button) return;
 
     const ripple = document.createElement("span");
-    ripple.className = styles.ripple;
+    ripple.className = styles.button_ripple;
 
     const rect = button.getBoundingClientRect();
     const size = Math.max(rect.width, rect.height);
@@ -62,16 +62,23 @@ const Button: React.FC<ButtonProps> = ({
     >
       <div className={styles.buttonContent}>
         {loading && (
-          <span className={classNames(styles.loader, loaderClass)}></span>
+          <span
+            className={classNames(styles.button_loader, loaderClass)}
+          ></span>
         )}
         {icon && (
-          <div className={classNames(styles.iconContainer, iconContainerClass)}>
+          <div
+            className={classNames(
+              styles.button_iconContainer,
+              iconContainerClass
+            )}
+          >
             <Image
               src={icon}
               alt={title}
               width={24}
               height={24}
-              className={styles.icon}
+              className={styles.button_icon}
             />
           </div>
         )}

@@ -10,10 +10,14 @@ import {
   buildingListRowsData,
   rowsData,
 } from "@/app/constants";
-import CommonTableWithPopover from "@/components/ui/common-table-with-popover";
+import CommonTableWithPopover, {
+  PopoverAction,
+} from "@/components/ui/common-table-with-popover";
 import styles from "./styles.module.css";
+import { useRouter } from "next/navigation";
 
 const PropertiesPage = () => {
+  const router = useRouter();
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [activeTab, setActiveTab] = useState<string>("properties");
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,6 +42,20 @@ const PropertiesPage = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentRows = buildingListRowsData?.slice(startIndex, endIndex) || [];
+
+  // Define popover actions
+  const actions: PopoverAction[] = [
+    {
+      label: "View Details",
+      onClick: () => router.push("/building-details"),
+    },
+    {
+      label: "Edit Building",
+      onClick: () => {},
+    },
+  ];
+
+  // ui
 
   const renderHeaderSection = () => {
     return (
@@ -82,7 +100,7 @@ const PropertiesPage = () => {
               onPageChange: () => {},
               showItemCount: true,
             }}
-            actions={[]}
+            actions={actions}
             actionIconClassName={styles.actionIcon}
             popoverMenuClassName={styles.action_popoverMenu}
             popoverMenuItemClassName={styles.action_popoverMenuItem}

@@ -54,6 +54,8 @@
 }
 .dashboard_clients_add_client_button {
   border-radius: 24px;
+  width: fit-content !important;
+  padding: 12px 16px !important;
 }
 /* middle container */
 .dashboard_clients_middle_container {
