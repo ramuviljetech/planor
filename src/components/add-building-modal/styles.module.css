@@ -30,6 +30,13 @@
   padding: 16px 16px 0px 16px;
 }
 
+.add_building_modal_header_revit_only {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 16px 16px 16px;
+}
+
 .add_building_modal_header_left {
   display: flex;
   align-items: center;

@@ -11,19 +11,24 @@ import styles from "./styles.module.css";
 interface AddBuildingModalProps {
   show: boolean;
   onClose: () => void;
+  defaultTab?: string;
+  showOnlyRevitTab?: boolean;
 }
 
 const AddBuildingModal: React.FC<AddBuildingModalProps> = ({
   show,
   onClose,
+  defaultTab = "add-revit",
+  showOnlyRevitTab = false,
+  
 }) => {
-  const [activeTab, setActiveTab] = useState("add-revit");
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const [revitFiles, setRevitFiles] = useState<any[]>([]);
 
   const handleCloseModal = () => {
     onClose();
-    setActiveTab("add-revit");
+    setActiveTab(defaultTab);
     setUploadedFiles([]);
     setRevitFiles([]);
   };
@@ -39,9 +44,15 @@ const AddBuildingModal: React.FC<AddBuildingModalProps> = ({
     }
   };
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
+  const handleSubmitRevit = () => {
+    console.log("Revit files:", revitFiles);
+    // Add your API call here to save the building
+    handleCloseModal();
   };
+
+  // const handleTabChange = (value: string) => {
+  //   setActiveTab(value);
+  // };
 
   const handleFilesAdded = (files: any[]) => {
     console.log("Files added:", files);
@@ -87,11 +98,11 @@ const AddBuildingModal: React.FC<AddBuildingModalProps> = ({
       overlay_style={styles.add_building_modal_overlay}
     >
       <div className={styles.add_building_modal_content}>
-        <div className={styles.add_building_modal_header}>
+        <div className={showOnlyRevitTab ? styles.add_building_modal_header_revit_only : styles.add_building_modal_header}>
           <div className={styles.add_building_modal_header_left}>
             <Avatar image={backButtonIcon} size="md" />
             <h2 className={styles.add_building_modal_title}>
-              Add New Building
+              {showOnlyRevitTab ? "Add Revit File" : "Add New Building"}
             </h2>
           </div>
           <Avatar
@@ -103,18 +114,20 @@ const AddBuildingModal: React.FC<AddBuildingModalProps> = ({
         </div>
 
         <div className={styles.add_building_modal_tabs}>
-          <CustomTabs
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            customStyles={{
-              tabColor: "var(--granite-gray)",
-              selectedTabColor: "var(--rose-red)",
-              indicatorColor: "var(--rose-red)",
-              fontSize: "14px",
-              fontFamily: "var(--font-lato-medium)",
-            }}
-          />
+          {!showOnlyRevitTab && (
+            <CustomTabs
+              tabs={tabs}
+              activeTab={activeTab}
+              // onTabChange={handleTabChange}/
+              customStyles={{
+                tabColor: "var(--granite-gray)",
+                selectedTabColor: "var(--rose-red)",
+                indicatorColor: "var(--rose-red)",
+                fontSize: "14px",
+                fontFamily: "var(--font-lato-medium)",
+              }}
+            />
+          )}
         </div>
 
         <div className={styles.add_building_modal_body}>
@@ -172,8 +185,8 @@ const AddBuildingModal: React.FC<AddBuildingModalProps> = ({
         <div className={styles.add_building_modal_footer}>
           <Button title="Cancel" onClick={handleCloseModal} variant="plain" />
           <Button
-            title={activeTab === "add-revit" ? "Save & Continue" : "Submit"}
-            onClick={handleSubmitBuilding}
+            title={showOnlyRevitTab ? "Save" : (activeTab === "add-revit" ? "Save & Continue" : "Submit")}
+            onClick={showOnlyRevitTab ? handleSubmitRevit : handleSubmitBuilding}
             variant="primary"
             className={styles.add_building_modal_button}
           />

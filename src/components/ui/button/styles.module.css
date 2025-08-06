@@ -35,7 +35,7 @@
   border: none;
   color: var(--dark-slate);
 }
-.button_plain {
+.plain {
   background-color: transparent;
   border: none;
   color: var(--rose-red);

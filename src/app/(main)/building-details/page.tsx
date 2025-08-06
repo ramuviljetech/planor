@@ -27,12 +27,14 @@ import ActivityHistory from "@/sections/building-section/activity-history";
 import FileCategories from "@/sections/building-section/file-categories";
 import { ImageViewer } from "@/components/ui/image-viewer";
 import { ImageCarousel } from "@/components/ui/image-carousel";
+import AddBuildingModal from "@/components/add-building-modal";
 import styles from "./styles.module.css";
 import { sampleActivities } from "@/app/constants";
 
 const BuildingDetails: React.FC = () => {
   const [activeImageTab, setActiveImageTab] = useState("image");
   const [activeTab, setActiveTab] = useState("overview");
+  const [showAddBuildingModal, setShowAddBuildingModal] = useState(false);
   const router = useRouter();
   const breadcrumbItems = [
     { label: "Brunnfast AB", isActive: false },
@@ -188,7 +190,7 @@ const BuildingDetails: React.FC = () => {
           defaultTab="overview"
           onTabChange={handleTabChange}
         />
-        <Button title="Add Revit" variant="plain" size="sm" />
+        <Button title="Add Revit" variant='plain' size="sm" onClick={() => setShowAddBuildingModal(true)} />
       </div>
     );
   };
@@ -236,6 +238,14 @@ const BuildingDetails: React.FC = () => {
             setShowViewer(false);
             setActiveImageTab("image");
           }}
+        />
+      )}
+      {showAddBuildingModal && (
+        <AddBuildingModal 
+          show={showAddBuildingModal} 
+          onClose={() => setShowAddBuildingModal(false)}
+          showOnlyRevitTab={true}
+          
         />
       )}
     </section>
