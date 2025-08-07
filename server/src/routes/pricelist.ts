@@ -6,13 +6,12 @@ import {
   getPricelistById,
   updatePricelistHandler,
   deletePricelistHandler,
-  testAzureStorageHandler
+  testAzureStorageHandler,
 } from '../controllers/pricelist.controller'
 import {
   validateCreatePricelistFromBlob,
   validateUpdatePricelist,
   validatePricelistQuery
-
 } from '../validation/pricelist.validation'
 
 const router = express.Router()
@@ -22,6 +21,7 @@ router.post('/', authMiddleware, requireAdmin, validateCreatePricelistFromBlob, 
 
 //* GET /api/pricelist - Get all pricelists with optional filters
 router.get('/', authMiddleware,  getAllPricelistsHandler)
+
 
 //! GET /api/pricelist/test-azure-storage - Test Azure Storage configuration
 router.get('/test-azure-storage', authMiddleware, testAzureStorageHandler)

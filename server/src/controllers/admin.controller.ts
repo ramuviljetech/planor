@@ -21,7 +21,7 @@ import {
 import { hashPassword } from '../utils/common'
 import { sendWelcomeMail, isMailjetConfigured } from '../services/mail.service'
 import { 
-  createUserOnlySchema,   
+  createMultipleUsersSchema,   
 } from '../validation/admin.validation'
 import { getBuildingStatisticsUltraOptimized } from '../entities/building.entity'
 
@@ -127,41 +127,14 @@ import { getBuildingStatisticsUltraOptimized } from '../entities/building.entity
 //   }
 // }
 
-export const registerUser = async (req: Request, res: Response) => {
+
+export const registerUsers = async (req: Request, res: Response) => {
   try {
-    const userData: CreateStandardUserRequest = req.body;
+    const { users, clientId } = req.body;
     const authenticatedUser = (req as any).user;
 
-    // Validate user input
-    const validationResult = createUserOnlySchema.validate(userData);
-    if (validationResult.error) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: validationResult.error.details.map((detail) => detail.message)
-      });
-    }
-
-    if (!userData.clientId) {
-      return res.status(400).json({
-        success: false,
-        error: 'ClientId is required when creating a standard user'
-      });
-    }
-
-    // Check user and client existence in parallel
-    const [existingUser, client] = await Promise.all([
-      findUserByEmail(userData.email),
-      findClientById(userData.clientId)
-    ]);
-
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        error: 'User with this email already exists'
-      });
-    }
-
+    // Check if client exists
+    const client = await findClientById(clientId);
     if (!client) {
       return res.status(404).json({
         success: false,
@@ -169,58 +142,98 @@ export const registerUser = async (req: Request, res: Response) => {
       });
     }
 
-    const temporaryPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).toUpperCase().slice(-4) + '!1';
-    const hashedPassword = await hashPassword(temporaryPassword);
+    // Check for duplicate emails within the request
+    const emails = users.map((user: any) => user.email);
+    const uniqueEmails = new Set(emails);
+    if (uniqueEmails.size !== emails.length) {
+      return res.status(400).json({
+        success: false,
+        error: 'Duplicate emails found in the request'
+      });
+    }
 
-    const newUser: CreateStandardUserRequest = {
-      id: uuidv4(),
-      username: userData.username,
-      role: UserRole.STANDARD_USER,
-      contact: userData.contact ?? '',
-      email: userData.email,
-      clientId: userData.clientId,
-      status: UserStatus.ACTIVE,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      lastLoginAt: new Date().toISOString(),
-      password: hashedPassword
-    };
+    // Check for existing users with the same emails
+    const existingUsers = await Promise.all(
+      emails.map((email: string) => findUserByEmail(email))
+    );
 
-    const createdUser = await createUser(newUser);
-    const { password: _, ...userWithoutPassword } = createdUser;
+    const existingEmails = existingUsers
+      .filter((user: any) => user !== null)
+      .map((user: any) => user!.email);
+
+    if (existingEmails.length > 0) {
+      return res.status(409).json({
+        success: false,
+        error: 'Some users already exist',
+        details: `Users with these emails already exist: ${existingEmails.join(', ')}`
+      });
+    }
+
+    // Create all users
+    const createdUsers = [];
+    const temporaryPasswords = [];
+
+    for (const userData of users) {
+      const temporaryPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).toUpperCase().slice(-4) + '!1';
+      const hashedPassword = await hashPassword(temporaryPassword);
+
+      const newUser: CreateStandardUserRequest = {
+        id: uuidv4(),
+        username: userData.username,
+        role: UserRole.STANDARD_USER,
+        contact: userData.contact ,
+        email: userData.email,
+        clientId: clientId,
+        status: UserStatus.ACTIVE,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+        password: hashedPassword
+      };
+
+      const createdUser = await createUser(newUser);
+      const { password: _, ...userWithoutPassword } = createdUser;
+      
+      createdUsers.push(userWithoutPassword);
+      temporaryPasswords.push({
+        email: userData.email,
+        username: userData.username,
+        temporaryPassword
+      });
+    }
 
     // Respond immediately
     res.status(201).json({
       success: true,
-      message: 'Standard user created successfully',
+      message: `${createdUsers.length} users created successfully`,
       data: {
-        user: userWithoutPassword,
-        temporaryPassword
+        users: createdUsers,
+        temporaryPasswords
       }
     });
 
-    // Send welcome email asynchronously
+    // Send welcome emails asynchronously
     if (isMailjetConfigured()) {
-      sendWelcomeMail({
-        email: userData.email,
-        username: userData.username,
-        clientName: client.name
-      }).catch((err) => {
-        console.error(`Welcome email failed for ${userData.email}:`, err);
+      temporaryPasswords.forEach(({ email, username, temporaryPassword }) => {
+        sendWelcomeMail({
+          email,
+          username,
+          clientName: client.name
+        }).catch((err) => {
+          console.error(`Welcome email failed for ${email}:`, err);
+        });
       });
     }
 
-    return; // ✅ Ensure the function always returns
+    return;
   } catch (error) {
-    console.error('User creation error:', error);
+    console.error('Multiple users creation error:', error);
     return res.status(500).json({
       success: false,
       error: 'Internal server error'
     });
   }
 };
-
-
 
 // ?Future Scope: PUT /api/admin/profile/:id - Update user (Admin only)
 export const updateUser = async (req: Request, res: Response) => {

@@ -18,39 +18,39 @@ export const createClientOnlySchema = Joi.object({
 })
 
 // User-only creation validation schema
-export const createUserOnlySchema = Joi.object({
-  username: Joi.string()
-    .min(3)
-    .max(50)
-    .required()
-    .messages({
-      'string.min': 'Username must be at least 3 characters long',
-      'string.max': 'Username cannot exceed 50 characters',
-      'any.required': 'Username is required',
-      'string.empty': 'Username cannot be empty'
-    }),
-  contact: Joi.string()
-    .required()
-    .allow('')
-    .messages({
-      'string.empty': 'Contact cannot be empty if provided',
-      'any.required': 'Contact is required'
-    }),
-  email: Joi.string()
-    .email({ tlds: { allow: false } })
-    .required()
-    .messages({
-      'string.email': 'Please provide a valid email address',
-      'any.required': 'Email is required',
-      'string.empty': 'Email cannot be empty'
-    }),
-  clientId: Joi.string()
-    .required()
-    .messages({
-      'any.required': 'ClientId is required when creating a standard user',
-      'string.empty': 'ClientId cannot be empty'
-    })
-})
+// export const createUserOnlySchema = Joi.object({
+// //   username: Joi.string()
+// //     .min(3)
+// //     .max(50)
+// //     .required()
+// //     .messages({
+// //       'string.min': 'Username must be at least 3 characters long',
+// //       'string.max': 'Username cannot exceed 50 characters',
+// //       'any.required': 'Username is required',
+// //       'string.empty': 'Username cannot be empty'
+// //     }),
+// //   contact: Joi.string()
+// //     .required()
+// //     .allow('')
+// //     .messages({
+// //       'string.empty': 'Contact cannot be empty if provided',
+// //       'any.required': 'Contact is required'
+// //     }),
+// //   email: Joi.string()
+// //     .email({ tlds: { allow: false } })
+// //     .required()
+// //     .messages({
+// //       'string.email': 'Please provide a valid email address',
+// //       'any.required': 'Email is required',
+// //       'string.empty': 'Email cannot be empty'
+// //     }),
+// //   clientId: Joi.string()
+// //     .required()
+// //     .messages({
+// //       'any.required': 'ClientId is required when creating a standard user',
+// //       'string.empty': 'ClientId cannot be empty'
+// //     })
+// // })
 
 // Combined client + user creation validation schema
 export const createClientAndUserSchema = Joi.object({
@@ -277,5 +277,46 @@ export const getClientsSchema = Joi.object({
   maintananceCost: Joi.number().integer().min(0).optional(),
   page: Joi.number().integer().min(1).optional().default(1),
   limit: Joi.number().integer().min(1).optional().default(10)
+})
+
+// Multiple users creation validation schema
+export const createMultipleUsersSchema = Joi.object({
+  clientId: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'ClientId is required when creating multiple users',
+      'string.empty': 'ClientId cannot be empty'
+    }),
+  users: Joi.array().items(
+    Joi.object({
+      username: Joi.string()
+        .min(3)
+        .max(50)
+        .required()
+        .messages({
+          'string.min': 'Username must be at least 3 characters long',
+          'string.max': 'Username cannot exceed 50 characters',
+          'any.required': 'Username is required',
+          'string.empty': 'Username cannot be empty'
+        }),
+      contact: Joi.string()
+        .required()
+        .messages({
+          'any.required': 'Contact is required'
+        }),
+      email: Joi.string()
+        .email({ tlds: { allow: false } })
+        .required()
+        .messages({
+          'string.email': 'Please provide a valid email address',
+          'any.required': 'Email is required',
+          'string.empty': 'Email cannot be empty'
+        })
+    })
+  ).min(1).max(10).required().messages({
+    'array.min': 'At least one user must be provided',
+    'array.max': 'Maximum 10 users can be created at once',
+    'any.required': 'Users array is required'
+  })
 })
 

@@ -13,7 +13,7 @@ import { AccessControl } from '../middleware/accessController';
 const router = Router();
 
 // Get all buildings (with optional clientId or propertyId query parameters)
-router.get('/', authMiddleware, AccessControl, getAllBuildingsController);
+router.get('/', authMiddleware, getAllBuildingsController);
 
 // Get building by ID
 router.get('/:id', authMiddleware, getBuildingById);

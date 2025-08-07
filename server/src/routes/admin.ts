@@ -1,22 +1,20 @@
 import express from 'express'
 import { authMiddleware, requireAdmin } from '../middleware/auth'
 import { validateRequest } from '../middleware/validation.middleware'
-import { unifiedClientUserSchema, updateUserSchema, createUserOnlySchema } from '../validation/admin.validation'
+import { updateUserSchema, createMultipleUsersSchema } from '../validation/admin.validation'
 import {
-  registerUser,
   updateUser,
   getStandardUsers,
   deleteStandardUser,
-  getMaintenanceCosts
+  getMaintenanceCosts,
+  registerUsers
 } from '../controllers/admin.controller'
 
 const router = express.Router()
 
 
-
-
-// POST /api/admin/register-user - Create new user only (Admin only)
-router.post('/register-user', authMiddleware, requireAdmin, validateRequest(createUserOnlySchema), registerUser)
+// POST /api/admin/register-users - Create multiple users (Admin only)
+router.post('/register-users', authMiddleware, requireAdmin, validateRequest(createMultipleUsersSchema), registerUsers)
 
 // ?Future Scope: PUT /api/admin/profile/:id - Update user (Admin only)
 router.put('/profile/:id', authMiddleware, requireAdmin, validateRequest(updateUserSchema), updateUser)

@@ -5,11 +5,11 @@ import Joi from 'joi'
 export const createPricelistFromBlobSchema = Joi.object({
   buildingId: Joi.string().required(),
   fileUrl: Joi.string().required(),
-  name: Joi.string().required().optional(),
-  isGlobal: Joi.boolean().optional(),
-  isActive: Joi.boolean().optional(),
-  effectiveFrom: Joi.date().optional(),
-  sasToken: Joi.string().optional()
+  // name: Joi.string().required().optional(),
+  // isGlobal: Joi.boolean().optional(),
+  // isActive: Joi.boolean().optional(),
+  // effectiveFrom: Joi.date().optional(),
+  // sasToken: Joi.string().optional()
 })
 
 // Validation for creating pricelist from blob

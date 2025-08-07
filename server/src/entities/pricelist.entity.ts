@@ -1,6 +1,45 @@
 import { PriceList, PriceItem } from '../types'
 import { getPricelistContainer } from '../config/database'
 
+// Test function to check database connection and basic query
+export const testDatabaseConnection = async (): Promise<any> => {
+  try {
+    const pricelistContainer = getPricelistContainer()
+    console.log('Debug: Testing database connection...')
+    
+    // Try the simplest possible query
+    const simpleQuery = {
+      query: 'SELECT * FROM c',
+      parameters: []
+    }
+    
+    console.log('Debug: Executing simple test query:', simpleQuery.query)
+    
+    const { resources } = await pricelistContainer.items.query(simpleQuery).fetchAll()
+    console.log('Debug: Test query returned:', resources.length, 'records')
+    
+    if (resources.length > 0) {
+      console.log('Debug: Sample record:', {
+        id: resources[0].id,
+        type: resources[0].type,
+        keys: Object.keys(resources[0])
+      })
+    }
+    
+    return {
+      success: true,
+      recordCount: resources.length,
+      sampleRecord: resources.length > 0 ? resources[0] : null
+    }
+  } catch (error) {
+    console.error('Debug: Database connection test failed:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}
+
 // Find pricelist by ID
 export const findPricelistById = async (id: string): Promise<PriceList | null> => {
   try {
@@ -25,6 +64,55 @@ export const getAllPricelists = async (): Promise<PriceList[]> => {
     return pricelists
   } catch (error) {
     console.error('Error getting all pricelists:', error)
+    throw error
+  }
+}
+
+// Get all pricelists without any filters (for debugging)
+export const getAllPricelistsUnfiltered = async (): Promise<PriceItem[]> => {
+  try {
+    const pricelistContainer = getPricelistContainer()
+    
+    // Try a simple query first
+    const simpleQuery = {
+      query: 'SELECT * FROM c',
+      parameters: []
+    }
+
+    console.log('Debug: Executing simple query:', simpleQuery.query);
+    
+    const { resources: simpleResults } = await pricelistContainer.items.query(simpleQuery).fetchAll()
+    console.log('Debug: Simple query results count:', simpleResults.length);
+    
+    if (simpleResults.length === 0) {
+      console.log('Debug: No results from simple query, trying with ORDER BY...');
+      
+      const orderByQuery = {
+        query: 'SELECT * FROM c ORDER BY c.createdAt DESC',
+        parameters: []
+      }
+
+      console.log('Debug: Executing ORDER BY query:', orderByQuery.query);
+      
+      const { resources: pricelists } = await pricelistContainer.items.query(orderByQuery).fetchAll()
+      console.log('Debug: Total records in database:', pricelists.length)
+      
+      if (pricelists.length > 0) {
+        console.log('Debug: Sample record structure:', {
+          id: pricelists[0].id,
+          type: pricelists[0].type,
+          hasType: 'type' in pricelists[0],
+          keys: Object.keys(pricelists[0])
+        })
+      }
+      
+      return pricelists as PriceItem[]
+    } else {
+      console.log('Debug: Simple query worked, using those results');
+      return simpleResults as PriceItem[]
+    }
+  } catch (error) {
+    console.error('Error getting all pricelists unfiltered:', error)
     throw error
   }
 }
@@ -180,45 +268,152 @@ export const searchPricelists = async (searchTerm: string): Promise<PriceList[]>
 }
 
 // Get pricelists with filters
-export const getPricelistsWithFilters = async (): Promise<PriceList[]> => {
+export const getPricelistsWithFilters = async (filters?: {
+  adminId?: string;
+  search?: string;
+  isActive?: boolean;
+  isGlobal?: boolean;
+  page?: number;
+  limit?: number;
+}): Promise<{ pricelists: PriceItem[]; total: number }> => {
   try {
     const pricelistContainer = getPricelistContainer()
     
-    // let query = 'SELECT * FROM c WHERE 1=1'
-    // const parameters: any[] = []
-    // let paramIndex = 0
+    console.log('Debug: Starting getPricelistsWithFilters')
+    console.log('Debug: Filters received:', filters)
+    
+    // Start with a simple query and add conditions only if filters are provided
+    let query = 'SELECT * FROM c'
+    const parameters: any[] = []
+    let paramIndex = 0
+    const conditions: string[] = []
 
-    // if (filters.adminId) {
-    //   paramIndex++
-    //   query += ` AND c.createdBy = @adminId${paramIndex}`
-    //   parameters.push({ name: `@adminId${paramIndex}`, value: filters.adminId })
-    // }
+    console.log('Debug: Filters applied:', filters)
 
-    // if (filters.isActive !== undefined) {
-    //   paramIndex++
-    //   query += ` AND c.isActive = @isActive${paramIndex}`
-    //   parameters.push({ name: `@isActive${paramIndex}`, value: filters.isActive })
-    // }
+    // Only add WHERE clause if we have actual filters
+    if (filters && Object.keys(filters).length > 0) {
+      console.log('Debug: Processing filters...')
+      
+      // Check if the field exists before adding the filter
+      // For now, we'll skip filters that don't exist in the current data structure
+      // This is a temporary fix until the data structure is updated
+      
+      if (filters.adminId) {
+        console.log('Debug: Skipping adminId filter - field not available in current data')
+        // paramIndex++
+        // conditions.push(`c.createdBy = @adminId${paramIndex}`)
+        // parameters.push({ name: `@adminId${paramIndex}`, value: filters.adminId })
+      }
 
-    // if (filters.isGlobal !== undefined) {
-    //   paramIndex++
-    //   query += ` AND c.isGlobal = @isGlobal${paramIndex}`
-    //   parameters.push({ name: `@isGlobal${paramIndex}`, value: filters.isGlobal })
-    // }
+      if (filters.isActive !== undefined) {
+        console.log('Debug: Skipping isActive filter - field not available in current data')
+        // paramIndex++
+        // conditions.push(`c.isActive = @isActive${paramIndex}`)
+        // parameters.push({ name: `@isActive${paramIndex}`, value: filters.isActive })
+      }
 
-    // if (filters.search) {
-    //   paramIndex++
-    //   query += ` AND CONTAINS(c.name, @search${paramIndex}, true)`
-    //   parameters.push({ name: `@search${paramIndex}`, value: filters.search })
-    // }
+      if (filters.isGlobal !== undefined) {
+        console.log('Debug: Skipping isGlobal filter - field not available in current data')
+        // paramIndex++
+        // conditions.push(`c.isGlobal = @isGlobal${paramIndex}`)
+        // parameters.push({ name: `@isGlobal${paramIndex}`, value: filters.isGlobal })
+      }
 
-    // query += ' ORDER BY c.createdAt DESC'
+      if (filters.search) {
+        console.log('Debug: Skipping search filter - name field not available in current data')
+        // paramIndex++
+        // conditions.push(`CONTAINS(c.name, @search${paramIndex}, true)`)
+        // parameters.push({ name: `@search${paramIndex}`, value: filters.search })
+      }
 
-    const queryObj = { query: 'SELECT * FROM c ORDER BY c.createdAt DESC', parameters: [] }
+      if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(' AND ')}`
+      }
+    } else {
+      console.log('Debug: No filters provided, using simple query')
+    }
+
+    query += ' ORDER BY c.createdAt DESC'
+
+    console.log('Debug: Final query:', query)
+    console.log('Debug: Parameters:', parameters)
+
+    // Get total count first
+    const countQuery = query.replace('SELECT *', 'SELECT VALUE COUNT(1)')
+    console.log('Debug: Count query:', countQuery)
+    
+    try {
+      const { resources: countResult } = await pricelistContainer.items.query({
+        query: countQuery,
+        parameters
+      }).fetchAll()
+      
+      const total = countResult[0] || 0
+      console.log('Debug: Total count result:', total)
+    } catch (countError) {
+      console.error('Debug: Error in count query:', countError)
+      throw countError
+    }
+
+    // Apply pagination if provided
+    if (filters?.page && filters?.limit) {
+      const offset = (filters.page - 1) * filters.limit
+      query += ` OFFSET ${offset} LIMIT ${filters.limit}`
+      console.log('Debug: Query with pagination:', query)
+    }
+
+    const queryObj = { query, parameters }
+    console.log('Debug: Executing main query with:', queryObj)
+    
     const { resources: pricelists } = await pricelistContainer.items.query(queryObj).fetchAll()
-    return pricelists
+    
+    console.log('Debug: Retrieved pricelists count:', pricelists.length)
+    console.log('Debug: First few pricelists:', pricelists.slice(0, 2))
+    
+    return { pricelists: pricelists as PriceItem[], total: pricelists.length }
   } catch (error) {
     console.error('Error getting pricelists with filters:', error)
     throw error
+  }
+} 
+
+// Check if database is properly configured
+export const checkDatabaseConfiguration = async (): Promise<any> => {
+  try {
+    console.log('Debug: Checking database configuration...')
+    
+    // Check if Cosmos DB client is initialized
+    const { getPricelistContainer } = await import('../config/database')
+    
+    try {
+      const pricelistContainer = getPricelistContainer()
+      console.log('Debug: Pricelist container retrieved successfully')
+      
+      // Try to get container info
+      const containerInfo = await pricelistContainer.read()
+      console.log('Debug: Container info:', {
+        id: containerInfo.container.id
+      })
+      
+      return {
+        success: true,
+        containerId: containerInfo.container.id,
+        message: 'Database is properly configured'
+      }
+    } catch (containerError) {
+      console.error('Debug: Error accessing container:', containerError)
+      return {
+        success: false,
+        error: containerError instanceof Error ? containerError.message : 'Unknown container error',
+        message: 'Failed to access pricelist container'
+      }
+    }
+  } catch (error) {
+    console.error('Debug: Database configuration check failed:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Database configuration check failed'
+    }
   }
 } 

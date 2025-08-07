@@ -85,6 +85,7 @@ export const registerClient = async (req: Request, res: Response) => {
 
             // Normalize user data to array format
             const usersToCreate = Array.isArray(clientData.user) ? clientData.user : [clientData.user]
+console.log('Users to create:', usersToCreate);
 
             // Check for duplicate emails among the users to be created
             const userEmails = usersToCreate.map(u => u.email)
@@ -194,7 +195,7 @@ export const getClients = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user;
     const filters: ClientFilters = req.body;
-
+    console.log('Filters:', filters);
     if (authenticatedUser.role !== 'admin') {
       return res.status(403).json({
         success: false,
@@ -242,20 +243,64 @@ export const getClients = async (req: Request, res: Response) => {
       parameters.push({ name: `@maintananceCost${paramIdx}`, value: filters.maintananceCost });
     }
 
+    // --- Pagination parameters ---
+    const page = Number(filters.page) || 1;
+    const limit = Number(filters.limit) || 10;
+    const offset = (page - 1) * limit;
+
     query += ' ORDER BY c.createdAt DESC';
+    query += ` OFFSET ${offset} LIMIT ${limit}`;
 
     // --- Dates for newClientsThisMonth query ---
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
 
+    // --- Build count query for total filtered clients ---
+    let countQuery = 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "client"';
+    const countParameters: any[] = [];
+    let countParamIdx = 0;
+
+    if (filters.clientName) {
+      countParamIdx++;
+      countQuery += ` AND CONTAINS(c.clientName, @clientName${countParamIdx})`;
+      countParameters.push({ name: `@clientName${countParamIdx}`, value: filters.clientName });
+    }
+
+    if (filters.clientId) {
+      countParamIdx++;
+      countQuery += ` AND c.id = @clientId${countParamIdx}`;
+      countParameters.push({ name: `@clientId${countParamIdx}`, value: filters.clientId });
+    }
+
+    if (filters.status) {
+      countParamIdx++;
+      countQuery += ` AND c.status = @status${countParamIdx}`;
+      countParameters.push({ name: `@status${countParamIdx}`, value: filters.status });
+    }
+
+    if (filters.createdOn) {
+      countParamIdx++;
+      countQuery += ` AND STARTSWITH(c.createdAt, @createdOn${countParamIdx})`;
+      countParameters.push({ name: `@createdOn${countParamIdx}`, value: filters.createdOn });
+    }
+
+    if (filters.maintananceCost !== undefined) {
+      countParamIdx++;
+      countQuery += ` AND c.maintananceCost = @maintananceCost${countParamIdx}`;
+      countParameters.push({ name: `@maintananceCost${countParamIdx}`, value: filters.maintananceCost });
+    }
+
     // --- Run parallel queries ---
     const [
       clientsResult,
+      totalCountResult,
       propertyCountsResult,
       newClientsThisMonthCountResult
     ] = await Promise.all([
       usersContainer.items.query({ query, parameters }).fetchAll(),
+
+      usersContainer.items.query({ query: countQuery, parameters: countParameters }).fetchAll(),
 
       propertiesContainer.items.query({
         query: `
@@ -279,6 +324,7 @@ export const getClients = async (req: Request, res: Response) => {
     ]);
 
     const clients = clientsResult.resources;
+    const totalFilteredClients = totalCountResult.resources[0] ?? 0;
     const propertyCounts = propertyCountsResult.resources;
     const newClientsThisMonthValue = newClientsThisMonthCountResult.resources[0] ?? 0;
 
@@ -461,13 +507,6 @@ export const getClients = async (req: Request, res: Response) => {
       })
       .filter(Boolean);
 
-    // --- Pagination ---
-    const page = Number(filters.page) || 1;
-    const limit = Number(filters.limit) || 10;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedClients = processedClients.slice(startIndex, endIndex);
-
     // --- Get filtered building count ---
     let filteredBuildingsCountResult: any[] = [0];
     const filteredClientIds = processedClients.map(client => client?.id).filter(Boolean) as string[];
@@ -504,9 +543,9 @@ export const getClients = async (req: Request, res: Response) => {
     return res.json({
       success: true,
       data: {
-        clients: paginatedClients,
+        clients: processedClients,
         statistics: {
-          totalClients: processedClients.length,
+          totalClients: totalFilteredClients,
           newClientsThisMonth: newClientsThisMonthValue,
           totalFileUploads: totalFileUploadsValue,
           totalBuildings: filteredBuildingsValue,
@@ -514,9 +553,9 @@ export const getClients = async (req: Request, res: Response) => {
         },
         pagination: {
           currentPage: page,
-          totalPages: Math.ceil(processedClients.length / limit),
+          totalPages: Math.ceil(totalFilteredClients / limit),
           itemsPerPage: limit,
-          hasNextPage: page * limit < processedClients.length,
+          hasNextPage: page * limit < totalFilteredClients,
           hasPreviousPage: page > 1
         }
       }

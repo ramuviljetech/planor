@@ -6,7 +6,8 @@ import {
   findPricelistById, 
   updatePricelist, 
   deletePricelist,
-  getPricelistsWithFilters
+  getPricelistsWithFilters,
+ 
 } from '../entities/pricelist.entity'
 import { v4 as uuidv4 } from 'uuid'
 import { 
@@ -546,7 +547,7 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
         } else {
           // Add new item with complete information
           const newItem: any = {
-            id: createdDocument.id, // Individual document ID
+            id: uuidv4(), // Individual document ID
             type: createdDocument.type, // window, door, floor, etc.
             object: createdDocument.object, // The actual type like "6x6 Fast"
             pricelistId: createdDocument.id // Store the pricelist item ID (same type and object)
@@ -603,63 +604,79 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
 //* GET /api/pricelist - Get all pricelists
 export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { search, isGlobal, page , limit } = req.query
+    const { search, isGlobal, isActive, page, limit } = req.query
 
     // Build filters
     const filters: any = {}
+    // Temporarily disable admin filtering since the data doesn't have createdBy field
     // if (req.user?.role === 'admin' && req.user?.id) {
     //   filters.adminId = req.user.id
     // }
-    // if (search) filters.search = search as string
-    // if (isActive !== undefined) filters.isActive = isActive === 'true'
-    // if (isGlobal !== undefined) filters.isGlobal = isGlobal === 'true'
+    if (search) filters.search = search as string
+    if (isActive !== undefined) filters.isActive = isActive === 'true'
+    if (isGlobal !== undefined) filters.isGlobal = isGlobal === 'true'
+    if (page) filters.page = parseInt(page as string)
+    if (limit) filters.limit = parseInt(limit as string)
 
-    const pricelists = await getPricelistsWithFilters()
+    // Get all price items without pagination first to group them
+    const { pricelists, total } = await getPricelistsWithFilters({
+      ...filters,
+      page: undefined, // Remove pagination to get all records for grouping
+      limit: undefined
+    })
 
-    // Group pricelists by category (windows, doors, etc.)
-    const groupedPricelists: { [key: string]: any[] } = {}
+    // Group price items by category (windows, doors, etc.)
+    const groupedPriceItems: { [key: string]: any[] } = {}
     
-    pricelists.forEach((pricelist, index) => {
-      // Each pricelist is actually a price item with a 'type' field
-      const category = (pricelist as any).type
+    pricelists.forEach((priceItem: any) => {
+      // Each item is a PriceItem with a 'type' field
+      const category = priceItem.type
       
       if (category) {
-        if (!groupedPricelists[category]) {
-          groupedPricelists[category] = []
+        if (!groupedPriceItems[category]) {
+          groupedPriceItems[category] = []
         }
         
         // Add the price item to the appropriate category
-        groupedPricelists[category].push({
-          id: pricelist.id,
-          type: (pricelist as any).type,
-          object: (pricelist as any).object,
-          price: (pricelist as any).price,
-          buildingId: (pricelist as any).buildingId,
-          createdAt: pricelist.createdAt,
-          updatedAt: pricelist.updatedAt
+        groupedPriceItems[category].push({
+          id: priceItem.id,
+          type: priceItem.type,
+          object: priceItem.object,
+          price: priceItem.price,
+          buildingId: priceItem.buildingId,
+          pricelistId: priceItem.pricelistId,
+          isGlobal: priceItem.isGlobal,
+          createdAt: priceItem.createdAt,
+          updatedAt: priceItem.updatedAt
         })
       }
     })
     
-    console.log('Debug: Final grouped categories:', Object.keys(groupedPricelists))
+    console.log('Debug: Final grouped categories:', Object.keys(groupedPriceItems))
+    console.log('Debug: Total records found:', total)
+    console.log('Debug: Records processed:', pricelists.length)
 
-    // Apply pagination to each category
-    const pageNum = parseInt(page as string) || 1
-    const limitNum = parseInt(limit as string) || 10
-    const startIndex = (pageNum - 1) * limitNum
-    const endIndex = startIndex + limitNum
-
-    const paginatedGroupedData: { [key: string]: any[] } = {}
+    // Apply pagination to the grouped data if page and limit are provided
+    let paginatedGroupedData = groupedPriceItems
     
-    Object.keys(groupedPricelists).forEach(category => {
-      const categoryData = groupedPricelists[category]
-      paginatedGroupedData[category] = categoryData.slice(startIndex, endIndex)
-    })
+    if (page && limit) {
+      const pageNum = parseInt(page as string) || 1
+      const limitNum = parseInt(limit as string) || 10
+      const startIndex = (pageNum - 1) * limitNum
+      const endIndex = startIndex + limitNum
+
+      paginatedGroupedData = {}
+      
+      Object.keys(groupedPriceItems).forEach(category => {
+        const categoryData = groupedPriceItems[category]
+        paginatedGroupedData[category] = categoryData.slice(startIndex, endIndex)
+      })
+    }
 
     const response: ApiResponse = {
       success: true,
       data: paginatedGroupedData,
-      message: `Found ${pricelists.length} pricelists grouped by categories`,
+      message: `Found ${total} total price items grouped by categories`,
       statusCode: 200
     }
 
@@ -817,5 +834,7 @@ export const testAzureStorageHandler = async (req: AuthenticatedRequest, res: Re
     return res.status(500).json(response)
   }
 }
+
+
 
 
