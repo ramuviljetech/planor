@@ -30,7 +30,7 @@ interface ClientFormData {
   description: string;
 }
 
-// Validation schema using Yup
+// Validation schema for client form
 const ClientValidationSchema = Yup.object().shape({
   clientName: Yup.string().required("Client name is required"),
   orgNumber: Yup.string(),
@@ -53,6 +53,18 @@ const ClientValidationSchema = Yup.object().shape({
     .required("Phone number is required")
     .matches(/^[\+]?[1-9][\d]{0,15}$/, "Phone number must be a valid number"),
   description: Yup.string().required("Description is required"),
+});
+
+// Validation schema for user form
+const UserValidationSchema = Yup.object().shape({
+  name: Yup.string()
+    .required("Name is required"),
+  contact: Yup.string()
+    .matches(/^[0-9+\-\s()]+$/, "Contact must contain only numbers")
+    .required("Contact is required"),
+  email: Yup.string()
+    .email("Invalid email format")
+    .required("Email is required"),
 });
 
 const initialValues: ClientFormData = {
@@ -84,12 +96,6 @@ export default function AddClientUserModal({
   const [users, setUsers] = useState<
     Array<{ id: number; name: string; contact: string; email: string }>
   >([]);
-  const [newUser, setNewUser] = useState({ name: "", contact: "", email: "" });
-
-  const isUserFormValid =
-    newUser.name.trim() !== "" &&
-    newUser.contact.trim() !== "" &&
-    newUser.email.trim() !== "";
 
   // Handle form submission
   const handleSubmit = (
@@ -103,7 +109,6 @@ export default function AddClientUserModal({
       console.log("Users Data:", users);
       resetForm();
       setUsers([]);
-      setNewUser({ name: "", contact: "", email: "" });
       setActiveTab("client");
       onClose();
     }
@@ -114,7 +119,6 @@ export default function AddClientUserModal({
   const handleCancel = (resetForm: () => void) => {
     resetForm();
     setUsers([]);
-    setNewUser({ name: "", contact: "", email: "" });
     setActiveTab("client");
     onClose();
   };
@@ -123,16 +127,8 @@ export default function AddClientUserModal({
   const handleClose = (resetForm: () => void) => {
     resetForm();
     setUsers([]);
-    setNewUser({ name: "", contact: "", email: "" });
     setActiveTab("client");
     onClose();
-  };
-
-  const handleAddUser = () => {
-    if (newUser.name && newUser.contact && newUser.email) {
-      setUsers([...users, { id: Date.now(), ...newUser }]);
-      setNewUser({ name: "", contact: "", email: "" });
-    }
   };
 
   const renderClinetInfo = (formikProps: any) => {
@@ -300,88 +296,136 @@ export default function AddClientUserModal({
   const renderUserInfo = () => {
     return (
       <div className={styles.user_info_section}>
-        {/* Table with Header and Data */}
-        <table className={styles.user_info_section_table}>
-          <thead className={styles.user_info_section_table_header}>
-            <tr className={styles.user_info_section_table_header_row}>
-              <th className={styles.user_info_section_table_header_cell}>
-                User Name
-              </th>
-              <th className={styles.user_info_section_table_header_cell}>
-                Contact
-              </th>
-              <th className={styles.user_info_section_table_header_cell}>
-                Email
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id} className={styles.user_info_section_table_row}>
-                <td className={styles.user_info_section_table_cell}>
-                  {user.name}
-                </td>
-                <td className={styles.user_info_section_table_cell}>
-                  {user.contact}
-                </td>
-                <td className={styles.user_info_section_table_cell}>
-                  {user.email}
-                </td>
-              </tr>
-            ))}
-            {/* Input Row */}
-            <tr className={styles.user_info_section_table_input_row}>
-              <td className={styles.user_info_section_table_cell}>
-                <Input
-                  label=""
-                  placeholder="Enter here"
-                  value={newUser.name}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, name: e.target.value })
-                  }
-                  inputStyle={styles.user_info_section_input}
-                  inputContainerClass={styles.user_info_section_input_container}
-                  inputWrapperClass={styles.user_info_section_input_wrapper}
-                />
-              </td>
-              <td className={styles.user_info_section_table_cell}>
-                <Input
-                  label=""
-                  placeholder="Enter here"
-                  value={newUser.contact}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, contact: e.target.value })
-                  }
-                  inputStyle={styles.user_info_section_input}
-                  inputContainerClass={styles.user_info_section_input_container}
-                  inputWrapperClass={styles.user_info_section_input_wrapper}
-                />
-              </td>
-              <td className={styles.user_info_section_table_cell}>
-                <Input
-                  label=""
-                  placeholder="Enter here"
-                  value={newUser.email}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, email: e.target.value })
-                  }
-                  inputStyle={styles.user_info_section_input}
-                  inputContainerClass={styles.user_info_section_input_container}
-                  inputWrapperClass={styles.user_info_section_input_wrapper}
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div className={styles.user_info_section_add_button}>
-          <Button
-            title="Add User"
-            className={styles.user_info_section_add_button_button}
-            onClick={handleAddUser}
-            icon={plusRoseIcon}
-            iconContainerClass={styles.user_info_section_add_button_icon}
-          />
-        </div>
+        <Formik
+          initialValues={{
+            name: "",
+            contact: "",
+            email: ""
+          }}
+          validationSchema={UserValidationSchema}
+          onSubmit={(values, { resetForm }) => {
+            setUsers([...users, { id: Date.now(), ...values }]);
+            resetForm();
+          }}
+        >
+          {(formikProps) => {
+            const { values, errors, touched, handleChange, handleBlur, isValid } = formikProps;
+            
+            return (
+              <>
+                {/* Table with Header and Data */}
+                <table className={styles.user_info_section_table}>
+                  <thead className={styles.user_info_section_table_header}>
+                    <tr className={styles.user_info_section_table_header_row}>
+                      <th className={styles.user_info_section_table_header_cell}>
+                        User Name
+                      </th>
+                      <th className={styles.user_info_section_table_header_cell}>
+                        Contact
+                      </th>
+                      <th className={styles.user_info_section_table_header_cell}>
+                        Email
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr key={user.id} className={styles.user_info_section_table_row}>
+                        <td className={styles.user_info_section_table_cell}>
+                          {user.name}
+                        </td>
+                        <td className={styles.user_info_section_table_cell}>
+                          {user.contact}
+                        </td>
+                        <td className={styles.user_info_section_table_cell}>
+                          {user.email}
+                        </td>
+                      </tr>
+                    ))}
+                    {/* Input Row */}
+                    <tr className={styles.user_info_section_table_input_row}>
+                      <td className={styles.user_info_section_table_cell}>
+                        <div className={styles.user_info_section_input_wrapper}>
+                          <Input
+                            label=""
+                            placeholder="Enter here"
+                            name="name"
+                            value={values.name}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            inputStyle={styles.user_info_section_input}
+                            inputContainerClass={styles.user_info_section_input_container}
+                            inputWrapperClass={styles.user_info_section_input_wrapper}
+                          />
+                          {errors.name && touched.name && (
+                            <div className={styles.client_user_modal_error_message}>
+                              {errors.name}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className={styles.user_info_section_table_cell}>
+                        <div className={styles.user_info_section_input_wrapper}>
+                          <Input
+                            label=""
+                            placeholder="Enter here"
+                            name="contact"
+                            value={values.contact}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            inputStyle={styles.user_info_section_input}
+                            inputContainerClass={styles.user_info_section_input_container}
+                            inputWrapperClass={styles.user_info_section_input_wrapper}
+                          />
+                          {errors.contact && touched.contact && (
+                            <div className={styles.client_user_modal_error_message}>
+                              {errors.contact}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className={styles.user_info_section_table_cell}>
+                        <div className={styles.user_info_section_input_wrapper}>
+                          <Input
+                            label=""
+                            placeholder="Enter here"
+                            name="email"
+                            value={values.email}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            inputStyle={styles.user_info_section_input}
+                            inputContainerClass={styles.user_info_section_input_container}
+                            inputWrapperClass={styles.user_info_section_input_wrapper}
+                          />
+                          {errors.email && touched.email && (
+                            <div className={styles.client_user_modal_error_message}>
+                              {errors.email}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div className={styles.user_info_section_add_button}>
+                  <Button
+                    title="Add User"
+                    className={styles.user_info_section_add_button_button}
+                    onClick={() => {
+                      if (isValid && values.name && values.contact && values.email) {
+                        setUsers([...users, { id: Date.now(), ...values }]);
+                        formikProps.resetForm();
+                      }
+                    }}
+                    icon={plusRoseIcon}
+                    iconContainerClass={styles.user_info_section_add_button_icon}
+                    disabled={!isValid || !values.name || !values.contact || !values.email}
+                  />
+                </div>
+              </>
+            );
+          }}
+        </Formik>
       </div>
     );
   };
@@ -474,9 +518,7 @@ export default function AddClientUserModal({
                   }
                 }}
                 disabled={
-                  (activeTab === "user" &&
-                    users.length === 0 &&
-                    !isUserFormValid) ||
+                  (activeTab === "user" && users.length === 0) ||
                   (activeTab === "client" && formikProps.isSubmitting)
                 }
               />
