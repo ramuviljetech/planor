@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Breadcrumb from "@/components/ui/breadcrumb";
 import Button from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -24,6 +24,13 @@ import AddPropertyModal from "@/components/add-property-modal";
 import MaintenancePlan from "@/components/maintenance-plan";
 import AddUserModal from "@/components/add-user-modal";
 
+interface UserData {
+  id: string | number;
+  userName: string;
+  phoneNumber: string;
+  email: string;
+}
+
 const ClientInfo: React.FC = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("overview");
@@ -34,6 +41,14 @@ const ClientInfo: React.FC = () => {
   const [showAddUserModal, setShowAddUserModal] = useState<boolean>(false);
   const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
+  
+  // Edit mode state
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [selectedUserData, setSelectedUserData] = useState<UserData | null>(null);
+  
+  // Table data state - initialize with static data
+  const [tableData, setTableData] = useState<any[]>([]);
+  
   const tabs: TabItem[] = [
     { label: "Over View", value: "overview" },
     { label: "Properties", value: "properties" },
@@ -47,6 +62,11 @@ const ClientInfo: React.FC = () => {
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+  // Initialize table data on component mount
+  useEffect(() => {
+    setTableData([...clientInfoUsersRowsData]);
+  }, []);
 
   // Table data and handlers
   const columns: TableColumn[] = [
@@ -67,14 +87,13 @@ const ClientInfo: React.FC = () => {
     },
   ];
 
-  const totalItems = clientInfoUsersRowsData?.length;
+  const totalItems = tableData?.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   // Get current page data
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentRows =
-    clientInfoUsersRowsData?.slice(startIndex, endIndex) || [];
+  const currentRows = tableData?.slice(startIndex, endIndex) || [];
 
   const handleRowClick = (row: TableRow, index: number) => {
     console.log("Row clicked:", {
@@ -94,10 +113,74 @@ const ClientInfo: React.FC = () => {
     setSelectedRowId("");
   };
 
-  // Action handlers
+  // Handle opening modal for add user
+  const handleAddUser = () => {
+    setIsEditMode(false);
+    setSelectedUserData(null);
+    setShowAddUserModal(true);
+  };
+
+  // Handle opening modal for edit user
   const handleEditUser = (rowId: string | number) => {
     console.log("Edit User clicked for row:", rowId);
-    // Add your edit user logic here
+    
+    // Find the user data from the current rows
+    const userToEdit = currentRows.find((row: any) => row.id === rowId);
+    
+    if (userToEdit) {
+      // Transform the data to match the modal's expected format
+      const userData: UserData = {
+        id: userToEdit.id,
+        userName: userToEdit.userName,
+        phoneNumber: userToEdit.phoneNumber,
+        email: userToEdit.email,
+      };
+      
+      setSelectedUserData(userData);
+      setIsEditMode(true);
+      setShowAddUserModal(true);
+    }
+  };
+
+  // Handle saving user data (both add and edit)
+  const handleSaveUser = (userData: any) => {
+    console.log("Saving user data:", userData);
+    
+    if (isEditMode) {
+      // Handle edit logic here
+      console.log("Updating user:", userData);
+      
+      // Update the table data
+      setTableData(prevData => 
+        prevData.map(user => 
+          user.id === userData.id 
+            ? {
+                ...user,
+                userName: userData.name,
+                phoneNumber: userData.contact,
+                email: userData.email
+              }
+            : user
+        )
+      );
+    } else {
+      // Handle add logic here
+      console.log("Adding new user:", userData);
+      
+      // Add new user to table data
+      const newUser = {
+        id: Date.now(),
+        userName: userData.name,
+        phoneNumber: userData.contact,
+        email: userData.email
+      };
+      
+      setTableData(prevData => [...prevData, newUser]);
+    }
+    
+    // Reset modal state
+    setIsEditMode(false);
+    setSelectedUserData(null);
   };
 
   const handleDeleteUser = (rowId: string | number) => {
@@ -166,7 +249,7 @@ const ClientInfo: React.FC = () => {
               <p className={styles.client_info_overview_info_title}>
                 Users List
               </p>
-              <Button title="Add New User" variant="plain" size="sm" onClick={() => setShowAddUserModal(true)} />
+              <Button title="Add New User" variant="plain" size="sm" onClick={handleAddUser} />
             </div>
             {/* Users List table */}
             <CommonTableWithPopover
@@ -255,7 +338,19 @@ const ClientInfo: React.FC = () => {
       />
       <AddUserModal
         show={showAddUserModal}
-        onClose={() => setShowAddUserModal(false)}
+        onClose={() => {
+          setShowAddUserModal(false);
+          setIsEditMode(false);
+          setSelectedUserData(null);
+        }}
+        isEditMode={isEditMode}
+        userData={selectedUserData ? {
+          id: selectedUserData.id,
+          name: selectedUserData.userName,
+          contact: selectedUserData.phoneNumber,
+          email: selectedUserData.email
+        } : null}
+        onSave={handleSaveUser}
       />
     </div>
   );
