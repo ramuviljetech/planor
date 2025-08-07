@@ -170,6 +170,7 @@
   line-height: 19px;
   letter-spacing: -0.12px;
   margin-top: 4px;
+  padding-left: 5px;
 }
 
 /* User Info Section Styles */
@@ -261,6 +262,17 @@
   width: 100%;
   display: flex;
   gap: 0px;
+}
+
+.user_info_section_input_wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.user_info_section_input_wrapper .client_user_modal_error_message {
+  margin-top: 4px;
+  padding-left: 0;
 }
 
 .user_info_section_input_container .inputWrapper:focus-within {

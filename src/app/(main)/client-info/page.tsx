@@ -22,6 +22,7 @@ import ClientPropertiesList from "@/sections/clients-section/client-properties-l
 import styles from "./styles.module.css";
 import AddPropertyModal from "@/components/add-property-modal";
 import MaintenancePlan from "@/components/maintenance-plan";
+import AddUserModal from "@/components/add-user-modal";
 
 const ClientInfo: React.FC = () => {
   const router = useRouter();
@@ -30,6 +31,7 @@ const ClientInfo: React.FC = () => {
     useState<string>("propertyList");
   const [searchValue, setSearchValue] = useState<string>("");
   const [isSelectAll, setIsSelectAll] = useState<boolean>(false);
+  const [showAddUserModal, setShowAddUserModal] = useState<boolean>(false);
   const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
   const tabs: TabItem[] = [
@@ -164,7 +166,7 @@ const ClientInfo: React.FC = () => {
               <p className={styles.client_info_overview_info_title}>
                 Users List
               </p>
-              <Button title="Add New User" variant="plain" size="sm" />
+              <Button title="Add New User" variant="plain" size="sm" onClick={() => setShowAddUserModal(true)} />
             </div>
             {/* Users List table */}
             <CommonTableWithPopover
@@ -250,6 +252,10 @@ const ClientInfo: React.FC = () => {
       <AddPropertyModal
         show={showAddPropertyModal}
         onClose={() => setShowAddPropertyModal(false)}
+      />
+      <AddUserModal
+        show={showAddUserModal}
+        onClose={() => setShowAddUserModal(false)}
       />
     </div>
   );
