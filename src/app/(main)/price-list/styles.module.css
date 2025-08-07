@@ -511,3 +511,56 @@
   line-height: 100%;
   letter-spacing: 0px;
 }
+
+/* property image model styling */
+.property_image_modal_container {
+  width: 880px;
+  height: 682px;
+
+  border-radius: 24px;
+
+  border-radius: 24px;
+  background-color: var(--white);
+  width: 880px;
+  backdrop-filter: blur(4px);
+}
+.property_image_modal_cancel_button {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 1000;
+
+}
+.property_image_modal_cancel_button_avatar_wrapper {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 24px;
+  opacity: 1;
+  padding: 12px;
+  background-color: var(--neutral-gray);
+}
+.property_image_modal_cancel_button_avatar {
+  width: 20px;
+  height: 20px;
+  /* position: relative; */
+}
+
+.property_image_modal_view_adjustment_section {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  justify-content: center;
+  position: fixed;
+  bottom: 31px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.property_image_modal_cancel_button_avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 24px;
+  opacity: 1;
+  padding: 12px;
+  background-color: var(--neutral-gray);
+}
+

@@ -72,6 +72,9 @@ export { default as gridGrayIcon } from "@/assets/images/grid-gray-icon.svg";
 export { default as gridPinkIcon } from "@/assets/images/grid-pink-icon.svg";
 export { default as folderIcon } from "@/assets/images/folder-icon.svg";
 export { default as downloadBlackIcon } from "@/assets/images/download-black-icon.svg";
+export { default as zoomInBlackIcon } from "@/assets/images/zoom-in-black-icon.svg";
+export { default as zoomOutBlackIcon } from "@/assets/images/zoom-out-black-icon.svg";
+export { default as focusBlackIcon } from "@/assets/images/focus-black-icon.svg";
 
 //
 export { default as recentUploadedFileDummyImg1 } from "@/assets/images/recent-uploaded-file-dummy-img-1.svg";
@@ -82,3 +85,9 @@ export { default as docIcon } from "@/assets/images/doc-icon.svg";
 
 export { default as openEyeIcon } from "@/assets/images/open-eye.svg";
 export { default as closeEyeIcon } from "@/assets/images/close-eye.svg";
+
+// user profile 
+export { default as myAccountIcon } from "@/assets/images/my-account-icon.svg";
+export { default as editProfileIcon } from "@/assets/images/edit-profile-black-icon.svg";
+export { default as supportIcon } from "@/assets/images/support-black-icon.svg";
+export { default as logoutIcon } from "@/assets/images/log-out-black-icon.svg";
