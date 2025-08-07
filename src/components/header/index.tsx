@@ -7,15 +7,26 @@ import {
   avatarIcon,
 } from "@/resources/images";
 import SearchBar from "../ui/searchbar";
-import { useState } from "react";
+import { useState, useRef, RefObject } from "react";
 import Image from "next/image";
 import styles from "./styles.module.css";
 import Avatar from "../ui/avatar";
 import { useAuth } from "@/providers";
+import Modal from "../ui/modal";
+import PopOver from "../ui/popover";
+import { UserProfile } from "../user-profile/user-profile";
 
 const Header: React.FC = () => {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
+  // const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  // const[popoverRef,setPopoverRef] = useState<RefObject<HTMLDivElement>>();
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  const handlePopoverClose = () => {
+    setIsPopoverOpen(false);
+  };
 
   return (
     <div className={styles.header_container}>
@@ -41,7 +52,11 @@ const Header: React.FC = () => {
           className={styles.questionmark_icon}
         />
 
-        <div className={styles.avatar_container}>
+        <div
+          ref={popoverRef}
+          className={styles.avatar_container}
+          onClick={() => setIsPopoverOpen(true)}
+        >
           <Image
             src={avatarIcon}
             alt="avatar"
@@ -55,6 +70,18 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
+      <PopOver
+        reference={popoverRef}
+        show={isPopoverOpen}
+        showOverlay={false}
+        placement="bottom-end"
+        offset={[0, 12]}
+        onClose={handlePopoverClose}
+        overlay_style={styles.profile_modal_overlay}
+        zIndex={9999} 
+      >
+        <UserProfile />
+      </PopOver>
     </div>
   );
 };
