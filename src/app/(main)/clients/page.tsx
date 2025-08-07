@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import Button from "@/components/ui/button";
 import ClientDetails from "@/sections/clients-section/client-properties-list";
 import SectionHeader from "@/components/ui/section-header";
@@ -15,8 +14,10 @@ import { useRouter } from "next/navigation";
 import AddClientUserModal from "@/components/add-client-user-modal";
 import styles from "./styles.module.css";
 import AddPropertyModal from "@/components/add-property-modal";
+import { useDataProvider } from "@/providers/data-provider";
 
 const Clients: React.FC = () => {
+  const { clients, updateClientsPagination } = useDataProvider();
   const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
   const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
@@ -28,6 +29,43 @@ const Clients: React.FC = () => {
     useState<boolean>(false);
   const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
+
+  // Transform API clients data to table format
+  const transformedClientsData = useMemo(() => {
+    if (!clients.data || clients.data.length === 0) {
+      return [];
+    }
+
+    return clients.data.map((client) => ({
+      id: client.id,
+      clientName: client.clientName,
+      clientId: client.clientId,
+      properties: client.properties,
+      createdOn: new Date(client.createdOn).toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      maintenanceCost: Object.values(client.totalMaintenanceCost).reduce(
+        (sum, cost) => sum + cost,
+        0
+      ),
+      status: client.status === "active" ? "Active" : "Inactive",
+    }));
+  }, [clients.data]);
+
+  useEffect(() => {
+    console.log("👥 Clients Page: Component mounted");
+    console.log("📊 Clients Page: Current clients state:", clients);
+
+    // No need to fetch data here - it's already loaded from dashboard
+    console.log("✅ Clients Page: Using cached clients data from dashboard");
+  }, []);
+
+  useEffect(() => {
+    console.log("📊 Clients Page: Clients state updated:", clients);
+  }, [clients]);
+
   // Table data and handlers
   const columns = [
     {
@@ -71,16 +109,23 @@ const Clients: React.FC = () => {
     },
   ];
 
-  const totalItems = rowsData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalItems =
+    clients.statistics?.totalClients || transformedClientsData.length;
+  const totalPages =
+    clients.pagination?.totalPages || Math.ceil(totalItems / itemsPerPage);
+  const currentPageFromApi = clients.pagination?.currentPage || currentPage;
 
   // Get current page data
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  const startIndex = (currentPageFromApi - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentRows = rowsData.slice(startIndex, endIndex);
+  const currentRows = transformedClientsData.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    console.log("📄 Clients Page: Changing to page:", page);
+    updateClientsPagination(page);
+    // TODO: Fetch new page data from API
+    // fetchClients(page);
   };
 
   const handleViewDetails = (rowId: string | number) => {
@@ -109,7 +154,9 @@ const Clients: React.FC = () => {
     return (
       <div className={styles.clients_header_section}>
         <div className={styles.clients_header_section_title_container}>
-          <p className={styles.clients_count}>24</p>
+          <p className={styles.clients_count}>
+            {clients.statistics?.totalClients || 0}
+          </p>
           <p className={styles.clients_header_section_title}>Clients</p>
         </div>
         <Button
@@ -144,15 +191,30 @@ const Clients: React.FC = () => {
         />
         {/* middle container */}
         <div className={styles.dashboard_clients_middle_container}>
-          {clientsStaticCardTitle.map((card, index) => (
-            <MetricCard
-              key={index}
-              title={card.title}
-              value={card.value}
-              className={styles.dashboard_clients_static_card}
-              titleStyle={styles.dashboard_clients_static_card_title}
-            />
-          ))}
+          <MetricCard
+            title="Total Clients"
+            value={clients.statistics?.totalClients || 0}
+            className={styles.dashboard_clients_static_card}
+            titleStyle={styles.dashboard_clients_static_card_title}
+          />
+          <MetricCard
+            title="New This Month"
+            value={clients.statistics?.newClientsThisMonth || 0}
+            className={styles.dashboard_clients_static_card}
+            titleStyle={styles.dashboard_clients_static_card_title}
+          />
+          <MetricCard
+            title="Total Buildings"
+            value={clients.statistics?.totalBuildings || 0}
+            className={styles.dashboard_clients_static_card}
+            titleStyle={styles.dashboard_clients_static_card_title}
+          />
+          <MetricCard
+            title="File Uploads"
+            value={clients.statistics?.totalFileUploads || 0}
+            className={styles.dashboard_clients_static_card}
+            titleStyle={styles.dashboard_clients_static_card_title}
+          />
         </div>
         <CommonTableWithPopover
           columns={columns}
@@ -174,6 +236,7 @@ const Clients: React.FC = () => {
       </div>
     );
   };
+
   return (
     <div className={styles.clients_container}>
       {renderHeaderSection()}

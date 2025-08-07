@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import MaintenanceSection from "@/sections/dashboard-section/maintenance";
 import MetricCard from "@/components/ui/metric-card";
 import { clientsStaticCardTitle, rowsData } from "@/app/constants";
@@ -20,6 +20,9 @@ import AddPropertyModal from "@/components/add-property-modal";
 import Modal from "@/components/ui/modal";
 import ClientsFilter from "@/sections/clients-section/clients-filter";
 import { useAuth } from "@/providers";
+import { useDataProvider } from "@/providers/data-provider";
+import FallbackScreen from "@/components/ui/fallback-screen";
+import { dashboardApiService } from "@/networking/dashboard-api-service";
 import styles from "./styles.module.css";
 
 // Fixed colors for metric cards based on title
@@ -32,8 +35,18 @@ const titleColorMap: Record<string, string> = {
   Area: "var(--neon-mint)",
 };
 
+interface MaintenanceSummary {
+  doors: number;
+  floors: number;
+  windows: number;
+  walls: number;
+  roofs: number;
+  areas: number;
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { clients, fetchClients, updateClientsPagination } = useDataProvider();
   const [selectedFilter, setSelectedFilter] = useState<string>("clients");
   const [
     selectedYearlyMaintenanceSummary,
@@ -46,86 +59,148 @@ export default function DashboardPage() {
   const [showBottomSheet, setShowBottomSheet] = useState<boolean>(false);
   const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
   const router = useRouter();
   const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
 
-  // TODO: Replace this with actual API call data
-  // This will be fetched from the database based on selectedFilter and selectedYearlyMaintenanceSummary
-  const mockApiData = useMemo(() => {
-    // Simulate different data based on filter selection
-    const baseCards = [
+  // Dashboard data state
+  const [maintenanceSummaryData, setMaintenanceSummaryData] =
+    useState<MaintenanceSummary>({
+      doors: 0,
+      floors: 0,
+      windows: 0,
+      walls: 0,
+      roofs: 0,
+      areas: 0,
+    });
+  const [isDashboardLoading, setIsDashboardLoading] = useState<boolean>(false);
+
+  // Fetch dashboard data when component mounts
+  useEffect(() => {
+    const fetchMaintenanceSummaryData = async () => {
+      setIsDashboardLoading(true);
+      try {
+        const data = await dashboardApiService.getMaintenanceSummaryData();
+        setMaintenanceSummaryData(data.data.totalCosts);
+      } catch (error) {
+        console.error("❌ Dashboard: Error fetching dashboard data:", error);
+      } finally {
+        setIsDashboardLoading(false);
+      }
+    };
+
+    fetchMaintenanceSummaryData();
+  }, []);
+
+  // Fetch clients data when dashboard loads
+  useEffect(() => {
+    fetchClients(1);
+  }, []);
+
+  // Transform API clients data to table format
+  const transformedClientsData = useMemo(() => {
+    if (!clients.data || clients.data.length === 0) {
+      return [];
+    }
+
+    return clients.data.map((client) => ({
+      id: client.id,
+      clientName: client.clientName,
+      clientId: client.clientId,
+      properties: client.properties,
+      createdOn: new Date(client.createdOn).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      maintenanceCost: Object.values(client.totalMaintenanceCost).reduce(
+        (sum, cost) => sum + cost,
+        0
+      ),
+      status: client.status === "active" ? "Active" : "Inactive",
+    }));
+  }, [clients.data]);
+
+  // Transform maintenance summary data to dashboard format
+  const dashboardApiData = useMemo(() => {
+    if (!maintenanceSummaryData) {
+      return {
+        metricCards: [],
+        contributionData: [],
+        totalValue: "0K",
+        totalPercentageChange: "0%",
+      };
+    }
+
+    const totalCosts = maintenanceSummaryData;
+    const totalValue = Object.values(totalCosts).reduce(
+      (sum: number, value: any) => sum + (value || 0),
+      0
+    );
+
+    // Transform the API data to match our expected format
+    const metricCards = [
       {
         title: "Doors",
-        value:
-          selectedFilter === "clients"
-            ? 900
-            : selectedFilter === "properties"
-            ? 750
-            : 600,
-        percentageChange: 3.4,
+        value: totalCosts.doors || 0,
+        percentageChange: 3.4, // You might want to get this from API
+        color: titleColorMap["Doors"] || "var(--lavender-sky)",
+        percentage:
+          totalValue > 0
+            ? Math.round((totalCosts.doors / totalValue) * 100)
+            : 0,
       },
       {
         title: "Floors",
-        value:
-          selectedFilter === "clients"
-            ? 680
-            : selectedFilter === "properties"
-            ? 550
-            : 480,
+        value: totalCosts.floors || 0,
         percentageChange: 11.4,
+        color: titleColorMap["Floors"] || "var(--aqua-mist)",
+        percentage:
+          totalValue > 0
+            ? Math.round((totalCosts.floors / totalValue) * 100)
+            : 0,
       },
       {
         title: "Roof",
-        value:
-          selectedFilter === "clients"
-            ? 680
-            : selectedFilter === "properties"
-            ? 620
-            : 520,
+        value: totalCosts.roofs || 0,
         percentageChange: 3.4,
+        color: titleColorMap["Roof"] || "var(--pink-blush)",
+        percentage:
+          totalValue > 0
+            ? Math.round((totalCosts.roofs / totalValue) * 100)
+            : 0,
       },
       {
         title: "Walls",
-        value:
-          selectedFilter === "clients"
-            ? 500
-            : selectedFilter === "properties"
-            ? 420
-            : 380,
+        value: totalCosts.walls || 0,
         percentageChange: -1.4,
+        color: titleColorMap["Walls"] || "var(--sunbeam)",
+        percentage:
+          totalValue > 0
+            ? Math.round((totalCosts.walls / totalValue) * 100)
+            : 0,
       },
       {
         title: "Windows",
-        value:
-          selectedFilter === "clients"
-            ? 300
-            : selectedFilter === "properties"
-            ? 280
-            : 250,
+        value: totalCosts.windows || 0,
         percentageChange: 7.2,
+        color: titleColorMap["Windows"] || "var(--royal-indigo)",
+        percentage:
+          totalValue > 0
+            ? Math.round((totalCosts.windows / totalValue) * 100)
+            : 0,
       },
       {
         title: "Area",
-        value:
-          selectedFilter === "clients"
-            ? 1280
-            : selectedFilter === "properties"
-            ? 1100
-            : 980,
+        value: totalCosts.areas || 0,
         percentageChange: 4.4,
+        color: titleColorMap["Area"] || "var(--neon-mint)",
+        percentage:
+          totalValue > 0
+            ? Math.round((totalCosts.areas / totalValue) * 100)
+            : 0,
       },
     ];
-
-    // Calculate total value
-    const totalValue = baseCards.reduce((sum, card) => sum + card.value, 0);
-
-    const metricCards = baseCards.map((card) => ({
-      ...card,
-      color: titleColorMap[card.title] || "var(--lavender-sky)", // fallback color
-      percentage: Math.round((card.value / totalValue) * 100),
-    }));
 
     const contributionData = metricCards.map((card) => ({
       title: card.title,
@@ -134,25 +209,35 @@ export default function DashboardPage() {
       percentage: card.percentage,
     }));
 
+    // Format total value similar to MetricCard component
+    const formatTotalValue = (val: number) => {
+      if (val >= 1000) {
+        const kValue = (val / 1000).toFixed(1);
+        return kValue.endsWith(".0") ? kValue.slice(0, -2) + "K" : kValue + "K";
+      } else {
+        return val.toString();
+      }
+    };
+
     return {
       metricCards,
       contributionData,
-      totalValue: `${(totalValue / 1000).toFixed(1)}K`,
-      totalPercentageChange: "+3.4%",
+      totalValue: formatTotalValue(totalValue),
+      totalPercentageChange: "+3.4%", // You might want to get this from API
     };
-  }, [selectedFilter, selectedYearlyMaintenanceSummary]);
+  }, [maintenanceSummaryData]);
 
   // Table data and handlers
   const columns: TableColumn[] = [
     {
       key: "clientName",
       title: "Client Name",
-      width: "calc(100% / 7)",
+      width: "calc(100% / 5)",
     },
     {
       key: "clientId",
       title: "Client ID",
-      width: "calc(100% / 7)",
+      width: "calc(100% / 6)",
     },
     {
       key: "properties",
@@ -162,7 +247,7 @@ export default function DashboardPage() {
     {
       key: "createdOn",
       title: "Created On",
-      width: "calc(100% / 7)",
+      width: "calc(100% / 6)",
     },
     {
       key: "maintenanceCost",
@@ -185,13 +270,14 @@ export default function DashboardPage() {
     },
   ];
 
-  const totalItems = rowsData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalItems =
+    clients.statistics?.totalClients || transformedClientsData.length;
+  const totalPages =
+    clients.pagination?.totalPages || Math.ceil(totalItems / itemsPerPage);
+  const currentPageFromApi = clients.pagination?.currentPage || 1;
 
-  // Get current page data
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentRows = rowsData.slice(startIndex, endIndex);
+  // Use the data directly from API response since it's already paginated
+  const currentRows = transformedClientsData;
 
   const handleRowClick = (row: TableRow, index: number) => {
     setShowBottomSheet(true);
@@ -199,8 +285,9 @@ export default function DashboardPage() {
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    console.log("🔄 Dashboard: Page change requested to page", page);
     setSelectedRowId("");
+    updateClientsPagination(page);
   };
 
   const handleViewDetails = (rowId: string | number) => {
@@ -233,6 +320,8 @@ export default function DashboardPage() {
   };
 
   const renderClients = () => {
+    // Show loader while fetching data
+
     return (
       <div className={styles.dashboard_clients_container}>
         {/* top container */}
@@ -256,36 +345,74 @@ export default function DashboardPage() {
           searchBarStyle={styles.dashboard_clients_search_bar}
           actionButtonStyle={styles.dashboard_clients_add_client_button}
         />
-        {/* middle container */}
-        <div className={styles.dashboard_clients_middle_container}>
-          {clientsStaticCardTitle.map((card, index) => (
-            <MetricCard
-              key={index}
-              title={card.title}
-              value={card.value}
-              className={styles.dashboard_clients_static_card}
-              titleStyle={styles.dashboard_clients_static_card_title}
+        {clients.isLoading && clients.data.length === 0 ? (
+          <div className={styles.dashboard_clients_container}>
+            <FallbackScreen
+              title="Loading Clients"
+              subtitle="Please wait while we fetch your clients data..."
+              className={styles.clients_loading_fallback}
             />
-          ))}
-        </div>
-        <CommonTableWithPopover
-          columns={columns}
-          rows={currentRows}
-          onRowClick={handleRowClick}
-          selectedRowId={selectedRowId}
-          pagination={{
-            currentPage,
-            totalPages,
-            totalItems,
-            itemsPerPage,
-            onPageChange: handlePageChange,
-            showItemCount: true,
-          }}
-          actions={actions}
-          actionIconClassName={styles.actionIcon}
-          popoverMenuClassName={styles.action_popoverMenu}
-          popoverMenuItemClassName={styles.action_popoverMenuItem}
-        />
+          </div>
+        ) : (
+          <>
+            {/* middle container */}
+            <div className={styles.dashboard_clients_middle_container}>
+              <MetricCard
+                title="Total Clients"
+                value={clients.statistics?.totalClients || 0}
+                className={styles.dashboard_clients_static_card}
+                titleStyle={styles.dashboard_clients_static_card_title}
+              />
+              <MetricCard
+                title="New This Month"
+                value={clients.statistics?.newClientsThisMonth || 0}
+                className={styles.dashboard_clients_static_card}
+                titleStyle={styles.dashboard_clients_static_card_title}
+              />
+              <MetricCard
+                title="Total Buildings"
+                value={clients.statistics?.totalBuildings || 0}
+                className={styles.dashboard_clients_static_card}
+                titleStyle={styles.dashboard_clients_static_card_title}
+              />
+              <MetricCard
+                title="File Uploads"
+                value={clients.statistics?.totalFileUploads || 0}
+                className={styles.dashboard_clients_static_card}
+                titleStyle={styles.dashboard_clients_static_card_title}
+              />
+            </div>
+            <div className={styles.table_container_wrapper}>
+              <CommonTableWithPopover
+                columns={columns}
+                rows={currentRows}
+                onRowClick={handleRowClick}
+                selectedRowId={selectedRowId}
+                pagination={{
+                  currentPage: currentPageFromApi,
+                  totalPages,
+                  totalItems,
+                  itemsPerPage,
+                  onPageChange: handlePageChange,
+                  showItemCount: true,
+                }}
+                actions={actions}
+                actionIconClassName={styles.actionIcon}
+                popoverMenuClassName={styles.action_popoverMenu}
+                popoverMenuItemClassName={styles.action_popoverMenuItem}
+                disabled={clients.isLoading}
+              />
+              {clients.isLoading && clients.data.length > 0 && (
+                <div className={styles.pagination_loading_overlay}>
+                  <div className={styles.pagination_loading_spinner}>
+                    <div className={styles.spinner}></div>
+                    <span>Loading...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     );
   };
@@ -294,15 +421,25 @@ export default function DashboardPage() {
     <div className={styles.dashboard_container}>
       <p className={styles.dashboard_title}>Hey {user?.name}</p>
       {/* Yearly Maintenance Costs Summary */}
-      <MaintenanceSection
-        selectedFilter={selectedFilter}
-        selectedYearlyMaintenanceSummary={selectedYearlyMaintenanceSummary}
-        onFiltersChange={handleFiltersChange}
-        metricCards={mockApiData.metricCards}
-        contributionData={mockApiData.contributionData}
-        totalValue={mockApiData.totalValue}
-        totalPercentageChange={mockApiData.totalPercentageChange}
-      />
+      {isDashboardLoading ? (
+        <div className={styles.dashboard_maintenance_loading}>
+          <FallbackScreen
+            title="Loading Maintenance Data"
+            subtitle="Please wait while we fetch your maintenance summary..."
+            className={styles.maintenance_loading_fallback}
+          />
+        </div>
+      ) : (
+        <MaintenanceSection
+          selectedFilter={selectedFilter}
+          selectedYearlyMaintenanceSummary={selectedYearlyMaintenanceSummary}
+          onFiltersChange={handleFiltersChange}
+          metricCards={dashboardApiData.metricCards}
+          contributionData={dashboardApiData.contributionData}
+          totalValue={dashboardApiData.totalValue}
+          totalPercentageChange={dashboardApiData.totalPercentageChange}
+        />
+      )}
       {renderClients()}
       <BottomSheet
         isOpen={showBottomSheet}

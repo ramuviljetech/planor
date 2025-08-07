@@ -25,63 +25,64 @@ interface TextAreaProps {
 }
 
 const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
-  ({
-    label,
-    placeholder = "",
-    rows = 4,
-    value,
-    onChange,
-    onBlur,
-    onFocus,
-    disabled = false,
-    required = false,
-    error,
-    className = "",
-    labelClassName = "",
-    textareaClassName = "",
-    name,
-    id,
-    maxLength,
-    minLength,
-    readOnly = false,
-    autoFocus = false,
-  }) =>
-    // ref
+  (
     {
-      return (
-        <div className={classNames(styles.text_area_container, className)}>
-          {label && (
-            <p className={classNames(styles.text_area_label, labelClassName)}>
-              {label}
-              {required && <span className={styles.required}>*</span>}
-            </p>
+      label,
+      placeholder = "",
+      rows = 4,
+      value,
+      onChange,
+      onBlur,
+      onFocus,
+      disabled = false,
+      required = false,
+      error,
+      className = "",
+      labelClassName = "",
+      textareaClassName = "",
+      name,
+      id,
+      maxLength,
+      minLength,
+      readOnly = false,
+      autoFocus = false,
+    },
+    ref
+  ) => {
+    return (
+      <div className={classNames(styles.text_area_container, className)}>
+        {label && (
+          <p className={classNames(styles.text_area_label, labelClassName)}>
+            {label}
+            {required && <span className={styles.required}>*</span>}
+          </p>
+        )}
+        <textarea
+          ref={ref}
+          className={classNames(
+            styles.text_area,
+            textareaClassName,
+            error && styles.text_area_error
           )}
-          <textarea
-            //   ref={ref}
-            className={classNames(
-              styles.text_area,
-              textareaClassName,
-              error && styles.text_area_error
-            )}
-            placeholder={placeholder}
-            rows={rows}
-            value={value}
-            onChange={onChange}
-            onBlur={onBlur}
-            onFocus={onFocus}
-            disabled={disabled}
-            required={required}
-            name={name}
-            id={id}
-            maxLength={maxLength}
-            minLength={minLength}
-            readOnly={readOnly}
-            autoFocus={autoFocus}
-          />
-          {error && <p className={styles.error_message}>{error}</p>}
-        </div>
-      );
-    }
+          placeholder={placeholder}
+          rows={rows}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          onFocus={onFocus}
+          disabled={disabled}
+          required={required}
+          name={name}
+          id={id}
+          maxLength={maxLength}
+          minLength={minLength}
+          readOnly={readOnly}
+          autoFocus={autoFocus}
+        />
+        {error && <p className={styles.error_message}>{error}</p>}
+      </div>
+    );
+  }
 );
 
 export default TextArea;

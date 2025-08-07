@@ -22,7 +22,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     />
   ),
 }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -36,8 +36,20 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     return <>{fallback}</>;
   }
 
-  // Show children only if authenticated
-  if (isAuthenticated) {
+  // Show no user fallback if authenticated but no user data
+  if (isAuthenticated && !user) {
+    return (
+      <FallbackScreen
+        image={placeholder}
+        imageAlt="No User"
+        title="No User Data"
+        subtitle="Unable to load user information. Please try refreshing the page or contact support."
+      />
+    );
+  }
+
+  // Show children only if authenticated and has user data
+  if (isAuthenticated && user) {
     return <>{children}</>;
   }
 

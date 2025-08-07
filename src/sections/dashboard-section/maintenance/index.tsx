@@ -9,7 +9,7 @@ import MetricCard from "@/components/ui/metric-card";
 import ContributionChart from "@/components/ui/contribution-chart";
 import { MaintenanceSectionProps } from "@/types/sections";
 import {
-  filterOptions,
+  // filterOptions,
   yearlyMaintenanceSummaryOptions,
 } from "@/app/constants";
 
@@ -22,24 +22,24 @@ export default function MaintenanceSection({
   totalPercentageChange,
   onFiltersChange,
 }: MaintenanceSectionProps) {
-  const [showFilter, setShowFilter] = useState(false);
+  // const [showFilter, setShowFilter] = useState(false);
   const [showYearlyMaintenanceSummary, setShowYearlyMaintenanceSummary] =
     useState(false);
   const yearlyMaintenanceSummaryRef = useRef<HTMLDivElement>(null);
-  const filterRef = useRef<HTMLDivElement>(null);
+  // const filterRef = useRef<HTMLDivElement>(null);
 
   // Event handlers for popups
-  const handleFilterClick = () => setShowFilter(true);
+  // const handleFilterClick = () => setShowFilter(true);
   const handleYearlyMaintenanceSummaryClick = () =>
     setShowYearlyMaintenanceSummary(true);
-  const handleFilterClose = () => setShowFilter(false);
+  // const handleFilterClose = () => setShowFilter(false);
   const handleYearlyMaintenanceSummaryClose = () =>
     setShowYearlyMaintenanceSummary(false);
 
-  const handleFilterSelect = (value: string) => {
-    setShowFilter(false);
-    onFiltersChange(value, selectedYearlyMaintenanceSummary);
-  };
+  // const handleFilterSelect = (value: string) => {
+  //   setShowFilter(false);
+  //   onFiltersChange(value, selectedYearlyMaintenanceSummary);
+  // };
 
   const handleYearlyMaintenanceSummarySelect = (value: string) => {
     setShowYearlyMaintenanceSummary(false);
@@ -54,7 +54,7 @@ export default function MaintenanceSection({
           Yearly Maintenance Costs Summary
         </p>
         <div className={styles.dashboard_Maintenance_top_right_container}>
-          <div
+          {/* <div
             ref={filterRef}
             onClick={handleFilterClick}
             className={styles.dashboard_Maintenance_filterWrapper}
@@ -72,7 +72,7 @@ export default function MaintenanceSection({
               width={24}
               height={24}
             />
-          </div>
+          </div> */}
           <div
             ref={yearlyMaintenanceSummaryRef}
             onClick={handleYearlyMaintenanceSummaryClick}
@@ -100,11 +100,11 @@ export default function MaintenanceSection({
           <p className={styles.dashboard_Maintenance_totalTitle}>
             {totalValue}
           </p>
-          <div className={styles.dashboard_Maintenance_variationWrapper}>
+          {/* <div className={styles.dashboard_Maintenance_variationWrapper}>
             <p className={styles.dashboard_Maintenance_variationText}>
               {totalPercentageChange}
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -118,7 +118,7 @@ export default function MaintenanceSection({
             key={card.title}
             title={card.title}
             value={card.value}
-            percentageChange={card.percentageChange}
+            // percentageChange={card.percentageChange}
             showDot={true}
             dotColor={card.color}
             className={styles.metric_card}
@@ -127,7 +127,7 @@ export default function MaintenanceSection({
         ))}
       </div>
 
-      <PopOver
+      {/* <PopOver
         reference={filterRef}
         show={showFilter}
         onClose={handleFilterClose}
@@ -154,7 +154,7 @@ export default function MaintenanceSection({
             </div>
           ))}
         </div>
-      </PopOver>
+      </PopOver> */}
       <PopOver
         reference={yearlyMaintenanceSummaryRef}
         show={showYearlyMaintenanceSummary}

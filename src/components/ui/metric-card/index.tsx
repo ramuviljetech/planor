@@ -17,10 +17,18 @@ const MetricCard: React.FC<MetricCardProps> = ({
 }) => {
   // Format value with commas for better readability
   const formatValue = (val: number) => {
-    if (val < 10) {
-      return `0${val}`;
+    if (showK && val >= 1000) {
+      // For values >= 1000, show K format
+      const kValue = (val / 1000).toFixed(1);
+      // Remove .0 if it's a whole number
+      return kValue.endsWith(".0") ? kValue.slice(0, -2) : kValue;
+    } else {
+      // For values < 1000, show original value
+      if (val > 0 && val < 10) {
+        return `0${val}`;
+      }
+      return val.toString();
     }
-    return val.toLocaleString();
   };
 
   return (
@@ -34,7 +42,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
       <div className={styles.bodyContainer}>
         <span className={classNames(styles.value, valueStyle)}>
           {formatValue(value)}
-          {showK ? "K" : ""}
+          {showK && value >= 1000 ? "K" : ""}
         </span>
         {percentageChange && (
           <span
