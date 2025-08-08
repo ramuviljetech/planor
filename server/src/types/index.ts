@@ -106,13 +106,14 @@ export interface StandardUser {
 
 //client filters
 export interface ClientFilters {
-  maintananceCost: any;
+  search?: string; // General search field that searches across multiple fields
+  maintananceCost?: number;
   page: number | string
   limit: number | string
   clientName?: string
   clientId?: string
   status?: string
-  createdOn?: string
+  createdOn?: string | { from?: string; to?: string }
   properties?: number
 }
 

@@ -163,6 +163,42 @@ const parseCSV = (csvText: string, fileName?: string): any[] => {
       else if (fileNameLower.includes('roof')) { fileType = 'roof' }
       else if (fileNameLower.includes('area')) { fileType = 'area' }
     }
+
+    // Check header row to determine format
+    let isAreaFormat = false
+    if (lines.length > 0) {
+      // Look for the actual header row (skip title rows)
+      let headerLine = ''
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        if (line.includes('Areatyp') && line.includes('Area')) {
+          headerLine = line
+          break
+        }
+      }
+      
+      if (headerLine) {
+        let headerFields: string[] = []
+        if (headerLine.includes('\t')) {
+          headerFields = headerLine.split('\t').map(f => f.trim())
+        } else if (headerLine.includes(';')) {
+          headerFields = headerLine.split(';').map(f => f.trim())
+        }
+        
+        // Check if header contains "Areatyp" and "Area" columns
+        const hasAreatypHeader = headerFields.some(field => field.toLowerCase().includes('areatyp'))
+        const hasAreaHeader = headerFields.some(field => field.toLowerCase().includes('area') && !field.toLowerCase().includes('areatyp'))
+        isAreaFormat = hasAreatypHeader && hasAreaHeader
+        
+        console.log('Found header line:', headerLine)
+        console.log('Header fields:', headerFields)
+        console.log('Is area format:', isAreaFormat)
+      } else {
+        // Fallback: check if filename contains 'area'
+        isAreaFormat = fileType === 'area'
+        console.log('No header found, using file type:', fileType, 'Is area format:', isAreaFormat)
+      }
+    }
   
     for (let i = 0; i < lines.length; i++) {
       const entries = Object.entries({ [lines[i]]: lines[i] })
@@ -183,14 +219,29 @@ const parseCSV = (csvText: string, fileName?: string): any[] => {
         continue // Skip lines without proper separators
       }
   
-            // Skip if it's a header or empty line
-      if (fields.length < 3 || fields.every(f => f === '')) continue
+      // Skip if it's a header, title, or empty line
+      if (fields.length < 2 || fields.every(f => f === '') || 
+          rawLine.includes('Areatyp') || rawLine.includes('Areaförteckning')) continue
 
       console.log('Processing fields:', fields) // Debug: show fields being processed
       let item: any = {}
       
-      if (fileType === 'floor' || fileType === 'wall' || fileType === 'area') {
-        // Floor/Wall/Area structure: Typ;Project Name;Antal;Area;Element ID
+      if (isAreaFormat || fileType === 'area') {
+        // New area format: Areatyp;Area
+        if (fields.length >= 2) {
+          const [areatyp, area] = fields
+          console.log('areatyp', areatyp, 'area', area)
+          item = {
+            Typ: areatyp,
+            'Project Name': fileType, // Use detected file type (roof, floor, wall, area, etc.)
+            Antal: '1', // Default count to 1 for area types
+            Level: '',
+            'Element ID': '',
+            Area: area || '0'
+          }
+        }
+      } else if (fileType === 'floor' || fileType === 'wall') {
+        // Floor/Wall structure: Typ;Project Name;Antal;Area;Element ID
         if (fields.length >= 5) {
           const [type, object, count, area, elementId] = fields
           item = {
@@ -401,7 +452,7 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
     if (Object.keys(prices).length === 0) {
       const response: ApiResponse = {
         success: false,
-        error: 'No valid price data found in the file. Required fields: type, object, count, price',
+        error: 'No valid data found in the file. For area files, required fields: Areatyp, Area. For other files, required fields: Typ, Project Name, Antal, Area',
         statusCode: 400
       }
       return res.status(400).json(response)
@@ -465,7 +516,6 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
         type: objectTypeFromFile, // window, door, floor, etc.
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        // buildingId,
         object: typedPriceData.type, // The actual type like "11x13 Fast"
         price: typedPriceData.price
         // pricelistId will be set to the created document's ID after creation
@@ -583,7 +633,7 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
         building: updatedBuilding,
         typeCounts: typeCounts
       },
-      message: `Created ${createdDocuments.length} individual documents for pricelist }" with ${Object.keys(typeCounts).length} types`,
+      message: `Created ${createdDocuments.length} individual documents for pricelist with ${Object.keys(typeCounts).length} types`,
       statusCode: 201
     }
 
@@ -604,7 +654,7 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
 //* GET /api/pricelist - Get all pricelists
 export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { search, isGlobal, isActive, page, limit } = req.query
+    const { search, page, limit } = req.query
 
     // Build filters
     const filters: any = {}
@@ -613,8 +663,8 @@ export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Re
     //   filters.adminId = req.user.id
     // }
     if (search) filters.search = search as string
-    if (isActive !== undefined) filters.isActive = isActive === 'true'
-    if (isGlobal !== undefined) filters.isGlobal = isGlobal === 'true'
+    // if (isActive !== undefined) filters.isActive = isActive === 'true'
+    // if (isGlobal !== undefined) filters.isGlobal = isGlobal === 'true'
     if (page) filters.page = parseInt(page as string)
     if (limit) filters.limit = parseInt(limit as string)
 

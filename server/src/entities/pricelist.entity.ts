@@ -189,11 +189,10 @@ export const checkExistingPriceItem = async (buildingId: string, type: string, o
   try {
     const pricelistContainer = getPricelistContainer()
     
-    // Query for existing record with same buildingId, type, and object
+    // Query for existing record with same type and object (global pricelist items)
     const query = {
-      query: "SELECT * FROM c WHERE c.buildingId = @buildingId AND c.type = @type AND c.object = @object",
+      query: "SELECT * FROM c WHERE c.type = @type AND c.object = @object",
       parameters: [
-        { name: "@buildingId", value: buildingId },
         { name: "@type", value: type },
         { name: "@object", value: object }
       ]

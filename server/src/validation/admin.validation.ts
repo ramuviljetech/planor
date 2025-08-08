@@ -13,7 +13,7 @@ export const createClientOnlySchema = Joi.object({
   primaryContactName: Joi.string().min(2).max(100).required(),
   primaryContactEmail: Joi.string().email({ tlds: { allow: false } }).required(),
   // primaryContactRole: Joi.string().optional().allow(''),
-  primaryContactPhoneNumber: Joi.string().required(),
+  primaryContactPhoneNumber: Joi.number().required(),
   description: Joi.string().optional().allow('')
 })
 
@@ -120,7 +120,7 @@ export const createClientAndUserSchema = Joi.object({
   //     'any.required': 'Primary contact role is required',
   //     'string.empty': 'Primary contact role cannot be empty'
   //   }),
-  primaryContactPhoneNumber: Joi.string()
+  primaryContactPhoneNumber: Joi.number()
     .required()
     .messages({
       'any.required': 'Primary contact phone number is required',
@@ -146,11 +146,11 @@ export const createClientAndUserSchema = Joi.object({
           'any.required': 'Username is required',
           'string.empty': 'Username cannot be empty'
         }),
-      contact: Joi.string()
-        .optional()
-        .allow('')
+      contact: Joi.number()
+        .required()
         .messages({
-          'string.empty': 'Contact cannot be empty if provided'
+          'any.required': 'Contact is required',
+          'number.base': 'Contact must be a number'
         }),
       email: Joi.string()
         .email({ tlds: { allow: false } })
@@ -174,11 +174,11 @@ export const createClientAndUserSchema = Joi.object({
             'any.required': 'Username is required',
             'string.empty': 'Username cannot be empty'
           }),
-        contact: Joi.string()
-          .optional()
-          .allow('')
+        contact: Joi.number()
+          .required()
           .messages({
-            'string.empty': 'Contact cannot be empty if provided'
+            'any.required': 'Contact is required',
+            'number.base': 'Contact must be a number'
           }),
         email: Joi.string()
           .email({ tlds: { allow: false } })
@@ -252,7 +252,7 @@ export const unifiedClientUserSchema = Joi.object({
   primaryContactName: Joi.string().min(2).max(100),
   primaryContactEmail: Joi.string().email({ tlds: { allow: false } }),
   primaryContactRole: Joi.string(),
-  primaryContactPhoneNumber: Joi.string(),
+  primaryContactPhoneNumber: Joi.number(),
   description: Joi.string().allow(''),
 
   clientId: Joi.string(), // For user-only creation
@@ -260,7 +260,7 @@ export const unifiedClientUserSchema = Joi.object({
   // User object (optional)
   user: Joi.object({
     username: Joi.string().min(3).max(50).required(),
-    contact: Joi.string().allow(''),
+    contact: Joi.number().required(),
     email: Joi.string().email({ tlds: { allow: false } }).required()
   }).optional()
 })
@@ -270,13 +270,15 @@ export const getClientsSchema = Joi.object({
   clientName: Joi.string().trim().optional(),
   clientId: Joi.string().trim().optional(),
   status: Joi.string().valid('active', 'deactive', 'block').optional(),
-  createdOn: Joi.string()
-    .pattern(/^\d{4}-\d{2}-\d{2}$/) // Matches "YYYY-MM-DD"
-    .optional(),
+  createdOn: Joi.object({
+    from: Joi.date().iso().optional(),
+    to: Joi.date().iso().optional()
+  }).optional(),
   properties: Joi.number().integer().min(0).optional(),
   maintananceCost: Joi.number().integer().min(0).optional(),
   page: Joi.number().integer().min(1).optional().default(1),
-  limit: Joi.number().integer().min(1).optional().default(10)
+  limit: Joi.number().integer().min(1).optional().default(10),
+  search: Joi.string().trim().optional()
 })
 
 // Multiple users creation validation schema
@@ -299,10 +301,11 @@ export const createMultipleUsersSchema = Joi.object({
           'any.required': 'Username is required',
           'string.empty': 'Username cannot be empty'
         }),
-      contact: Joi.string()
+      contact: Joi.number()
         .required()
         .messages({
-          'any.required': 'Contact is required'
+          'any.required': 'Contact is required',
+          'number.base': 'Contact must be a number'
         }),
       email: Joi.string()
         .email({ tlds: { allow: false } })
