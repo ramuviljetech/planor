@@ -42,14 +42,16 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
       <section className={styles.clients_filter_status_section}>
         <p className={styles.clients_filter_status_section_title}>Status</p>
         <div className={styles.clients_filter_status_section_buttons}>
-          {["Active", "Inactive"].map((item) => (
+          {["Active", "Inactive"].map((item,index) => (
             <Button
+              key={index}
               title={item}
               variant={selectedStatus === item ? "primary" : "ghost"}
               className={styles.clients_filter_status_section_button}
               onClick={() => {
                 setSelectedStatus(item);
               }}
+              iconContainerClass={styles.clients_filter_status_section_button_icon_container} 
             />
           ))}
         </div>
@@ -70,29 +72,30 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
             }}
             // valueLabelDisplay="auto"
             getAriaValueText={(value) => `${value}`}
-            disableSwap={isCustomMode}
+            disableSwap={true}
             min={0}
             max={100}
             disabled={isCustomMode}
             sx={{
+              
               width: "100%",
               "& .MuiSlider-track": {
                 backgroundColor: isCustomMode
                   ? "#9CA3AF"
-                  : "rgba(203, 30, 93, 1)",
+                  : "var(--rose-red)",
                 border: "none",
-                height: 4,
+                height: 3,
               },
               "& .MuiSlider-rail": {
                 backgroundColor: "var(--gray)",
-                height: 4,
+                height: 3,
               },
               "& .MuiSlider-thumb": {
                 backgroundColor: isCustomMode
                   ? "#9CA3AF"
-                  : "rgba(203, 30, 93, 1)",
-                width: 20,
-                height: 20,
+                  : "var(--rose-red)",
+                width: 16,
+                height: 16,
                 "&:hover, &.Mui-focusVisible": {
                   boxShadow: isCustomMode
                     ? "none"
@@ -101,8 +104,8 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
               },
               "& .MuiSlider-valueLabel": {
                 backgroundColor: isCustomMode
-                  ? "#9CA3AF"
-                  : "rgba(203, 30, 93, 1)",
+                  ? "var(--gray)"
+                    : "var(--rose-red)",
                 color: "white",
               },
             }}
@@ -117,10 +120,12 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
           <Button
             title={isCustomMode ? "Remove Custom Number" : "Set Custom Number"}
             variant="ghost"
-            className={styles.clients_filter_properties_custom_section_button}
+            className={styles.clients_filter_status_section_button}
             onClick={() => {
               setIsCustomMode(!isCustomMode);
             }}
+            iconContainerClass={styles.clients_filter_properties_custom_section_button_icon_container}
+            
           />
           {isCustomMode && (
             <div
@@ -132,13 +137,49 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
                 label="From*"
                 placeholder="Enter a number"
                 value={customMinValue}
-                onChange={(e) => setCustomMinValue(e.target.value)}
+                type="number"
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const value = Number(raw);
+                  const max = Number(customMaxValue) || 101;
+                
+                  if (raw === "") {
+                    setCustomMinValue("");
+                    return;
+                  }
+                
+                  if (/^\d{0,3}$/.test(raw) && value >= 1 && value <= 100) {
+                    if (raw.length === 1 || value < max) {
+                      setCustomMinValue(raw);
+                    }
+                  }
+                }}
+                
+               
               />
               <Input
                 label="To*"
                 placeholder="Enter a number"
                 value={customMaxValue}
-                onChange={(e) => setCustomMaxValue(e.target.value)}
+               type="number"
+               onChange={(e) => {
+                const raw = e.target.value;
+                const value = Number(raw);
+                const min = Number(customMinValue) || 0;
+              
+                if (raw === "") {
+                  setCustomMaxValue("");
+                  return;
+                }
+              
+                if (/^\d{0,3}$/.test(raw) && value >= 1 && value <= 100) {
+                  if (raw.length === 1 || value > min) {
+                    setCustomMaxValue(raw);
+                  }
+                }
+              }}
+              
+              
               />
             </div>
           )}
@@ -152,11 +193,12 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
       <section className={styles.clients_filter_created_on_section}>
         <p className={styles.clients_filter_status_section_title}>Created On</p>
         <div className={styles.clients_filter_created_on_section_buttons}>
-          {["Today", "This Week", "This Month", "This Year"].map((item) => (
+          {["Today", "This Week", "This Month", "This Year"].map((item,index) => (
             <Button
+              key={index}
               title={item}
               variant={selectedCreatedOn === item ? "primary" : "ghost"}
-              className={styles.clients_filter_created_on_section_button}
+              className={styles.clients_filter_status_section_button}
               onClick={() => {
                 setSelectedCreatedOn(item);
               }}
@@ -221,9 +263,10 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
             setSelectedCreatedOn("");
             setSelectedByLocation([]);
           }}
+          className={styles.clients_filter_button_section_cancel_button}
         />
         <Button
-          title="Save & Continue"
+          title="Save and Continue"
           variant="primary"
           onClick={() => {
             onApplyFilters({
@@ -237,6 +280,7 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
             });
             onClose();
           }}
+          className={styles.clients_filter_button_section_save_button}
         />
       </section>
     );

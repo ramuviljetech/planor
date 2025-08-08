@@ -87,6 +87,9 @@
   flex-direction: column;
   gap: 16px;
 }
+.dashboard_clients_filter_icon{
+  cursor: pointer;
+}
 .dashboard_clients_filter_header {
   width: 100%;
   height: auto;

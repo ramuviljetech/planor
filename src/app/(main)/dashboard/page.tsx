@@ -247,6 +247,7 @@ export default function DashboardPage() {
           }}
           filterComponent={
             <div
+              className={styles.dashboard_clients_filter_icon}
               // ref={clientsFilterRef}
               onClick={() => setShowClientsFilter(true)}
             >
