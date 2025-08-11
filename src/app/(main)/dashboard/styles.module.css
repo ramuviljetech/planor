@@ -14,6 +14,37 @@
   color: var(--black);
   text-transform: capitalize;
 }
+
+.dashboard_header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.refresh_button {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--concrete);
+  background-color: var(--white);
+  color: var(--dark-slate);
+  font-family: var(--font-lato-medium);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refresh_button:hover:not(:disabled) {
+  background-color: var(--lavender-sky);
+  border-color: var(--royal-indigo);
+  color: var(--royal-indigo);
+}
+
+.refresh_button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .dashboard_clients_container {
   width: 100%;
   height: auto;

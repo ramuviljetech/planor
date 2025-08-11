@@ -6,6 +6,8 @@ import React, {
   useState,
   ReactNode,
   useCallback,
+  useRef,
+  useEffect,
 } from "react";
 import { commonService } from "@/networking/common-service";
 import { dashboardApiService } from "@/networking/dashboard-api-service";
@@ -116,83 +118,97 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     lastFetched: null,
   });
 
-  const fetchClients = useCallback(
-    async (page = 1) => {
-      // Check if data is already cached and fresh (5 minutes) - only for same page
-      const isFresh =
-        clients.lastFetched &&
-        Date.now() - clients.lastFetched < 5 * 60 * 1000 &&
-        clients.pagination.currentPage === page;
+  // Use refs to access current state values without causing re-renders
+  const clientsRef = useRef<ClientsState>(clients);
+  const dashboardRef = useRef<DashboardState>(dashboard);
 
-      // Only skip if we have data for the exact same page and it's fresh
-      if (clients.data.length > 0 && isFresh) {
-        console.log("✅ DataProvider: Using cached data for page", page);
-        return;
-      }
-      // Set loading state immediately
-      setClients((prev) => ({ ...prev, isLoading: true }));
+  // Update refs when state changes
+  useEffect(() => {
+    clientsRef.current = clients;
+  }, [clients]);
 
-      try {
-        // Use common service for API call
-        const response = await commonService.getClients(page, 5);
-        setClients({
-          data: response.clients || [],
-          statistics: response.statistics || {
-            totalClients: 0,
-            newClientsThisMonth: 0,
-            totalFileUploads: 0,
-            totalBuildings: 0,
-            filteredClients: 0,
-          },
-          pagination: response.pagination || {
-            currentPage: page,
-            totalPages: 1,
-            itemsPerPage: 10,
-            hasNextPage: false,
-            hasPreviousPage: false,
-          },
-          isLoading: false,
-          lastFetched: Date.now(),
-        });
-      } catch (error) {
-        setClients((prev) => ({
-          ...prev,
-          isLoading: false,
-          // Keep the previous data if there's an error during pagination
-          data: prev.data.length > 0 ? prev.data : [],
-          pagination:
-            prev.data.length > 0
-              ? prev.pagination
-              : {
-                  currentPage: page,
-                  totalPages: 1,
-                  itemsPerPage: 10,
-                  hasNextPage: false,
-                  hasPreviousPage: false,
-                },
-        }));
-      }
-    },
-    [clients.lastFetched, clients.pagination.currentPage, clients.data.length]
-  );
+  useEffect(() => {
+    dashboardRef.current = dashboard;
+  }, [dashboard]);
+
+  const fetchClients = useCallback(async (page = 1) => {
+    // Check if data is already cached and fresh (5 minutes) - only for same page
+    const currentClients = clientsRef.current;
+    const isFresh =
+      currentClients.lastFetched &&
+      Date.now() - currentClients.lastFetched < 5 * 60 * 1000 &&
+      currentClients.pagination.currentPage === page;
+
+    // Only skip if we have data for the exact same page and it's fresh
+    if (currentClients.data.length > 0 && isFresh) {
+      console.log("✅ DataProvider: Using cached data for page", page);
+      return;
+    }
+    // Set loading state immediately
+    setClients((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      // Use common service for API call
+      const response = await commonService.getClients(page, 5);
+      setClients({
+        data: response.clients || [],
+        statistics: response.statistics || {
+          totalClients: 0,
+          newClientsThisMonth: 0,
+          totalFileUploads: 0,
+          totalBuildings: 0,
+          filteredClients: 0,
+        },
+        pagination: response.pagination || {
+          currentPage: page,
+          totalPages: 1,
+          itemsPerPage: 10,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+        isLoading: false,
+        lastFetched: Date.now(),
+      });
+    } catch (error) {
+      setClients((prev) => ({
+        ...prev,
+        isLoading: false,
+        // Keep the previous data if there's an error during pagination
+        data: prev.data.length > 0 ? prev.data : [],
+        pagination:
+          prev.data.length > 0
+            ? prev.pagination
+            : {
+                currentPage: page,
+                totalPages: 1,
+                itemsPerPage: 10,
+                hasNextPage: false,
+                hasPreviousPage: false,
+              },
+      }));
+    }
+  }, []);
 
   const fetchMaintenanceSummaryData = useCallback(async () => {
     // Check if dashboard data is already cached and fresh (5 minutes)
+    const currentDashboard = dashboardRef.current;
     const isFresh =
-      dashboard.lastFetched &&
-      Date.now() - dashboard.lastFetched < 5 * 60 * 1000;
+      currentDashboard.lastFetched &&
+      Date.now() - currentDashboard.lastFetched < 5 * 60 * 1000;
 
     // Only skip if we have data and it's fresh
-    if (dashboard.maintenanceSummary.doors > 0 && isFresh) {
+    if (currentDashboard.maintenanceSummary.doors > 0 && isFresh) {
       console.log(
         "✅ DataProvider: Using cached dashboard data (last fetched:",
-        dashboard.lastFetched
-          ? new Date(dashboard.lastFetched).toLocaleTimeString()
+        currentDashboard.lastFetched
+          ? new Date(currentDashboard.lastFetched).toLocaleTimeString()
           : "unknown",
         ")"
       );
       return;
     }
+
+    console.log("🔄 DataProvider: Fetching fresh maintenance data from API");
     // Set loading state immediately
     setDashboard((prev) => ({ ...prev, isLoading: true }));
 
@@ -203,6 +219,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         isLoading: false,
         lastFetched: Date.now(),
       });
+      console.log(
+        "✅ DataProvider: Successfully fetched and cached maintenance data"
+      );
     } catch (error) {
       console.error("❌ DataProvider: Error fetching dashboard data:", error);
       setDashboard((prev) => ({
@@ -210,7 +229,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         isLoading: false,
       }));
     }
-  }, [dashboard.lastFetched, dashboard.maintenanceSummary.doors]);
+  }, []);
 
   const forceRefreshDashboardData = useCallback(async () => {
     // Set loading state immediately
@@ -235,14 +254,15 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   const updateClientsPagination = useCallback(
     (page: number) => {
       // Prevent multiple calls if already loading
-      if (clients.isLoading) {
+      const currentClients = clientsRef.current;
+      if (currentClients.isLoading) {
         console.log("⚠️ DataProvider: Already loading, skipping request");
         return;
       }
 
       fetchClients(page);
     },
-    [fetchClients, clients.isLoading]
+    [fetchClients]
   );
 
   const value: DataProviderContextType = {

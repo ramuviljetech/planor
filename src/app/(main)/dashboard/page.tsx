@@ -71,13 +71,46 @@ export default function DashboardPage() {
 
   // Fetch dashboard data when component mounts (with caching)
   useEffect(() => {
-    fetchMaintenanceSummaryData();
-  }, [fetchMaintenanceSummaryData]);
+    // Only fetch if we don't have maintenance data yet
+    const hasMaintenanceData =
+      dashboard.maintenanceSummary &&
+      (dashboard.maintenanceSummary.doors > 0 ||
+        dashboard.maintenanceSummary.floors > 0 ||
+        dashboard.maintenanceSummary.windows > 0 ||
+        dashboard.maintenanceSummary.walls > 0 ||
+        dashboard.maintenanceSummary.roofs > 0 ||
+        dashboard.maintenanceSummary.areas > 0);
+
+    if (!hasMaintenanceData && !dashboard.isLoading) {
+      console.log("🔄 Dashboard: Fetching maintenance data (no cached data)");
+      fetchMaintenanceSummaryData();
+    } else {
+      console.log(
+        "✅ Dashboard: Using existing maintenance data (doors:",
+        dashboard.maintenanceSummary.doors,
+        ")"
+      );
+    }
+  }, [
+    fetchMaintenanceSummaryData,
+    dashboard.maintenanceSummary,
+    dashboard.isLoading,
+  ]);
 
   // Fetch clients data when dashboard loads (with caching)
   useEffect(() => {
-    fetchClients(1);
-  }, [fetchClients]);
+    // Only fetch if we don't have clients data yet
+    if (clients.data.length === 0 && !clients.isLoading) {
+      console.log("🔄 Dashboard: Fetching clients data (no cached data)");
+      fetchClients(1);
+    } else {
+      console.log(
+        "✅ Dashboard: Using existing clients data (count:",
+        clients.data.length,
+        ")"
+      );
+    }
+  }, [fetchClients, clients.data.length, clients.isLoading]);
 
   // Transform API clients data to table format
   const transformedClientsData = useMemo(() => {
@@ -417,7 +450,17 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.dashboard_container}>
-      <p className={styles.dashboard_title}>Hey {user?.name}</p>
+      {/* <div className={styles.dashboard_header}>
+        <p className={styles.dashboard_title}>Hey {user?.name}</p>
+        <button
+          onClick={handleRefreshDashboard}
+          className={styles.refresh_button}
+          disabled={dashboard.isLoading || clients.isLoading}
+        >
+          🔄 Refresh Data
+        </button>
+      </div> */}
+
       {/* Yearly Maintenance Costs Summary */}
       {dashboard.isLoading ? (
         <div className={styles.dashboard_maintenance_loading}>
