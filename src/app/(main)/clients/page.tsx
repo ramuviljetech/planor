@@ -15,20 +15,34 @@ import AddClientUserModal from "@/components/add-client-user-modal";
 import styles from "./styles.module.css";
 import AddPropertyModal from "@/components/add-property-modal";
 import { useDataProvider } from "@/providers/data-provider";
+import FallbackScreen from "@/components/ui/fallback-screen";
 
 const Clients: React.FC = () => {
-  const { clients, updateClientsPagination } = useDataProvider();
+  const { clients, fetchClients, updateClientsPagination } = useDataProvider();
   const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
   const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(5);
   const clientsFilterRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [showAddClientUserModal, setShowAddClientUserModal] =
     useState<boolean>(false);
   const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Fetch data if not already loaded
+    if (clients.data.length === 0 && !clients.isLoading) {
+      setHasError(false);
+      fetchClients(1).catch(() => {
+        setHasError(true);
+      });
+    } else {
+      console.log("✅ Clients Page: Using cached clients data from dashboard");
+    }
+  }, []);
 
   // Transform API clients data to table format
   const transformedClientsData = useMemo(() => {
@@ -41,7 +55,7 @@ const Clients: React.FC = () => {
       clientName: client.clientName,
       clientId: client.clientId,
       properties: client.properties,
-      createdOn: new Date(client.createdOn).toLocaleDateString("en-US", {
+      createdOn: new Date(client.createdOn).toLocaleDateString("en-GB", {
         day: "2-digit",
         month: "short",
         year: "numeric",
@@ -54,17 +68,21 @@ const Clients: React.FC = () => {
     }));
   }, [clients.data]);
 
-  useEffect(() => {
-    console.log("👥 Clients Page: Component mounted");
-    console.log("📊 Clients Page: Current clients state:", clients);
+  const handleRetry = () => {
+    setHasError(false);
+    fetchClients(1).catch(() => {
+      setHasError(true);
+    });
+  };
 
-    // No need to fetch data here - it's already loaded from dashboard
-    console.log("✅ Clients Page: Using cached clients data from dashboard");
-  }, []);
+  const totalItems =
+    clients.statistics?.totalClients || transformedClientsData.length;
+  const totalPages =
+    clients.pagination?.totalPages || Math.ceil(totalItems / itemsPerPage);
+  const currentPageFromApi = clients.pagination?.currentPage || currentPage;
 
-  useEffect(() => {
-    console.log("📊 Clients Page: Clients state updated:", clients);
-  }, [clients]);
+  // Use the data directly from API response since it's already paginated
+  const currentRows = transformedClientsData;
 
   // Table data and handlers
   const columns = [
@@ -109,23 +127,10 @@ const Clients: React.FC = () => {
     },
   ];
 
-  const totalItems =
-    clients.statistics?.totalClients || transformedClientsData.length;
-  const totalPages =
-    clients.pagination?.totalPages || Math.ceil(totalItems / itemsPerPage);
-  const currentPageFromApi = clients.pagination?.currentPage || currentPage;
-
-  // Get current page data
-  const startIndex = (currentPageFromApi - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentRows = transformedClientsData.slice(startIndex, endIndex);
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     console.log("📄 Clients Page: Changing to page:", page);
     updateClientsPagination(page);
-    // TODO: Fetch new page data from API
-    // fetchClients(page);
   };
 
   const handleViewDetails = (rowId: string | number) => {
@@ -155,7 +160,9 @@ const Clients: React.FC = () => {
       <div className={styles.clients_header_section}>
         <div className={styles.clients_header_section_title_container}>
           <p className={styles.clients_count}>
-            {clients.statistics?.totalClients || 0}
+            {clients.isLoading && clients.data.length === 0
+              ? "..."
+              : clients.statistics?.totalClients || 0}
           </p>
           <p className={styles.clients_header_section_title}>Clients</p>
         </div>
@@ -170,6 +177,27 @@ const Clients: React.FC = () => {
   };
 
   const renderClients = () => {
+    // Show error state
+    if (hasError && clients.data.length === 0) {
+      return (
+        <div className={styles.clients_details_container}>
+          <FallbackScreen
+            title="Failed to Load Clients"
+            subtitle="There was an error loading your clients data. Please try refreshing the page."
+            className={styles.clients_loading_fallback}
+          />
+          <div className={styles.retry_button_container}>
+            <Button
+              title="Retry"
+              variant="primary"
+              size="sm"
+              onClick={handleRetry}
+            />
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={styles.clients_details_container}>
         {/* top container */}
@@ -189,50 +217,99 @@ const Clients: React.FC = () => {
           searchBarStyle={styles.dashboard_clients_search_bar}
           actionButtonStyle={styles.dashboard_clients_add_client_button}
         />
-        {/* middle container */}
-        <div className={styles.dashboard_clients_middle_container}>
-          <MetricCard
-            title="Total Clients"
-            value={clients.statistics?.totalClients || 0}
-            className={styles.dashboard_clients_static_card}
-            titleStyle={styles.dashboard_clients_static_card_title}
-          />
-          <MetricCard
-            title="New This Month"
-            value={clients.statistics?.newClientsThisMonth || 0}
-            className={styles.dashboard_clients_static_card}
-            titleStyle={styles.dashboard_clients_static_card_title}
-          />
-          <MetricCard
-            title="Total Buildings"
-            value={clients.statistics?.totalBuildings || 0}
-            className={styles.dashboard_clients_static_card}
-            titleStyle={styles.dashboard_clients_static_card_title}
-          />
-          <MetricCard
-            title="File Uploads"
-            value={clients.statistics?.totalFileUploads || 0}
-            className={styles.dashboard_clients_static_card}
-            titleStyle={styles.dashboard_clients_static_card_title}
-          />
-        </div>
-        <CommonTableWithPopover
-          columns={columns}
-          rows={currentRows}
-          selectedRowId={selectedRowId}
-          pagination={{
-            currentPage,
-            totalPages,
-            totalItems,
-            itemsPerPage,
-            onPageChange: handlePageChange,
-            showItemCount: true,
-          }}
-          actions={actions}
-          actionIconClassName={styles.actionIcon}
-          popoverMenuClassName={styles.action_popoverMenu}
-          popoverMenuItemClassName={styles.action_popoverMenuItem}
-        />
+
+        {clients.isLoading && clients.data.length === 0 ? (
+          <div className={styles.clients_details_container}>
+            <FallbackScreen
+              title="Loading Clients"
+              subtitle="Please wait while we fetch your clients data..."
+              className={styles.clients_loading_fallback}
+            />
+          </div>
+        ) : (
+          <>
+            {/* middle container */}
+            <div className={styles.dashboard_clients_middle_container}>
+              <MetricCard
+                title="Total Clients"
+                value={
+                  clients.isLoading && clients.data.length === 0
+                    ? 0
+                    : clients.statistics?.totalClients || 0
+                }
+                className={styles.dashboard_clients_static_card}
+                titleStyle={styles.dashboard_clients_static_card_title}
+              />
+              <MetricCard
+                title="New This Month"
+                value={
+                  clients.isLoading && clients.data.length === 0
+                    ? 0
+                    : clients.statistics?.newClientsThisMonth || 0
+                }
+                className={styles.dashboard_clients_static_card}
+                titleStyle={styles.dashboard_clients_static_card_title}
+              />
+              <MetricCard
+                title="Total Buildings"
+                value={
+                  clients.isLoading && clients.data.length === 0
+                    ? 0
+                    : clients.statistics?.totalBuildings || 0
+                }
+                className={styles.dashboard_clients_static_card}
+                titleStyle={styles.dashboard_clients_static_card_title}
+              />
+              <MetricCard
+                title="File Uploads"
+                value={
+                  clients.isLoading && clients.data.length === 0
+                    ? 0
+                    : clients.statistics?.totalFileUploads || 0
+                }
+                className={styles.dashboard_clients_static_card}
+                titleStyle={styles.dashboard_clients_static_card_title}
+              />
+            </div>
+            <div className={styles.table_container_wrapper}>
+              {clients.data.length !== 0 ? (
+                <CommonTableWithPopover
+                  key={`clients-table-${currentPageFromApi}-${clients.data.length}`}
+                  columns={columns}
+                  rows={currentRows}
+                  selectedRowId={selectedRowId}
+                  pagination={{
+                    currentPage: currentPageFromApi,
+                    totalPages,
+                    totalItems,
+                    itemsPerPage,
+                    onPageChange: handlePageChange,
+                    showItemCount: true,
+                  }}
+                  actions={actions}
+                  actionIconClassName={styles.actionIcon}
+                  popoverMenuClassName={styles.action_popoverMenu}
+                  popoverMenuItemClassName={styles.action_popoverMenuItem}
+                  disabled={clients.isLoading}
+                />
+              ) : (
+                <div className={styles.no_clients_found_container}>
+                  <p className={styles.no_clients_found_text}>
+                    No clients found
+                  </p>
+                </div>
+              )}
+              {clients.isLoading && clients.data.length > 0 && (
+                <div className={styles.pagination_loading_overlay}>
+                  <div className={styles.pagination_loading_spinner}>
+                    <div className={styles.spinner}></div>
+                    <span>Loading...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     );
   };

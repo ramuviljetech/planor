@@ -22,7 +22,6 @@ import ClientsFilter from "@/sections/clients-section/clients-filter";
 import { useAuth } from "@/providers";
 import { useDataProvider } from "@/providers/data-provider";
 import FallbackScreen from "@/components/ui/fallback-screen";
-import { dashboardApiService } from "@/networking/dashboard-api-service";
 import styles from "./styles.module.css";
 
 // Fixed colors for metric cards based on title
@@ -46,7 +45,14 @@ interface MaintenanceSummary {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { clients, fetchClients, updateClientsPagination } = useDataProvider();
+  const {
+    clients,
+    dashboard,
+    fetchClients,
+    fetchMaintenanceSummaryData,
+    forceRefreshDashboardData,
+    updateClientsPagination,
+  } = useDataProvider();
   const [selectedFilter, setSelectedFilter] = useState<string>("clients");
   const [
     selectedYearlyMaintenanceSummary,
@@ -63,39 +69,15 @@ export default function DashboardPage() {
   const router = useRouter();
   const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
 
-  // Dashboard data state
-  const [maintenanceSummaryData, setMaintenanceSummaryData] =
-    useState<MaintenanceSummary>({
-      doors: 0,
-      floors: 0,
-      windows: 0,
-      walls: 0,
-      roofs: 0,
-      areas: 0,
-    });
-  const [isDashboardLoading, setIsDashboardLoading] = useState<boolean>(false);
-
-  // Fetch dashboard data when component mounts
+  // Fetch dashboard data when component mounts (with caching)
   useEffect(() => {
-    const fetchMaintenanceSummaryData = async () => {
-      setIsDashboardLoading(true);
-      try {
-        const data = await dashboardApiService.getMaintenanceSummaryData();
-        setMaintenanceSummaryData(data.data.totalCosts);
-      } catch (error) {
-        console.error("❌ Dashboard: Error fetching dashboard data:", error);
-      } finally {
-        setIsDashboardLoading(false);
-      }
-    };
-
     fetchMaintenanceSummaryData();
-  }, []);
+  }, [fetchMaintenanceSummaryData]);
 
-  // Fetch clients data when dashboard loads
+  // Fetch clients data when dashboard loads (with caching)
   useEffect(() => {
     fetchClients(1);
-  }, []);
+  }, [fetchClients]);
 
   // Transform API clients data to table format
   const transformedClientsData = useMemo(() => {
@@ -123,7 +105,7 @@ export default function DashboardPage() {
 
   // Transform maintenance summary data to dashboard format
   const dashboardApiData = useMemo(() => {
-    if (!maintenanceSummaryData) {
+    if (!dashboard.maintenanceSummary) {
       return {
         metricCards: [],
         contributionData: [],
@@ -132,7 +114,7 @@ export default function DashboardPage() {
       };
     }
 
-    const totalCosts = maintenanceSummaryData;
+    const totalCosts = dashboard.maintenanceSummary;
     const totalValue = Object.values(totalCosts).reduce(
       (sum: number, value: any) => sum + (value || 0),
       0
@@ -225,7 +207,7 @@ export default function DashboardPage() {
       totalValue: formatTotalValue(totalValue),
       totalPercentageChange: "+3.4%", // You might want to get this from API
     };
-  }, [maintenanceSummaryData]);
+  }, [dashboard.maintenanceSummary]);
 
   // Table data and handlers
   const columns: TableColumn[] = [
@@ -316,7 +298,14 @@ export default function DashboardPage() {
     setSelectedFilter(filter);
     setSelectedYearlyMaintenanceSummary(year);
     // TODO: Trigger API call here to fetch new data based on the selected filters
-    // fetchMaintenanceData(filter, year);
+    // For now, we can refresh the dashboard data when filters change
+    // fetchDashboardData();
+  };
+
+  // Manual refresh function for dashboard data
+  const handleRefreshDashboard = () => {
+    console.log("🔄 Dashboard: Manual refresh requested");
+    forceRefreshDashboardData();
   };
 
   const renderClients = () => {
@@ -383,25 +372,33 @@ export default function DashboardPage() {
               />
             </div>
             <div className={styles.table_container_wrapper}>
-              <CommonTableWithPopover
-                columns={columns}
-                rows={currentRows}
-                onRowClick={handleRowClick}
-                selectedRowId={selectedRowId}
-                pagination={{
-                  currentPage: currentPageFromApi,
-                  totalPages,
-                  totalItems,
-                  itemsPerPage,
-                  onPageChange: handlePageChange,
-                  showItemCount: true,
-                }}
-                actions={actions}
-                actionIconClassName={styles.actionIcon}
-                popoverMenuClassName={styles.action_popoverMenu}
-                popoverMenuItemClassName={styles.action_popoverMenuItem}
-                disabled={clients.isLoading}
-              />
+              {clients.data.length !== 0 ? (
+                <CommonTableWithPopover
+                  columns={columns}
+                  rows={currentRows}
+                  onRowClick={handleRowClick}
+                  selectedRowId={selectedRowId}
+                  pagination={{
+                    currentPage: currentPageFromApi,
+                    totalPages,
+                    totalItems,
+                    itemsPerPage,
+                    onPageChange: handlePageChange,
+                    showItemCount: true,
+                  }}
+                  actions={actions}
+                  actionIconClassName={styles.actionIcon}
+                  popoverMenuClassName={styles.action_popoverMenu}
+                  popoverMenuItemClassName={styles.action_popoverMenuItem}
+                  disabled={clients.isLoading}
+                />
+              ) : (
+                <div className={styles.no_clients_found_container}>
+                  <p className={styles.no_clients_found_text}>
+                    No clients found
+                  </p>
+                </div>
+              )}
               {clients.isLoading && clients.data.length > 0 && (
                 <div className={styles.pagination_loading_overlay}>
                   <div className={styles.pagination_loading_spinner}>
@@ -421,7 +418,7 @@ export default function DashboardPage() {
     <div className={styles.dashboard_container}>
       <p className={styles.dashboard_title}>Hey {user?.name}</p>
       {/* Yearly Maintenance Costs Summary */}
-      {isDashboardLoading ? (
+      {dashboard.isLoading ? (
         <div className={styles.dashboard_maintenance_loading}>
           <FallbackScreen
             title="Loading Maintenance Data"
