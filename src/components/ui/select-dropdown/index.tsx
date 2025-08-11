@@ -2,17 +2,24 @@ import React, { useState, useRef, useMemo } from "react";
 import classNames from "classnames";
 import {
   chevronDownPinkIcon,
+  closeBlackIcon,
+  docIcon,
+  fileIcon,
   locationBlackIcon,
+  xlsIcon,
+  pdfIcon,
   searchIcon,
   tickBlackIcon,
 } from "@/resources/images";
 import Image from "next/image";
 import PopOver from "../popover";
 import Input from "../input";
+import CustomCheckbox from "../checkbox";
 import styles from "./styles.module.css";
 
 interface SelectOption {
   label: string;
+  value: string;
   avatar?: string;
 }
 
@@ -43,12 +50,38 @@ interface SelectDropDownProps {
   showError?: boolean;
   multiSelect?: boolean;
   searchPlaceholder?: string;
+  onCloseIconClick?: (item: string) => void;
+  leftImage?: boolean;
+  selectedItemsContainerClass?: string;
 }
+
+// Function to get file icon based on file extension
+const getFileIcon = (fileName: string) => {
+  const extension = fileName.split(".").pop()?.toLowerCase();
+
+  switch (extension) {
+    case "pdf":
+      return pdfIcon;
+    case "docx":
+    case "doc":
+      return docIcon; // You can add a specific doc icon if available
+    case "xlsx":
+    case "xls":
+      return xlsIcon; // You can add a specific excel icon if available
+    case "png":
+    case "jpg":
+    case "jpeg":
+    case "gif":
+      return fileIcon; // You can add a specific image icon if available
+    default:
+      return fileIcon;
+  }
+};
 
 const SelectDropDown: React.FC<SelectDropDownProps> = ({
   options = [],
-  placeholder = "Select a project",
-  label = "Select Project",
+  placeholder = "Select item",
+  label = "",
   selected: controlledSelected,
   defaultSelected = "",
   onSelect = () => {},
@@ -72,6 +105,9 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
   showError = false,
   multiSelect = false,
   searchPlaceholder = "Search options...",
+  onCloseIconClick = (item: string) => {},
+  leftImage = false,
+  selectedItemsContainerClass = "",
 }) => {
   const [internalSelected, setInternalSelected] = useState<string | string[]>(
     multiSelect
@@ -124,18 +160,6 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
     }
   };
 
-  const removeSelectedItem = (itemToRemove: string) => {
-    if (multiSelect) {
-      const currentSelected = Array.isArray(selected) ? selected : [];
-      const newSelected = currentSelected.filter(
-        (item) => item !== itemToRemove
-      );
-
-      if (controlledSelected === undefined) setInternalSelected(newSelected);
-      onSelect(newSelected);
-    }
-  };
-
   const getDisplayText = () => {
     if (multiSelect) {
       if (selectedArray.length === 0) return placeholder;
@@ -148,9 +172,9 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
   return (
     <div className={classNames(styles.selectDropDown, containerClass)}>
       {label && (
-        <h5 className={classNames(styles.selectDropDownLabel, labelClass)}>
+        <p className={classNames(styles.selectDropDownLabel, labelClass)}>
           {label}
-        </h5>
+        </p>
       )}
 
       <div
@@ -163,14 +187,16 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
         onClick={() => setShowPopover((prev) => !prev)}
         ref={referenceRef}
       >
-        <span
+        <p
           className={classNames(
-            selected ? styles.selectedText : styles.placeholder,
+            selected && selected.length > 0
+              ? styles.selectedText
+              : styles.placeholder,
             selected && selectedTextClass
           )}
         >
           {getDisplayText()}
-        </span>
+        </p>
         <Image
           src={chevronDownPinkIcon}
           alt="down-arrow"
@@ -181,6 +207,41 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
           )}
         />
       </div>
+      {/* // if multi select then show the selected items */}
+      {multiSelect && selectedArray.length > 0 && (
+        <div
+          className={classNames(
+            styles.selected_items_container,
+            selectedItemsContainerClass
+          )}
+        >
+          {selectedArray.map((item) => (
+            <div key={item} className={styles.selected_item}>
+              {leftImage && (
+                <Image
+                  src={getFileIcon(item)}
+                  alt={item}
+                  width={16}
+                  height={16}
+                  className={styles.selected_item_image}
+                />
+              )}
+              <p className={styles.selected_item_text}>{item}</p>
+              <Image
+                onClick={() => onCloseIconClick && onCloseIconClick(item)}
+                src={closeBlackIcon}
+                alt="close"
+                width={16}
+                height={16}
+                className={classNames(
+                  styles.selected_item_close_icon,
+                  styles.selected_item_close_icon_image
+                )}
+              />
+            </div>
+          ))}
+        </div>
+      )}
 
       {showError && errorMessage && (
         <div className={styles.errorMessage}>{errorMessage}</div>
@@ -229,56 +290,15 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
                   )}
                   onClick={() => handleOptionClick(option)}
                 >
-                  <div className={styles.optionContent}>
-                    {avatar && (
-                      <Image
-                        src={avatar}
-                        alt="avatar"
-                        width={20}
-                        height={20}
-                        className={styles.optionAvatar}
-                      />
-                    )}
-                    <span>{value}</span>
-                  </div>
-
-                  {isSelected && hasUserInteracted && (
-                    <Image
-                      src={tickBlackIcon}
-                      alt="tick-icon"
-                      className={classNames(
-                        styles.optionIcon,
-                        iconClass,
-                        styles.iconVisible
-                      )}
-                    />
-                  )}
+                  <CustomCheckbox
+                    label={value}
+                    checked={isSelected}
+                    onChange={() => handleOptionClick(option)}
+                  />
                 </div>
               );
             })}
           </div>
-
-          {/* Selected Items Display */}
-          {multiSelect && selectedArray.length > 0 && (
-            <div className={styles.selectedItemsContainer}>
-              <div className={styles.selectedItemsHeader}>
-                <span>Selected Items:</span>
-              </div>
-              <div className={styles.selectedItemsList}>
-                {selectedArray.map((item, index) => (
-                  <div key={index} className={styles.selectedItemChip}>
-                    <span>{item}</span>
-                    <button
-                      onClick={() => removeSelectedItem(item)}
-                      className={styles.removeButton}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </PopOver>
     </div>

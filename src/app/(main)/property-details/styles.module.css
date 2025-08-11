@@ -66,7 +66,7 @@
   row-gap: 0px;
 }
 .property_details_property_info_item {
-  width: calc((100% - 64px) / 2);
+  width: calc((100% - 64px) / 2) !important;
   height: auto;
   display: flex;
   flex-direction: row;
@@ -110,16 +110,8 @@
 /* Action icon styles */
 .actionIcon {
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.actionIcon:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  align-self: flex-end;
+  justify-self: flex-end;
 }
 
 /* Popover menu styles */

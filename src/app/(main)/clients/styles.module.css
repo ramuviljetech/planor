@@ -40,7 +40,7 @@
 }
 
 /* clients table */
-.dashboard_clients_container {
+.clients_details_container {
   width: 100%;
   height: auto;
   display: flex;

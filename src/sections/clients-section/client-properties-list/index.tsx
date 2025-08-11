@@ -1,107 +1,71 @@
 "use client";
 
 import Image from "next/image";
-import {
-  filterIcon,
-  propertiesBlueIcon,
-  rightArrowPinkIcon,
-} from "@/resources/images";
-import { clientDetailsCardsData, rowsData } from "@/app/constants";
+import { filterIcon, propertiesBlueIcon } from "@/resources/images";
+import { clientDetailsCardsData, propertiesRowsData } from "@/app/constants";
 import SectionHeader from "@/components/ui/section-header";
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import CommonTable, {
-  TableColumn,
-  TableRow,
-} from "@/components/ui/common-table";
-import PopOver from "@/components/ui/popover";
+import { useRouter, useSearchParams } from "next/navigation";
+import CommonTableWithPopover, {
+  PopoverAction,
+} from "@/components/ui/common-table-with-popover";
+import { TableColumn, TableRow } from "@/components/ui/common-table";
 import styles from "./styles.module.css";
+import AddPropertyModal from "@/components/add-property-modal";
 
-const ClientPropertiesList: React.FC = () => {
+interface ClientPropertiesListProps {
+  showPropertyListSection?: boolean;
+}
+
+const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
+  showPropertyListSection = true,
+}) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const clientsFilterRef = useRef<HTMLDivElement>(null);
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [popoverState, setPopoverState] = useState<{
-    show: boolean;
-    rowId: string | number | null;
-  }>({ show: false, rowId: null });
-  const actionIconRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const itemsPerPage = 10;
-
+  const [showAddPropertyModal, setShowAddPropertyModal] = useState(false);
   // Table data and handlers
   const columns: TableColumn[] = [
     {
-      key: "clientName",
-      title: "Client Name",
+      key: "propertyName",
+      title: "Property Name",
       width: 200,
     },
     {
-      key: "clientId",
-      title: "Client ID",
+      key: "buildings",
+      title: "Buildings",
       width: 120,
     },
     {
-      key: "properties",
-      title: "Properties",
+      key: "code",
+      title: "Code",
       width: 100,
     },
     {
-      key: "createdOn",
-      title: "Created On",
+      key: "types",
+      title: "Types",
       width: 150,
     },
     {
-      key: "maintenanceCost",
-      title: "Maintenance Cost",
+      key: "clientName",
+      title: "Client Name",
       width: 150,
-    },
-    {
-      key: "grossArea",
-      title: "Gross Area",
-      width: 150,
-    },
-    {
-      key: "actions",
-      title: "",
-      width: 60,
-      render: (value, row, index) => (
-        <div
-          className={styles.actionIcon}
-          ref={(el) => {
-            actionIconRefs.current[row.id] = el;
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setPopoverState({ show: true, rowId: row.id });
-          }}
-        >
-          <Image
-            src={rightArrowPinkIcon}
-            alt="menu-dot"
-            width={16}
-            height={16}
-          />
-        </div>
-      ),
     },
   ];
 
-  const totalItems = rowsData?.length;
+  const totalItems = propertiesRowsData?.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   // Get current page data
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentRows = rowsData?.slice(startIndex, endIndex) || [];
+  const currentRows = propertiesRowsData?.slice(startIndex, endIndex) || [];
 
   const handleRowClick = (row: TableRow, index: number) => {
-    // Disable row click when popover is active
-    if (popoverState.show) {
-      return;
-    }
-
     console.log("Row clicked:", {
       id: row.id,
       clientName: row.clientName,
@@ -111,7 +75,7 @@ const ClientPropertiesList: React.FC = () => {
       maintenanceCost: row.maintenanceCost,
       status: row.status,
     });
-    setSelectedRowId(row.id);
+    // setSelectedRowId(row.id);
   };
 
   const handlePageChange = (page: number) => {
@@ -119,20 +83,26 @@ const ClientPropertiesList: React.FC = () => {
     setSelectedRowId("");
   };
 
-  const handlePopoverClose = () => {
-    setPopoverState({ show: false, rowId: null });
-  };
-
-  const handleViewDetails = () => {
+  const handleViewDetails = (rowId: string | number) => {
     router.push("/property-details");
-    handlePopoverClose();
   };
 
-  const handleAddBuilding = () => {
-    console.log("Add Building clicked for row:", popoverState.rowId);
+  const handleAddBuilding = (rowId: string | number) => {
+    console.log("Add Building clicked for row:", rowId);
     // Add your add building logic here
-    handlePopoverClose();
   };
+
+  // Define popover actions
+  const actions: PopoverAction[] = [
+    {
+      label: "View Details",
+      onClick: handleViewDetails,
+    },
+    {
+      label: "Add Building",
+      onClick: handleAddBuilding,
+    },
+  ];
 
   const renderCard = () => {
     return (
@@ -160,27 +130,28 @@ const ClientPropertiesList: React.FC = () => {
   return (
     <div className={styles.client_details_container}>
       {renderCard()}
-      <SectionHeader
-        title="Properties List"
-        searchValue={searchValue}
-        onSearchChange={setSearchValue}
-        searchPlaceholder="Search properties..."
-        actionButtonTitle="Add  Property"
-        onActionButtonClick={() => router.push("/property-details")}
-        filterComponent={
-          <div ref={clientsFilterRef} onClick={() => {}}>
-            <Image src={filterIcon} alt="filter" width={24} height={24} />
-          </div>
-        }
-        searchBarStyle={styles.client_details_search_bar}
-        actionButtonStyle={styles.client_details_add_property_button}
-      />
-      <CommonTable
+      {showPropertyListSection && (
+        <SectionHeader
+          title="Properties List"
+          searchValue={searchValue}
+          onSearchChange={setSearchValue}
+          searchPlaceholder="Search properties..."
+          actionButtonTitle="Add  Property"
+          onActionButtonClick={() => setShowAddPropertyModal(true)}
+          filterComponent={
+            <div ref={clientsFilterRef} onClick={() => {}}>
+              <Image src={filterIcon} alt="filter" width={24} height={24} />
+            </div>
+          }
+          searchBarStyle={styles.client_details_search_bar}
+          actionButtonStyle={styles.client_details_add_property_button}
+        />
+      )}
+      <CommonTableWithPopover
         columns={columns}
         rows={currentRows}
         onRowClick={handleRowClick}
         selectedRowId={selectedRowId}
-        disabled={popoverState.show}
         pagination={{
           currentPage,
           totalPages,
@@ -189,30 +160,15 @@ const ClientPropertiesList: React.FC = () => {
           onPageChange: handlePageChange,
           showItemCount: true,
         }}
+        actions={actions}
+        actionIconClassName={styles.actionIcon}
+        popoverMenuClassName={styles.action_popoverMenu}
+        popoverMenuItemClassName={styles.action_popoverMenuItem}
       />
-      {popoverState.show && popoverState.rowId && (
-        <>
-          <PopOver
-            reference={{ current: actionIconRefs.current[popoverState.rowId] }}
-            show={popoverState.show}
-            onClose={handlePopoverClose}
-            placement="bottom-end"
-            offset={[0, 8]}
-          >
-            <div className={styles.action_popoverMenu}>
-              <div
-                className={styles.action_popoverMenuItem}
-                onClick={handleViewDetails}
-              >
-                View Details
-              </div>
-              <div className={styles.action_popoverMenuItem} onClick={() => {}}>
-                Add Property
-              </div>
-            </div>
-          </PopOver>
-        </>
-      )}
+      <AddPropertyModal
+        show={showAddPropertyModal}
+        onClose={() => setShowAddPropertyModal(false)}
+      />
     </div>
   );
 };

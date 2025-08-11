@@ -1,0 +1,39 @@
+.actionIcon {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.actionIcon:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.action_popoverMenu {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+  z-index: 1000;
+}
+
+.action_popoverMenuItem {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-family: var(--font-lato-regular);
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(25, 30, 33, 1);
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid rgba(242, 242, 242, 1);
+}
+
+.action_popoverMenuItem:last-child {
+  border-bottom: none;
+}
+
+.action_popoverMenuItem:hover {
+  background-color: rgba(203, 30, 93, 0.08);
+}

@@ -1,4 +1,4 @@
-.button {
+.button_container {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -11,6 +11,8 @@
   padding: 10px 16px;
   width: fit-content;
   text-wrap: nowrap;
+  position: relative;
+  overflow: hidden;
 }
 
 .primary {
@@ -21,7 +23,6 @@
 .secondary {
   background-color: var(--dark-slate);
   color: var(--white);
-  border-radius: 8px;
 }
 
 .outline {
@@ -29,11 +30,21 @@
   border: 1px solid var(--silver-cloud);
   color: var(--dark-slate);
 }
-.disabled {
+.ghost {
+  background-color: var(--platinum);
+  border: none;
+  color: var(--dark-slate);
+}
+.plain {
+  background-color: transparent;
+  border: none;
+  color: var(--rose-red);
+}
+.button_disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.iconContainer {
+.button_iconContainer {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -41,11 +52,11 @@
   height: 24px;
   margin-right: 8px;
 }
-.icon {
+.button_icon {
   width: 24px;
   height: 24px;
 }
-.loader {
+.button_loader {
   width: 16px;
   height: 16px;
   border: 2px solid var(--white);
@@ -65,4 +76,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.button_ripple {
+  position: absolute;
+  border-radius: 50%;
+  background-color: var(--pink-blush);
+  transform: scale(0);
+  animation: ripple-effect 0.8s linear;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes ripple-effect {
+  to {
+    transform: scale(3);
+    opacity: 0;
+  }
 }

@@ -9,17 +9,16 @@ const Portal: React.FC<PortalProps> = ({ children }) => {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!container) {
-      setContainer(document.createElement("div"));
-      return;
-    }
-    document.body.appendChild(container);
+    const newContainer = document.createElement("div");
+    setContainer(newContainer);
+    document.body.appendChild(newContainer);
+
     return () => {
-      if (container && document.body.contains(container)) {
-        document.body.removeChild(container);
+      if (newContainer && document.body.contains(newContainer)) {
+        document.body.removeChild(newContainer);
       }
     };
-  }, [container]);
+  }, []);
 
   return container ? ReactDOM.createPortal(children, container) : null;
 };

@@ -2,24 +2,25 @@
 import React, { useState, useMemo, useRef } from "react";
 import MaintenanceSection from "@/sections/dashboard-section/maintenance";
 import MetricCard from "@/components/ui/metric-card";
-import { clientsStaticCardTitle } from "@/app/constants";
+import { clientsStaticCardTitle, rowsData } from "@/app/constants";
 import BottomSheet from "@/components/ui/bottom-sheet";
 import ClientPropertiesList from "@/sections/clients-section/client-properties-list";
 import SectionHeader from "@/components/ui/section-header";
 import PopOver from "@/components/ui/popover";
 import TableFilter from "@/components/ui/table-filter";
 import Image from "next/image";
-import { filterIcon, rightArrowPinkIcon } from "@/resources/images";
-import CommonTable, {
-  TableColumn,
-  TableRow,
-} from "@/components/ui/common-table";
+import { filterIcon } from "@/resources/images";
+import CommonTableWithPopover, {
+  PopoverAction,
+} from "@/components/ui/common-table-with-popover";
+import { TableColumn, TableRow } from "@/components/ui/common-table";
 import { useRouter } from "next/navigation";
-import TextArea from "@/components/ui/textarea";
+import AddClientUserModal from "@/components/add-client-user-modal";
+import AddPropertyModal from "@/components/add-property-modal";
+import Modal from "@/components/ui/modal";
+import ClientsFilter from "@/sections/clients-section/clients-filter";
+import { useAuth } from "@/providers";
 import styles from "./styles.module.css";
-import SelectDropDown from "@/components/ui/select-dropdown";
-import UploadFile from "@/components/ui/upload-file";
-import FileUpload from "@/components/ui/upload-file";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -31,37 +32,25 @@ const titleColorMap: Record<string, string> = {
   Area: "var(--neon-mint)",
 };
 
-const tableOptions = [
-  "Client Name",
-  "Client Id",
-  "Properties",
-  "Created On",
-  "Maintenance Cost",
-  "Status",
-];
-
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [selectedFilter, setSelectedFilter] = useState<string>("clients");
   const [
     selectedYearlyMaintenanceSummary,
     setSelectedYearlyMaintenanceSummary,
   ] = useState<string>("thisYear");
-
-  const [selectedClientsFilters, setSelectedClientsFilters] =
-    useState<string>("Active");
+  const [showAddClientUserModal, setShowAddClientUserModal] =
+    useState<boolean>(false);
+  const [showAddPropertyModal, setShowAddPropertyModal] =
+    useState<boolean>(false);
   const [showBottomSheet, setShowBottomSheet] = useState<boolean>(false);
   const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
-  const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
-  const clientsFilterRef = useRef<HTMLDivElement>(null);
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [popoverState, setPopoverState] = useState<{
-    show: boolean;
-    rowId: string | number | null;
-  }>({ show: false, rowId: null });
-  const actionIconRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const itemsPerPage = 10;
   const router = useRouter();
+  const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
+
   // TODO: Replace this with actual API call data
   // This will be fetched from the database based on selectedFilter and selectedYearlyMaintenanceSummary
   const mockApiData = useMemo(() => {
@@ -158,33 +147,33 @@ export default function DashboardPage() {
     {
       key: "clientName",
       title: "Client Name",
-      width: 200,
+      width: "calc(100% / 7)",
     },
     {
       key: "clientId",
       title: "Client ID",
-      width: 120,
+      width: "calc(100% / 7)",
     },
     {
       key: "properties",
       title: "Properties",
-      width: 100,
+      width: "calc(100% / 7)",
     },
     {
       key: "createdOn",
       title: "Created On",
-      width: 150,
+      width: "calc(100% / 7)",
     },
     {
       key: "maintenanceCost",
       title: "Maintenance Cost",
-      width: 150,
+      width: "calc(100% / 7)",
     },
     {
       key: "status",
       title: "Status",
-      width: 120,
-      render: (value, row, index) => (
+      width: "calc(100% / 7)",
+      render: (value: any, row: any, index: number) => (
         <div
           className={`${styles.statusBadge} ${
             value === "Active" ? styles.statusActive : styles.statusInactive
@@ -193,222 +182,6 @@ export default function DashboardPage() {
           {value}
         </div>
       ),
-    },
-    {
-      key: "actions",
-      title: "",
-      width: 60,
-      render: (value, row, index) => (
-        <div
-          className={styles.actionIcon}
-          ref={(el) => {
-            actionIconRefs.current[row.id] = el;
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setPopoverState({ show: true, rowId: row.id });
-          }}
-        >
-          <Image
-            src={rightArrowPinkIcon}
-            alt="menu-dot"
-            width={16}
-            height={16}
-          />
-        </div>
-      ),
-    },
-  ];
-
-  const rowsData = [
-    {
-      id: 1,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 2,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 3,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 4,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 5,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 6,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 7,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 40,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 8,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 9,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 12,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Inactive",
-    },
-    {
-      id: 10,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 9,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 11,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 12,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 77,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 13,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 89,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 14,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 15,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 16,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 17,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 18,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 19,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 20,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
-    },
-    {
-      id: 21,
-      clientName: "Brunnfast AB",
-      clientId: "945422",
-      properties: 0,
-      createdOn: "12 Jun, 2025",
-      maintenanceCost: 23450,
-      status: "Active",
     },
   ];
 
@@ -422,15 +195,6 @@ export default function DashboardPage() {
 
   const handleRowClick = (row: TableRow, index: number) => {
     setShowBottomSheet(true);
-    // console.log("Row clicked:", {
-    //   id: row.id,
-    //   clientName: row.clientName,
-    //   clientId: row.clientId,
-    //   properties: row.properties,
-    //   createdOn: row.createdOn,
-    //   maintenanceCost: row.maintenanceCost,
-    //   status: row.status,
-    // });
     setSelectedRowId(row.id);
   };
 
@@ -439,21 +203,26 @@ export default function DashboardPage() {
     setSelectedRowId("");
   };
 
-  const handlePopoverClose = () => {
-    setPopoverState({ show: false, rowId: null });
-  };
-
-  const handleViewDetails = () => {
+  const handleViewDetails = (rowId: string | number) => {
     router.push("/property-details");
-    // Add your view details logic here
-    handlePopoverClose();
   };
 
-  const handleAddBuilding = () => {
-    console.log("Add Building clicked for row:", popoverState.rowId);
-    // Add your add building logic here
-    handlePopoverClose();
+  const handleAddProperty = (rowId: string | number) => {
+    console.log("Add Property clicked for row:", rowId);
+    setShowAddPropertyModal(true);
   };
+
+  // Define actions for the popover
+  const actions: PopoverAction[] = [
+    {
+      label: "View Properties",
+      onClick: handleViewDetails,
+    },
+    {
+      label: "Add Property",
+      onClick: handleAddProperty,
+    },
+  ];
 
   // Callback for when filters change in the maintenance component
   const handleFiltersChange = (filter: string, year: string) => {
@@ -462,17 +231,10 @@ export default function DashboardPage() {
     // TODO: Trigger API call here to fetch new data based on the selected filters
     // fetchMaintenanceData(filter, year);
   };
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const renderClients = () => {
     return (
       <div className={styles.dashboard_clients_container}>
-        <FileUpload
-          allowDuplicates={true}
-          maxSize={50}
-          onFilesAdded={(files) => console.log(files)}
-        />
-
         {/* top container */}
         <SectionHeader
           title="Clients"
@@ -480,10 +242,12 @@ export default function DashboardPage() {
           onSearchChange={setClientsSearchValue}
           searchPlaceholder="Search properties..."
           actionButtonTitle="Add Client"
-          onActionButtonClick={() => {}}
+          onActionButtonClick={() => {
+            setShowAddClientUserModal(true);
+          }}
           filterComponent={
             <div
-              ref={clientsFilterRef}
+              // ref={clientsFilterRef}
               onClick={() => setShowClientsFilter(true)}
             >
               <Image src={filterIcon} alt="filter" width={24} height={24} />
@@ -493,20 +257,6 @@ export default function DashboardPage() {
           actionButtonStyle={styles.dashboard_clients_add_client_button}
         />
         {/* middle container */}
-        <SelectDropDown
-          label="Client Status"
-          options={[
-            "Active",
-            "Inactive",
-            "Pending",
-            "Cancelled",
-            "hghg",
-            "hffffghfhf",
-            "khgjhgjj",
-          ]}
-          onSelect={(value) => console.log(value)}
-          multiSelect={true}
-        />
         <div className={styles.dashboard_clients_middle_container}>
           {clientsStaticCardTitle.map((card, index) => (
             <MetricCard
@@ -518,7 +268,7 @@ export default function DashboardPage() {
             />
           ))}
         </div>
-        <CommonTable
+        <CommonTableWithPopover
           columns={columns}
           rows={currentRows}
           onRowClick={handleRowClick}
@@ -531,39 +281,18 @@ export default function DashboardPage() {
             onPageChange: handlePageChange,
             showItemCount: true,
           }}
+          actions={actions}
+          actionIconClassName={styles.actionIcon}
+          popoverMenuClassName={styles.action_popoverMenu}
+          popoverMenuItemClassName={styles.action_popoverMenuItem}
         />
-        {/* Popover for action menu */}
-        {popoverState.show && popoverState.rowId && (
-          <PopOver
-            reference={{ current: actionIconRefs.current[popoverState.rowId] }}
-            show={popoverState.show}
-            onClose={handlePopoverClose}
-            placement="bottom-end"
-            offset={[0, 8]}
-          >
-            <div className={styles.action_popoverMenu}>
-              <div
-                className={styles.action_popoverMenuItem}
-                onClick={handleViewDetails}
-              >
-                View Properties
-              </div>
-              <div
-                className={styles.action_popoverMenuItem}
-                onClick={handleAddBuilding}
-              >
-                Add Property
-              </div>
-            </div>
-          </PopOver>
-        )}
       </div>
     );
   };
 
   return (
     <div className={styles.dashboard_container}>
-      <p className={styles.dashboard_title}>Hey Vivek</p>
+      <p className={styles.dashboard_title}>Hey {user?.name || "John Doe"}</p>
       {/* Yearly Maintenance Costs Summary */}
       <MaintenanceSection
         selectedFilter={selectedFilter}
@@ -575,30 +304,43 @@ export default function DashboardPage() {
         totalPercentageChange={mockApiData.totalPercentageChange}
       />
       {renderClients()}
-      <PopOver
-        reference={clientsFilterRef}
-        show={showClientsFilter}
-        onClose={() => setShowClientsFilter(false)}
-      >
-        <TableFilter
-          title="Filters"
-          options={["Active", "Inactive"]}
-          selectedOptions={selectedClientsFilters}
-          onOptionsChange={(option) => {
-            setSelectedClientsFilters(option);
-            setShowClientsFilter(false);
-          }}
-        />
-      </PopOver>
       <BottomSheet
         isOpen={showBottomSheet}
-        onClose={() => setShowBottomSheet(false)}
+        onClose={() => {
+          setShowBottomSheet(false);
+          setSelectedRowId("");
+        }}
         title="Brunnfast AB"
         backButton={true}
-        onBackButton={() => setShowBottomSheet(false)}
+        onBackButton={() => {
+          setShowBottomSheet(false);
+          setSelectedRowId("");
+        }}
       >
         <ClientPropertiesList />
       </BottomSheet>
+      <AddClientUserModal
+        show={showAddClientUserModal}
+        onClose={() => setShowAddClientUserModal(false)}
+      />
+      <AddPropertyModal
+        show={showAddPropertyModal}
+        onClose={() => setShowAddPropertyModal(false)}
+      />
+      <Modal
+        show={showClientsFilter}
+        onClose={() => setShowClientsFilter(false)}
+        closeOnOutSideClick={true}
+        container_style={styles.clients_filter_modal_container_style}
+        overlay_style={styles.clients_filter_modal_overlay_style}
+      >
+        <ClientsFilter
+          onClose={() => setShowClientsFilter(false)}
+          onApplyFilters={(data: any) => {
+            console.log("data", data);
+          }}
+        />
+      </Modal>
     </div>
   );
 }

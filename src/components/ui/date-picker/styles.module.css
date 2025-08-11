@@ -17,8 +17,6 @@
 
 .datePicker_inputContainer {
   width: 100%;
-  max-width: 430px;
-  min-width: 430px;
   position: relative;
   display: flex;
   gap: 8px;
@@ -48,8 +46,8 @@
 
 .datePicker_input:focus {
   outline: none;
-  border: 1px solid rgba(171, 75, 109, 1);
-  box-shadow: 0px 0px 4px 0px rgba(168, 104, 127, 1);
+  border: 1px solid var(--rosewood);
+  box-shadow: 0px 0px 4px 0px var(--mauve-rose);
 }
 
 .datePicker_input::placeholder {
@@ -76,7 +74,7 @@
   background: var(--white) !important;
   border: 1px solid var(--concrete);
   border-radius: 24px !important;
-  box-shadow: 0px 1px 2px 0px rgba(26, 26, 26, 0.08) !important;
+  box-shadow: 0px 1px 2px 0px var(--onyx-shadow) !important;
   z-index: 3 !important;
   overflow: hidden !important;
 }
@@ -115,8 +113,6 @@
   align-items: center;
   gap: 10px;
   font-family: var(--font-lato-regular);
-  font-weight: 400;
-  font-style: Regular;
   font-size: 16px;
   line-height: 24px;
   letter-spacing: 0px;
@@ -126,7 +122,6 @@
 
 .datePicker_titleButton {
   font-family: var(--font-lato-regular);
-  font-weight: 400;
   font-size: 16px;
   line-height: 24px;
   letter-spacing: 0px;
@@ -184,8 +179,8 @@
 }
 
 .datePicker_day:hover {
-  background-color: #f3f4f6;
-  color: #111827;
+  background-color: var(--rose-tint);
+  color: var(--black);
 }
 
 .datePicker_daySelected {
@@ -244,11 +239,12 @@
   line-height: 24px;
   letter-spacing: 0px;
   text-align: center;
-  color: rgba(25, 30, 33, 1);
+  color: var(--jet-black);
 }
 
 .datePicker_monthYear:hover {
-  background-color: #f3f4f6;
+  background-color: var(--rose-tint);
+  color: var(--black);
 }
 
 .datePicker_monthYearSelected {

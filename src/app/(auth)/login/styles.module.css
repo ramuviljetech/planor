@@ -7,23 +7,6 @@
   justify-content: center;
   position: relative;
 }
-.logo_container {
-  position: absolute;
-  top: 30px;
-  left: 40px;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: flex-start;
-}
-.logoText {
-  font-family: var(--font-lato-bold);
-  font-size: 18px;
-  line-height: 100%;
-  letter-spacing: 0px;
-  color: var(--black);
-}
 .sub_container {
   width: 442px;
   height: 100%;
@@ -82,12 +65,42 @@
   color: var(--jet-black);
   cursor: pointer;
 }
+.forgot_password:hover {
+  color: var(--crimson-rose);
+}
 /* Button */
 .sign_in_button {
-  width: 100%;
-  height: 40px;
+  width: 100% !important;
+  height: 40px !important;
   font-family: var(--font-lato-bold);
   font-size: 16px;
   line-height: 21px;
   letter-spacing: -0.24px;
+  margin-top: 16px;
+}
+/* Failed */
+.login_form_failed_container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 12px 16px;
+  background-color: var(--blush-petal);
+  border-radius: 8px;
+}
+.login_form_failed_title {
+  font-family: var(--font-lato-regular);
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--crimson-rose);
+}
+.login_form_failed_subtitle {
+  font-family: var(--font-lato-regular);
+  font-size: 12px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--ash-gray);
 }

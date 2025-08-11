@@ -5,51 +5,27 @@ import {
   searchEnableIcon,
   searchIcon,
   avatarIcon,
-  building1,
-  building2,
-  building3,
-  building4,
 } from "@/resources/images";
 import SearchBar from "../ui/searchbar";
-import { useState } from "react";
+import { useState, useRef, RefObject } from "react";
 import Image from "next/image";
-import { ImageCarousel } from "@/components/ui/image-carousel";
-import { ImageViewer } from "@/components/ui/image-viewer";
-import { CustomDatePicker } from "@/components/ui/date-picker";
 import styles from "./styles.module.css";
+import Avatar from "../ui/avatar";
+import { useAuth } from "@/providers";
+import Modal from "../ui/modal";
+import PopOver from "../ui/popover";
+import { UserProfile } from "../user-profile/user-profile";
 
 const Header: React.FC = () => {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
-  const [showViewer, setShowViewer] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  // const[popoverRef,setPopoverRef] = useState<RefObject<HTMLDivElement>>();
+  const popoverRef = useRef<HTMLDivElement>(null);
 
-  const [isCarouselOpen, setIsCarouselOpen] = useState(false);
-  const images = [
-    building3,
-    building4,
-    building2,
-    building1,
-    building2,
-    building3,
-    building4,
-    building1,
-    building2,
-    building3,
-    building4,
-    building2,
-    building3,
-    building4,
-  ];
-
-  const openCarousel = () => {
-    setIsCarouselOpen(true);
-  };
-
-  const closeCarousel = () => {
-    setIsCarouselOpen(false);
-  };
-
-  const handleDateChange = (date: Date) => {
-    console.log("Selected date:", date);
+  const handlePopoverClose = () => {
+    setIsPopoverOpen(false);
   };
 
   return (
@@ -69,50 +45,18 @@ const Header: React.FC = () => {
       </div>
       {/* pfofile and notification */}
       <div className={styles.header_right_container}>
-        <div className={styles.pin_icon}>
-          <Image
-            src={pinIcon}
-            alt="pin"
-            width={20}
-            height={20}
-            onClick={openCarousel}
-          />
-        </div>
-
-        {/* // TODO: IMAGE CAROUSEL IMPLEMENTATION */}
-        <ImageCarousel
-          images={images}
-          isOpen={isCarouselOpen}
-          onClose={closeCarousel}
+        <Avatar image={pinIcon} alt="building3d" className={styles.pin_icon} />
+        <Avatar
+          image={questionmarkIcon}
+          alt="questionmark"
+          className={styles.questionmark_icon}
         />
-        {/* //TODO: IMAGE 3D CAROUSEL IMPLEMENTATION */}
-        <div className={styles.questionmark_icon}>
-          <Image
-            src={questionmarkIcon}
-            alt="questionmark"
-            width={20}
-            height={20}
-            onClick={() => setShowViewer(true)}
-          />
 
-          {showViewer && (
-            <ImageViewer
-              src={building1.src}
-              alt="building one"
-              onClose={() => setShowViewer(false)}
-            />
-          )}
-        </div>
-
-        {/* //TODO: DATE PICKER IMPLEMENTATION */}
-
-        {/* <CustomDatePicker
-          label="Set new Maintenance date*"
-          placeholder="Select Maintenance date"
-          onChange={handleDateChange}
-        /> */}
-
-        <div className={styles.avatar_container}>
+        <div
+          ref={popoverRef}
+          className={styles.avatar_container}
+          onClick={() => setIsPopoverOpen(true)}
+        >
           <Image
             src={avatarIcon}
             alt="avatar"
@@ -121,11 +65,23 @@ const Header: React.FC = () => {
             className={styles.avatar_image}
           />
           <div className={styles.avatar_name_container}>
-            <p className={styles.avatar_name}>John Smith</p>
-            <p className={styles.avatar_email}>Admin</p>
+            <p className={styles.avatar_name}>{user?.name || "John Doe"}</p>
+            <p className={styles.avatar_email}>{user?.role || "Admin"}</p>
           </div>
         </div>
       </div>
+      <PopOver
+        reference={popoverRef}
+        show={isPopoverOpen}
+        showOverlay={false}
+        placement="bottom-end"
+        offset={[0, 12]}
+        onClose={handlePopoverClose}
+        overlay_style={styles.profile_modal_overlay}
+        zIndex={9999} 
+      >
+        <UserProfile />
+      </PopOver>
     </div>
   );
 };

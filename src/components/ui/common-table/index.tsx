@@ -22,6 +22,7 @@ export interface CommonTableProps {
   rows: TableRow[];
   onRowClick?: (row: TableRow, index: number) => void;
   selectedRowId?: string | number;
+  selectedRowIds?: Set<string | number>;
   className?: string;
   containerClassName?: string;
   disabled?: boolean;
@@ -42,6 +43,7 @@ const CommonTable: React.FC<CommonTableProps> = ({
   rows,
   onRowClick,
   selectedRowId,
+  selectedRowIds,
   className,
   containerClassName,
   disabled = false,
@@ -78,35 +80,51 @@ const CommonTable: React.FC<CommonTableProps> = ({
                   className={styles.table_header_cell}
                   style={getColumnStyle(column)}
                 >
-                  {column.headerRender ? column.headerRender() : column.title}
+                  {column.headerRender ? (
+                    column.headerRender()
+                  ) : (
+                    <div className={styles.table_header_cell_title}>
+                      {column.title}
+                    </div>
+                  )}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody className={styles.table_body}>
-            {rows.map((row, rowIndex) => (
-              <tr
-                key={row.id}
-                className={classNames(styles.table_row, {
-                  [styles.selected_row]: selectedRowId === row.id,
-                  [styles.clickable_row]: !!onRowClick && !disabled,
-                  [styles.disabled_row]: disabled,
-                })}
-                onClick={() => handleRowClick && handleRowClick(row, rowIndex)}
-              >
-                {columns.map((column) => (
-                  <td
-                    key={column.key}
-                    className={styles.table_cell}
-                    style={getColumnStyle(column)}
-                  >
-                    {column.render
-                      ? column.render(row[column.key], row, rowIndex)
-                      : row[column.key]}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {rows.map((row, rowIndex) => {
+              const isSelected =
+                selectedRowId === row.id || selectedRowIds?.has(row.id);
+
+              const rowClassName = classNames(styles.table_row, {
+                [styles.selected_row]: isSelected,
+                [styles.clickable_row]: !!onRowClick && !disabled,
+                [styles.disabled_row]: disabled,
+              });
+
+              return (
+                <tr
+                  key={row.id}
+                  className={rowClassName}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRowClick && handleRowClick(row, rowIndex);
+                  }}
+                >
+                  {columns.map((column) => (
+                    <td
+                      key={column.key}
+                      className={styles.table_cell}
+                      style={getColumnStyle(column)}
+                    >
+                      {column.render
+                        ? column.render(row[column.key], row, rowIndex)
+                        : row[column.key]}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -1,3 +1,4 @@
+export { default as bannerIcon } from "@/assets/images/banner.svg";
 export { default as placeholder } from "@/assets/images/placeholder-icon.svg";
 export { default as checkWhite } from "@/assets/images/check-white-icon.svg";
 export { default as searchIcon } from "@/assets/images/search-gray-icon.svg";
@@ -26,6 +27,8 @@ export { default as closeRoseIcon } from "@/assets/images/close-rose-icon.svg";
 export { default as backButtonIcon } from "@/assets/images/arrow-left-black-icon.svg";
 
 export { default as rightArrowPinkIcon } from "@/assets/images/right-arrow-pink-icon.svg";
+export { default as rightArrowBlackIcon } from "@/assets/images/right-arrow-black-icon.svg";
+export { default as rightArrowGrayIcon } from "@/assets/images/right-arrow-gray-icon.svg";
 export { default as leftArrowGrayIcon } from "@/assets/images/left-arrow-gray-icon.svg";
 export { default as leftArrowBlackIcon } from "@/assets/images/left-arrow-black-icon.svg";
 
@@ -60,3 +63,31 @@ export { default as zoomOutWhiteIcon } from "@/assets/images/zoom-out-white-icon
 export { default as palmWhiteIcon } from "@/assets/images/palm-white-icon.svg";
 export { default as closeBlackIcon } from "@/assets/images/close-black-icon.svg";
 export { default as tickBlackIcon } from "@/assets/images/tick-black-icon.svg";
+
+export { default as plusRoseIcon } from "@/assets/images/plus-rose-icon.svg";
+export { default as building3d } from "@/assets/images/building3d.svg";
+export { default as listGrayIcon } from "@/assets/images/list-gray-icon.svg";
+export { default as listPinkIcon } from "@/assets/images/list-pink-icon.svg";
+export { default as gridGrayIcon } from "@/assets/images/grid-gray-icon.svg";
+export { default as gridPinkIcon } from "@/assets/images/grid-pink-icon.svg";
+export { default as folderIcon } from "@/assets/images/folder-icon.svg";
+export { default as downloadBlackIcon } from "@/assets/images/download-black-icon.svg";
+export { default as zoomInBlackIcon } from "@/assets/images/zoom-in-black-icon.svg";
+export { default as zoomOutBlackIcon } from "@/assets/images/zoom-out-black-icon.svg";
+export { default as focusBlackIcon } from "@/assets/images/focus-black-icon.svg";
+
+//
+export { default as recentUploadedFileDummyImg1 } from "@/assets/images/recent-uploaded-file-dummy-img-1.svg";
+export { default as recentUploadedFileDummyImg2 } from "@/assets/images/recent-uploaded-file-dummy-img-2.svg";
+
+export { default as xlsIcon } from "@/assets/images/xls-icon.svg";
+export { default as docIcon } from "@/assets/images/doc-icon.svg";
+
+export { default as openEyeIcon } from "@/assets/images/open-eye.svg";
+export { default as closeEyeIcon } from "@/assets/images/close-eye.svg";
+
+// user profile 
+export { default as myAccountIcon } from "@/assets/images/my-account-icon.svg";
+export { default as editProfileIcon } from "@/assets/images/edit-profile-black-icon.svg";
+export { default as supportIcon } from "@/assets/images/support-black-icon.svg";
+export { default as logoutIcon } from "@/assets/images/log-out-black-icon.svg";

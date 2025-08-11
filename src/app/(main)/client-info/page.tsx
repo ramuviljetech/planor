@@ -1,37 +1,51 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import styles from "./styles.module.css";
 import Breadcrumb from "@/components/ui/breadcrumb";
-import { leftArrowBlackIcon } from "@/resources/images";
-import Image from "next/image";
 import Button from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import CustomTabs, { TabItem } from "@/components/ui/tabs";
 import Info from "@/components/ui/info";
 import { clientInfoItems, clientInfoUsersRowsData } from "@/app/constants";
-import { rightArrowPinkIcon } from "@/resources/images";
+import CommonTableWithPopover, {
+  PopoverAction,
+} from "@/components/ui/common-table-with-popover";
 import CommonTable, {
   TableColumn,
   TableRow,
 } from "@/components/ui/common-table";
-import PopOver from "@/components/ui/popover";
+import Capsule from "@/components/ui/capsule";
+import SearchBar from "@/components/ui/searchbar";
+import Avatar from "@/components/ui/avatar";
+import { filterIcon } from "@/resources/images";
+import ClientPropertiesList from "@/sections/clients-section/client-properties-list";
+import styles from "./styles.module.css";
+import AddPropertyModal from "@/components/add-property-modal";
+import MaintenancePlan from "@/components/maintenance-plan";
+import AddUserModal from "@/components/add-user-modal";
 
 const ClientInfo: React.FC = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("overview");
+  const [activePropertiesTab, setActivePropertiesTab] =
+    useState<string>("propertyList");
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [isSelectAll, setIsSelectAll] = useState<boolean>(false);
+  const [showAddUserModal, setShowAddUserModal] = useState<boolean>(false);
+  const [showAddPropertyModal, setShowAddPropertyModal] =
+    useState<boolean>(false);
   const tabs: TabItem[] = [
     { label: "Over View", value: "overview" },
     { label: "Properties", value: "properties" },
   ];
 
+  const tabItems = [
+    { label: "Property List", value: "propertyList" },
+    { label: "Maintenance Plan", value: "maintenancePlan" },
+  ];
+
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [popoverState, setPopoverState] = useState<{
-    show: boolean;
-    rowId: string | number | null;
-  }>({ show: false, rowId: null });
-  const actionIconRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const itemsPerPage = 5;
 
   // Table data and handlers
@@ -51,30 +65,6 @@ const ClientInfo: React.FC = () => {
       title: "Email",
       width: "calc(100% / 3)",
     },
-    {
-      key: "actions",
-      title: "",
-      width: "calc(100% / 6)",
-      render: (value, row, index) => (
-        <div
-          className={styles.client_info_overview_action_icon}
-          ref={(el) => {
-            actionIconRefs.current[row.id] = el;
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setPopoverState({ show: true, rowId: row.id });
-          }}
-        >
-          <Image
-            src={rightArrowPinkIcon}
-            alt="menu-dot"
-            width={16}
-            height={16}
-          />
-        </div>
-      ),
-    },
   ];
 
   const totalItems = clientInfoUsersRowsData?.length;
@@ -87,11 +77,6 @@ const ClientInfo: React.FC = () => {
     clientInfoUsersRowsData?.slice(startIndex, endIndex) || [];
 
   const handleRowClick = (row: TableRow, index: number) => {
-    // Disable row click when popover is active
-    if (popoverState.show) {
-      return;
-    }
-
     console.log("Row clicked:", {
       id: row.id,
       clientName: row.clientName,
@@ -109,14 +94,28 @@ const ClientInfo: React.FC = () => {
     setSelectedRowId("");
   };
 
-  const handlePopoverClose = () => {
-    setPopoverState({ show: false, rowId: null });
+  // Action handlers
+  const handleEditUser = (rowId: string | number) => {
+    console.log("Edit User clicked for row:", rowId);
+    // Add your edit user logic here
   };
 
-  const handleViewDetails = () => {
-    // router.push("/building-details");
-    handlePopoverClose();
+  const handleDeleteUser = (rowId: string | number) => {
+    console.log("Delete User clicked for row:", rowId);
+    // Add your delete user logic here
   };
+
+  // Define actions for the popover
+  const actions: PopoverAction[] = [
+    {
+      label: "Edit User",
+      onClick: handleEditUser,
+    },
+    {
+      label: "Delete User",
+      onClick: handleDeleteUser,
+    },
+  ];
 
   const renderHeaderSection = () => {
     return (
@@ -133,7 +132,14 @@ const ClientInfo: React.FC = () => {
             router.back();
           }}
         />
-        <Button title="Add Property" variant="primary" size="sm" />
+        <Button
+          title="Add Property"
+          variant="primary"
+          size="sm"
+          onClick={() => {
+            setShowAddPropertyModal(true);
+          }}
+        />
       </div>
     );
   };
@@ -160,20 +166,14 @@ const ClientInfo: React.FC = () => {
               <p className={styles.client_info_overview_info_title}>
                 Users List
               </p>
-              <Button
-                title="Add New User"
-                variant="outline"
-                size="sm"
-                className={styles.client_info_overview_add_user_button}
-              />
+              <Button title="Add New User" variant="plain" size="sm" onClick={() => setShowAddUserModal(true)} />
             </div>
             {/* Users List table */}
-            <CommonTable
+            <CommonTableWithPopover
               columns={columns}
               rows={currentRows}
               onRowClick={handleRowClick}
               selectedRowId={selectedRowId}
-              disabled={popoverState.show}
               pagination={{
                 currentPage,
                 totalPages,
@@ -182,35 +182,11 @@ const ClientInfo: React.FC = () => {
                 onPageChange: handlePageChange,
                 showItemCount: true,
               }}
+              actions={actions}
+              actionIconClassName={styles.client_info_overview_action_icon}
+              popoverMenuClassName={styles.action_popoverMenu}
+              popoverMenuItemClassName={styles.action_popoverMenuItem}
             />
-            {popoverState.show && popoverState.rowId && (
-              <>
-                <PopOver
-                  reference={{
-                    current: actionIconRefs.current[popoverState.rowId],
-                  }}
-                  show={popoverState.show}
-                  onClose={handlePopoverClose}
-                  placement="bottom-end"
-                  offset={[0, 8]}
-                >
-                  <div className={styles.action_popoverMenu}>
-                    <div
-                      className={styles.action_popoverMenuItem}
-                      onClick={handleViewDetails}
-                    >
-                      Edit User
-                    </div>
-                    <div
-                      className={styles.action_popoverMenuItem}
-                      onClick={() => {}}
-                    >
-                      Delete User
-                    </div>
-                  </div>
-                </PopOver>
-              </>
-            )}
           </div>
         </div>
       </div>
@@ -218,7 +194,40 @@ const ClientInfo: React.FC = () => {
   };
 
   const renderPropertiesSection = () => {
-    return <div>Properties</div>;
+    return (
+      <div className={styles.client_info_properties_section}>
+        <div className={styles.client_info_properties_section_header}>
+          <Capsule
+            items={tabItems}
+            activeValue={activePropertiesTab}
+            onItemClick={setActivePropertiesTab}
+            className={styles.client_info_properties_section_header_tabs}
+          />
+          <div className={styles.client_info_properties_section_header_right}>
+            <SearchBar
+              placeholder="Search  by object , Reuit id...."
+              value={searchValue}
+              onChange={(e: string) => setSearchValue(e)}
+              className={styles.client_info_properties_section_header_search}
+            />
+            <Avatar
+              image={filterIcon}
+              alt="filter"
+              className={
+                styles.client_info_properties_section_header_filter_icon
+              }
+            />
+          </div>
+        </div>
+        {/* property list tabs data */}
+        <div className={styles.client_info_properties_section_tabs_data}>
+          {activePropertiesTab === "propertyList" && (
+            <ClientPropertiesList showPropertyListSection={false} />
+          )}
+          {activePropertiesTab === "maintenancePlan" && <MaintenancePlan />}
+        </div>
+      </div>
+    );
   };
 
   const renderInfoSection = () => {
@@ -240,6 +249,14 @@ const ClientInfo: React.FC = () => {
     <div className={styles.client_info_container}>
       {renderHeaderSection()}
       {renderInfoSection()}
+      <AddPropertyModal
+        show={showAddPropertyModal}
+        onClose={() => setShowAddPropertyModal(false)}
+      />
+      <AddUserModal
+        show={showAddUserModal}
+        onClose={() => setShowAddUserModal(false)}
+      />
     </div>
   );
 };

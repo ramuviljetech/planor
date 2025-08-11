@@ -2,11 +2,13 @@
 import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import styles from "./styles.module.css";
+import { useRouter } from "next/navigation";
 import { placeholder, checkWhite } from "@/resources/images";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import Image from "next/image";
+import AuthAPI from "@/networking/auth-api";
+import styles from "./styles.module.css";
 
 // Validation schema
 const ForgotPasswordSchema = Yup.object().shape({
@@ -22,6 +24,9 @@ interface ForgotPasswordFormValues {
 
 const ForgotPassword: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
 
   const initialValues: ForgotPasswordFormValues = {
     email: "",
@@ -32,21 +37,36 @@ const ForgotPassword: React.FC = () => {
     { setSubmitting, resetForm }: any
   ) => {
     setIsSubmitting(true);
-    try {
-      // TODO: Implement actual forgot password logic here
-      console.log("Forgot password attempt with:", values);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Handle successful login
-      console.log("Forgot password successful");
-      // Reset form after successful submission
-      resetForm();
-    } catch (error) {
-      console.error("Forgot password failed:", error);
-    } finally {
-      setIsSubmitting(false);
-      setSubmitting(false);
-    }
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    console.log(values);
+    router.push(`/verify-user`);
+
+    // try {
+    //   const response = await AuthAPI.forgotPassword(values.email);
+
+    //   resetForm();
+    //   router.push(`/verify-user?email=${encodeURIComponent(values.email)}`);
+    // } catch (error: any) {
+    //   setErrorMessage(
+    //     error.message || "Failed to send verification code. Please try again."
+    //   );
+    // } finally {
+    //   setIsSubmitting(false);
+    //   setSubmitting(false);
+    // }
+  };
+
+  const renderErrorMessage = (message: string) => {
+    return (
+      <div className={styles.forgot_password_form_failed_container}>
+        <p className={styles.forgot_password_form_failed_title}>
+          That combo doesn't look right — give it another shot!
+        </p>
+        <p className={styles.forgot_password_form_failed_subtitle}>{message}</p>
+      </div>
+    );
   };
 
   const renderForm = () => {
@@ -65,6 +85,7 @@ const ForgotPassword: React.FC = () => {
           setFieldValue,
         }) => (
           <Form className={styles.forgot_password_form_container}>
+            {errorMessage && renderErrorMessage(errorMessage)}
             <Input
               label="Enter you email or phone number *"
               placeholder="Enter your email or phone number"
@@ -77,7 +98,7 @@ const ForgotPassword: React.FC = () => {
             <Button
               title="Send verification code"
               type="submit"
-              variant="secondary"
+              variant="primary"
               className={styles.forgot_password_sign_in_button}
               loading={isSubmitting}
               disabled={isSubmitting}
@@ -94,7 +115,7 @@ const ForgotPassword: React.FC = () => {
         <div className={styles.forgot_password_title_container}>
           <p className={styles.forgot_password_title}>Forgot password</p>
           <p className={styles.forgot_password_subtitle}>
-            One step away from your dashboard Just a quick login and you’re in!
+            One step away from your dashboard Just a quick login and you're in!
           </p>
         </div>
         {/* Form */}

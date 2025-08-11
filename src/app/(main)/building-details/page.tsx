@@ -1,12 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   i3DGrayIcon,
   imageRoseIcon,
   locationBlackIcon,
+  questionmarkIcon,
 } from "@/resources/images";
-import { building1, building2, building3, building4 } from "@/resources/images";
+import {
+  building1,
+  building2,
+  building3,
+  building4,
+  building3d,
+} from "@/resources/images";
 import Image from "next/image";
 import Breadcrumb from "@/components/ui/breadcrumb";
 import Button from "@/components/ui/button";
@@ -15,14 +23,18 @@ import classNames from "classnames";
 import CustomTabs, { TabItem } from "@/components/ui/tabs";
 import Overview from "@/sections/building-section/overview";
 import Maintenance from "@/sections/building-section/maintenance";
-import styles from "./styles.module.css";
 import ActivityHistory from "@/sections/building-section/activity-history";
-import { useRouter } from "next/navigation";
-import FileCategories from "@/components/ui/file-categories";
+import FileCategories from "@/sections/building-section/file-categories";
+import { ImageViewer } from "@/components/ui/image-viewer";
+import { ImageCarousel } from "@/components/ui/image-carousel";
+import AddBuildingModal from "@/components/add-building-modal";
+import styles from "./styles.module.css";
+import { sampleActivities } from "@/app/constants";
 
 const BuildingDetails: React.FC = () => {
   const [activeImageTab, setActiveImageTab] = useState("image");
   const [activeTab, setActiveTab] = useState("overview");
+  const [showAddBuildingModal, setShowAddBuildingModal] = useState(false);
   const router = useRouter();
   const breadcrumbItems = [
     { label: "Brunnfast AB", isActive: false },
@@ -56,6 +68,34 @@ const BuildingDetails: React.FC = () => {
     },
   ];
 
+  const [showViewer, setShowViewer] = useState(false);
+
+  const [isCarouselOpen, setIsCarouselOpen] = useState(false);
+  const images2 = [
+    building3,
+    building4,
+    building2,
+    building1,
+    building2,
+    building3,
+    building4,
+    building1,
+    building2,
+    building3,
+    building4,
+    building2,
+    building3,
+    building4,
+  ];
+
+  const openCarousel = () => {
+    setIsCarouselOpen(true);
+  };
+
+  const closeCarousel = () => {
+    setIsCarouselOpen(false);
+  };
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
@@ -85,7 +125,10 @@ const BuildingDetails: React.FC = () => {
             <Avatar
               image={i3DGrayIcon}
               alt="check"
-              onClick={() => setActiveImageTab("3d")}
+              onClick={() => {
+                setActiveImageTab("3d");
+                setShowViewer(true);
+              }}
               className={classNames(styles.avatar_img_container, {
                 [styles.active_image_tab]: activeImageTab === "3d",
               })}
@@ -118,7 +161,10 @@ const BuildingDetails: React.FC = () => {
                   objectFit="cover"
                 />
               </div>
-              <div className={styles.bottomRight}>
+              <div
+                onClick={() => openCarousel()}
+                className={styles.bottomRight}
+              >
                 <Image
                   src={images[3].src}
                   alt="Side 3"
@@ -144,12 +190,7 @@ const BuildingDetails: React.FC = () => {
           defaultTab="overview"
           onTabChange={handleTabChange}
         />
-        <Button
-          title="Add Revit"
-          variant="outline"
-          size="sm"
-          className={styles.building_details_revit_button}
-        />
+        <Button title="Add Revit" variant='plain' size="sm" onClick={() => setShowAddBuildingModal(true)} />
       </div>
     );
   };
@@ -160,7 +201,9 @@ const BuildingDetails: React.FC = () => {
         {activeTab === "overview" && <Overview />}
         {activeTab === "maintenance" && <Maintenance />}
         {activeTab === "files" && <FileCategories />}
-        {activeTab === "activity" && <ActivityHistory />}
+        {activeTab === "activity" && (
+          <ActivityHistory activities={sampleActivities} />
+        )}
       </div>
     );
   };
@@ -182,6 +225,29 @@ const BuildingDetails: React.FC = () => {
         {renderTabsSection()}
         {renderTabContent()}
       </div>
+      <ImageCarousel
+        images={images2}
+        isOpen={isCarouselOpen}
+        onClose={closeCarousel}
+      />
+      {showViewer && (
+        <ImageViewer
+          src={building3d.src}
+          alt="building one"
+          onClose={() => {
+            setShowViewer(false);
+            setActiveImageTab("image");
+          }}
+        />
+      )}
+      {showAddBuildingModal && (
+        <AddBuildingModal 
+          show={showAddBuildingModal} 
+          onClose={() => setShowAddBuildingModal(false)}
+          showOnlyRevitTab={true}
+          
+        />
+      )}
     </section>
   );
 };

@@ -188,6 +188,6 @@
 }
 /* metric card */
 .metric_card {
-  width: calc((100% - 24px) / 3);
+  width: calc((100% - 24px) / 3) !important;
   height: auto;
 }
