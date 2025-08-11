@@ -15,7 +15,7 @@ import Image from "next/image";
 import classNames from "classnames";
 
 export const UserProfile: React.FC = () => {
-  const { user, logout, isLoading } = useAuth();
+  const { user, logout, isLoading, isAuthenticated } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -29,7 +29,7 @@ export const UserProfile: React.FC = () => {
     return <div>Loading...</div>;
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return <div>Not logged in</div>;
   }
 
@@ -44,37 +44,39 @@ export const UserProfile: React.FC = () => {
           />
         </div>
         <div className={styles.user_profile_name_container}>
-          <p className={styles.user_name}>{user.name}</p>
-          <p className={styles.user_role}>{user.role}</p>
+          <p className={styles.user_name}>{user?.name || "John Doe"}</p>
+          <p className={styles.user_role}>{user?.role || "Admin"}</p>
         </div>
       </div>
-      <div className={styles.profile_actions }>
-        <div className={styles.profile_actions_options }>
+      <div className={styles.profile_actions}>
+        <div className={styles.profile_actions_options}>
           <div className={styles.profile_actions_icons}>
-            <Image src={myAccountIcon} alt="My Account" />  
+            <Image src={myAccountIcon} alt="My Account" />
           </div>
 
           <div className={styles.profile_actions_text}>My Account</div>
         </div>
-        <div className={styles.profile_actions_options }>
+        <div className={styles.profile_actions_options}>
           <div className={styles.profile_actions_icons}>
             <Image src={editProfileIcon} alt="Edit Profile" />
           </div>
           <div className={styles.profile_actions_text}>Edit Profile</div>
         </div>
-        <div className={styles.profile_actions_options }>
+        <div className={styles.profile_actions_options}>
           <div className={styles.profile_actions_icons}>
             <Image src={supportIcon} alt="Support" />
           </div>
           <div className={styles.profile_actions_text}>Support</div>
         </div>
       </div>
-      <div className={styles.logout_container }>
+      <div className={styles.logout_container}>
         <div className={styles.logout_button_section}>
-        <div className={styles.logout_icon}>
-          <Image src={logoutIcon} alt="Logout" />
-        </div>
-        <div onClick={handleLogout} className={styles.logout_text}>Log out</div>
+          <div className={styles.logout_icon}>
+            <Image src={logoutIcon} alt="Logout" />
+          </div>
+          <div onClick={handleLogout} className={styles.logout_text}>
+            Log out
+          </div>
         </div>
       </div>
     </div>

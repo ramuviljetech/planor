@@ -14,8 +14,8 @@ import {
 import Image from "next/image";
 import PopOver from "../popover";
 import Input from "../input";
-import styles from "./styles.module.css";
 import CustomCheckbox from "../checkbox";
+import styles from "./styles.module.css";
 
 interface SelectOption {
   label: string;

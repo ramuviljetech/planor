@@ -292,7 +292,7 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.dashboard_container}>
-      <p className={styles.dashboard_title}>Hey {user?.name}</p>
+      <p className={styles.dashboard_title}>Hey {user?.name || "John Doe"}</p>
       {/* Yearly Maintenance Costs Summary */}
       <MaintenanceSection
         selectedFilter={selectedFilter}

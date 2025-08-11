@@ -96,14 +96,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setIsLoading(true);
       setError(null);
 
-      const response = await AuthAPI.login(credentials);
-      // Store token and user data
-      tokenManager.setToken(response.data.token, response.data.expiresIn);
-      storage.setUser(response.data.user);
-      setUser(response.data.user);
-      setToken(response.data.token);
-      setIsAuthenticated(true);
-      setIsLoading(false);
+      // const response = await AuthAPI.login(credentials);
+      // // Store token and user data
+      // tokenManager.setToken(response.data.token, response.data.expiresIn);
+      // storage.setUser(response.data.user);
+      // setUser(response.data.user);
+      // setToken(response.data.token);
+      setTimeout(() => {
+        setIsAuthenticated(true);
+        setIsLoading(false);
+      }, 1000);
+      // setIsAuthenticated(true);
+      // setIsLoading(false);
     } catch (error: any) {
       setIsLoading(false);
       setError(error.message || "Login failed");

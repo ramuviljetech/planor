@@ -1,7 +1,9 @@
 "use client";
 
-import { UserProfile } from "@/components/user-profile/user-profile";
+import styles from "./styles.module.css";
 
-export default function Settings() {
-  return <UserProfile />;
-}
+const Settings = () => {
+  return <div className={styles.settings_container}>Settings</div>;
+};
+
+export default Settings;

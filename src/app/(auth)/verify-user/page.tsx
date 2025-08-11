@@ -70,8 +70,8 @@ const VerifyUser: React.FC = () => {
   const handleResendCode = async () => {
     setIsResending(true);
     setErrorMessage("");
-    try {
-      await AuthAPI.forgotPassword(email);
+    setTimeout(() => {
+      setIsResending(false);
       setResendCountdown(30);
       const countdownInterval = setInterval(() => {
         setResendCountdown((prev) => {
@@ -82,11 +82,24 @@ const VerifyUser: React.FC = () => {
           return prev - 1;
         });
       }, 1000);
-    } catch (error: any) {
-      setErrorMessage(error.message || "Resend OTP failed");
-    } finally {
-      setIsResending(false);
-    }
+    }, 1000);
+    // try {
+    //   await AuthAPI.forgotPassword(email);
+    //   setResendCountdown(30);
+    //   const countdownInterval = setInterval(() => {
+    //     setResendCountdown((prev) => {
+    //       if (prev <= 1) {
+    //         clearInterval(countdownInterval);
+    //         return 0;
+    //       }
+    //       return prev - 1;
+    //     });
+    //   }, 1000);
+    // } catch (error: any) {
+    //   setErrorMessage(error.message || "Resend OTP failed");
+    // } finally {
+    //   setIsResending(false);
+    // }
   };
 
   const renderForm = () => {

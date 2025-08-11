@@ -28,14 +28,20 @@
   height: 20px;
   position: absolute;
   left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
+  z-index: 1;
 }
 .rightIcon {
   width: 20px;
   height: 20px;
   position: absolute;
   right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
+  z-index: 1;
 }
 .input {
   width: 100%;
@@ -50,6 +56,12 @@
   outline: none;
   background: transparent;
   border: 1px solid var(--concrete);
+}
+
+/* Add left padding when left icon is present */
+.inputWrapper:has(.leftIcon) .input,
+.inputWrapper .input.hasLeftIcon {
+  padding-left: 36px;
 }
 .input::placeholder {
   color: var(--fog-gray);

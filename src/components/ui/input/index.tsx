@@ -54,7 +54,8 @@ const Input: React.FC<InputProps> = ({
           className={classNames(
             styles.input,
             inputStyle,
-            error && styles.error_input
+            error && styles.error_input,
+            leftIcon && styles.hasLeftIcon
           )}
           onChange={onChange}
           placeholder={placeholder || ""}

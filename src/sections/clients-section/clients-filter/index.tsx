@@ -42,8 +42,9 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
       <section className={styles.clients_filter_status_section}>
         <p className={styles.clients_filter_status_section_title}>Status</p>
         <div className={styles.clients_filter_status_section_buttons}>
-          {["Active", "Inactive"].map((item) => (
+          {["Active", "Inactive"].map((item, index) => (
             <Button
+              key={index}
               title={item}
               variant={selectedStatus === item ? "primary" : "ghost"}
               className={styles.clients_filter_status_section_button}
