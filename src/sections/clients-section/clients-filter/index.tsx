@@ -16,12 +16,14 @@ interface ClientsFilterProps {
 
 const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [propertiesRange, setPropertiesRange] = useState<number[]>([0, 100]);
+  const [properties, setProperties] = useState<number | null>(null);
   const [isCustomMode, setIsCustomMode] = useState<boolean>(false);
-  const [customMinValue, setCustomMinValue] = useState<string>("");
-  const [customMaxValue, setCustomMaxValue] = useState<string>("");
-  const [selectedCreatedOn, setSelectedCreatedOn] = useState<string>("");
-  const [selectedByLocation, setSelectedByLocation] = useState<string[]>([]);
+  const [selectedCreatedOn, setSelectedCreatedOn] = useState<{
+    from: string;
+    to: string;
+  } | null>(null);
+
+  // const [selectedByLocation, setSelectedByLocation] = useState<string[]>([]);
   const renderHeader = () => {
     return (
       <section className={styles.clients_filter_header}>
@@ -37,21 +39,48 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
       </section>
     );
   };
+  const getDateRange = (option: string) => {
+    const today = new Date();
+    const pastDate = new Date(today);
+
+    switch (option) {
+      case "Today":
+        return { from: formatDate(today), to: formatDate(today) };
+      case "This Week":
+        pastDate.setDate(today.getDate() - 7);
+        return { from: formatDate(today), to: formatDate(pastDate) };
+      case "This Month":
+        pastDate.setMonth(today.getMonth() - 1);
+        return { from: formatDate(today), to: formatDate(pastDate) };
+      case "This Year":
+        pastDate.setFullYear(today.getFullYear() - 1);
+        return { from: formatDate(today), to: formatDate(pastDate) };
+      default:
+        return null;
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toISOString().split("T")[0]; // YYYY-MM-DD
+  };
+
   const renderStatusSection = () => {
     return (
       <section className={styles.clients_filter_status_section}>
         <p className={styles.clients_filter_status_section_title}>Status</p>
         <div className={styles.clients_filter_status_section_buttons}>
-          {["Active", "Inactive"].map((item,index) => (
+          {["Active", "Inactive"].map((item, index) => (
             <Button
               key={index}
               title={item}
               variant={selectedStatus === item ? "primary" : "ghost"}
               className={styles.clients_filter_status_section_button}
               onClick={() => {
-                setSelectedStatus(item);
+                setSelectedStatus(selectedStatus === item ? "" : item);
               }}
-              iconContainerClass={styles.clients_filter_status_section_button_icon_container} 
+              iconContainerClass={
+                styles.clients_filter_status_section_button_icon_container
+              }
             />
           ))}
         </div>
@@ -66,23 +95,19 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
         <div className={styles.slider_container}>
           <Slider
             getAriaLabel={() => "Properties range"}
-            value={propertiesRange}
+            value={properties || 0}
             onChange={(event, newValue) => {
-              setPropertiesRange(newValue as number[]);
+              setProperties(newValue as number);
             }}
-            // valueLabelDisplay="auto"
+            valueLabelDisplay="auto"
             getAriaValueText={(value) => `${value}`}
-            disableSwap={true}
             min={0}
             max={100}
             disabled={isCustomMode}
             sx={{
-              
               width: "100%",
               "& .MuiSlider-track": {
-                backgroundColor: isCustomMode
-                  ? "#9CA3AF"
-                  : "var(--rose-red)",
+                backgroundColor: isCustomMode ? "#9CA3AF" : "var(--rose-red)",
                 border: "none",
                 height: 3,
               },
@@ -91,9 +116,7 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
                 height: 3,
               },
               "& .MuiSlider-thumb": {
-                backgroundColor: isCustomMode
-                  ? "#9CA3AF"
-                  : "var(--rose-red)",
+                backgroundColor: isCustomMode ? "#9CA3AF" : "var(--rose-red)",
                 width: 16,
                 height: 16,
                 "&:hover, &.Mui-focusVisible": {
@@ -105,16 +128,18 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
               "& .MuiSlider-valueLabel": {
                 backgroundColor: isCustomMode
                   ? "var(--gray)"
-                    : "var(--rose-red)",
+                  : "var(--rose-red)",
+                borderRadius: "10px",
                 color: "white",
               },
             }}
           />
           <div className={styles.slider_values_container}>
-            <p className={styles.slider_min_value}>{propertiesRange[0]}</p>
-            <p className={styles.slider_max_value}>{propertiesRange[1]}</p>
+            <p className={styles.slider_min_value}>{properties}</p>
+            {/* <p className={styles.slider_max_value}>{propertiesRange}</p> */}
           </div>
         </div>
+
         {/* Custom mode */}
         <div className={styles.clients_filter_properties_custom_section}>
           <Button
@@ -124,8 +149,9 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
             onClick={() => {
               setIsCustomMode(!isCustomMode);
             }}
-            iconContainerClass={styles.clients_filter_properties_custom_section_button_icon_container}
-            
+            iconContainerClass={
+              styles.clients_filter_properties_custom_section_button_icon_container
+            }
           />
           {isCustomMode && (
             <div
@@ -134,52 +160,23 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
               }
             >
               <Input
-                label="From*"
-                placeholder="Enter a number"
-                value={customMinValue}
+                label="Upto*"
+                placeholder="Enter the number"
+                value={properties === null ? "" : properties.toString()}
                 type="number"
                 onChange={(e) => {
                   const raw = e.target.value;
                   const value = Number(raw);
-                  const max = Number(customMaxValue) || 101;
-                
+
                   if (raw === "") {
-                    setCustomMinValue("");
+                    setProperties(null); // keep it empty so placeholder shows
                     return;
                   }
-                
-                  if (/^\d{0,3}$/.test(raw) && value >= 1 && value <= 100) {
-                    if (raw.length === 1 || value < max) {
-                      setCustomMinValue(raw);
-                    }
+
+                  if (/^\d{0,3}$/.test(raw) && value >= 0 && value <= 100) {
+                    setProperties(value);
                   }
                 }}
-                
-               
-              />
-              <Input
-                label="To*"
-                placeholder="Enter a number"
-                value={customMaxValue}
-               type="number"
-               onChange={(e) => {
-                const raw = e.target.value;
-                const value = Number(raw);
-                const min = Number(customMinValue) || 0;
-              
-                if (raw === "") {
-                  setCustomMaxValue("");
-                  return;
-                }
-              
-                if (/^\d{0,3}$/.test(raw) && value >= 1 && value <= 100) {
-                  if (raw.length === 1 || value > min) {
-                    setCustomMaxValue(raw);
-                  }
-                }
-              }}
-              
-              
               />
             </div>
           )}
@@ -193,61 +190,72 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
       <section className={styles.clients_filter_created_on_section}>
         <p className={styles.clients_filter_status_section_title}>Created On</p>
         <div className={styles.clients_filter_created_on_section_buttons}>
-          {["Today", "This Week", "This Month", "This Year"].map((item,index) => (
-            <Button
-              key={index}
-              title={item}
-              variant={selectedCreatedOn === item ? "primary" : "ghost"}
-              className={styles.clients_filter_status_section_button}
-              onClick={() => {
-                setSelectedCreatedOn(item);
-              }}
-            />
-          ))}
+          {["Today", "This Week", "This Month", "This Year"].map(
+            (item, index) => (
+              <Button
+                key={index}
+                title={item}
+                variant={
+                  selectedCreatedOn &&
+                  JSON.stringify(selectedCreatedOn) ===
+                    JSON.stringify(getDateRange(item))
+                    ? "primary"
+                    : "ghost"
+                }
+                className={styles.clients_filter_status_section_button}
+                onClick={() => {
+                  const range = getDateRange(item);
+                  if (range) {
+                    setSelectedCreatedOn(range);
+                  }
+                }}
+              />
+            )
+          )}
         </div>
       </section>
     );
   };
 
-  const renderByLocationSection = () => {
-    return (
-      <section className={styles.clients_filter_by_location_section}>
-        <p className={styles.clients_filter_status_section_title}>
-          By Location
-        </p>
-        <SelectDropDown
-          label="Locations*"
-          placeholder="Select Locations"
-          options={[
-            "Hyderabad",
-            "Mumbai",
-            "Delhi",
-            "Chennai",
-            "Kolkata",
-            "Bengaluru",
-            "Pune",
-            "Jaipur",
-            "Ahmedabad",
-            "Surat",
-            "Lucknow",
-            "Kanpur",
-            "Nagpur",
-          ]}
-          selected={selectedByLocation || []}
-          onSelect={(value) =>
-            setSelectedByLocation(Array.isArray(value) ? value : [value])
-          }
-          multiSelect={true}
-          onCloseIconClick={(item: string) => {
-            setSelectedByLocation(selectedByLocation.filter((f) => f !== item));
-          }}
-          selectedItemsContainerClass={
-            styles.clients_filter_by_location_section_selected_items_container
-          }
-        />
-      </section>
-    );
-  };
+  // const renderByLocationSection = () => {
+  //   return (
+  //     <section className={styles.clients_filter_by_location_section}>
+  //       <p className={styles.clients_filter_status_section_title}>
+  //         By Location
+  //       </p>
+  //       <SelectDropDown
+  //         label="Locations*"
+  //         placeholder="Select Locations"
+  //         options={[
+  //           "Hyderabad",
+  //           "Mumbai",
+  //           "Delhi",
+  //           "Chennai",
+  //           "Kolkata",
+  //           "Bengaluru",
+  //           "Pune",
+  //           "Jaipur",
+  //           "Ahmedabad",
+  //           "Surat",
+  //           "Lucknow",
+  //           "Kanpur",
+  //           "Nagpur",
+  //         ]}
+  //         selected={selectedByLocation || []}
+  //         onSelect={(value) =>
+  //           setSelectedByLocation(Array.isArray(value) ? value : [value])
+  //         }
+  //         multiSelect={true}
+  //         onCloseIconClick={(item: string) => {
+  //           setSelectedByLocation(selectedByLocation.filter((f) => f !== item));
+  //         }}
+  //         selectedItemsContainerClass={
+  //           styles.clients_filter_by_location_section_selected_items_container
+  //         }
+  //       />
+  //     </section>
+  //   );
+  // };
   const renderButtonSection = () => {
     return (
       <section className={styles.clients_filter_button_section}>
@@ -256,12 +264,10 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
           variant="plain"
           onClick={() => {
             setSelectedStatus("");
-            setPropertiesRange([0, 100]);
+            setProperties(0);
             setIsCustomMode(false);
-            setCustomMinValue("");
-            setCustomMaxValue("");
-            setSelectedCreatedOn("");
-            setSelectedByLocation([]);
+            setSelectedCreatedOn(null);
+            // setSelectedByLocation([]);
           }}
           className={styles.clients_filter_button_section_cancel_button}
         />
@@ -270,14 +276,17 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
           variant="primary"
           onClick={() => {
             onApplyFilters({
-              status: selectedStatus,
-              propertiesRange: {
-                min: isCustomMode ? customMinValue : propertiesRange[0],
-                max: isCustomMode ? customMaxValue : propertiesRange[1],
-              },
+              status:
+                selectedStatus === "Active"
+                  ? "active"
+                  : selectedStatus === "Inactive"
+                  ? "deactive"
+                  : "",
+              properties: properties ?? 0,
               createdOn: selectedCreatedOn,
-              byLocation: selectedByLocation,
+              // byLocation: selectedByLocation,
             });
+
             onClose();
           }}
           className={styles.clients_filter_button_section_save_button}
@@ -292,7 +301,7 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
         {renderStatusSection()}
         {renderPropertiesSection()}
         {renderCreatedOnSection()}
-        {renderByLocationSection()}
+        {/* {renderByLocationSection()} */}
         {renderButtonSection()}
       </section>
     </section>
