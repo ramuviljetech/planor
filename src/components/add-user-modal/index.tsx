@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Modal from "../ui/modal";
@@ -8,9 +8,19 @@ import Image from "next/image";
 import Button from "../ui/button";
 import Input from "../ui/input";
 
+interface UserData {
+    id: string | number;
+    name: string;
+    contact: string;
+    email: string;
+}
+
 interface AddUserModalProps {
     show: boolean;
     onClose: () => void;
+    isEditMode?: boolean;
+    userData?: UserData | null;
+    onSave?: (userData: UserData) => void;
 }
 
 // Validation schema
@@ -25,7 +35,13 @@ const UserSchema = Yup.object().shape({
         .required("Email is required"),
 });
 
-export default function AddUserModal({ show, onClose }: AddUserModalProps) {
+export default function AddUserModal({ 
+    show, 
+    onClose, 
+    isEditMode = false, 
+    userData = null,
+    onSave 
+}: AddUserModalProps) {
 
     const [users, setUsers] = useState<any[]>([]);
 
@@ -34,14 +50,36 @@ export default function AddUserModal({ show, onClose }: AddUserModalProps) {
         setUsers([]);
     };
 
+    // Get initial values based on mode
+    const getInitialValues = () => {
+        if (isEditMode && userData) {
+            return {
+                name: userData.name || "",
+                contact: userData.contact || "",
+                email: userData.email || ""
+            };
+        }
+        return {
+            name: "",
+            contact: "",
+            email: ""
+        };
+    };
+
     // Handle form submission
     const handleSubmit = (values: any, { resetForm }: any) => {
         console.log("Form Values:", values);
         console.log("Users Data:", users);
 
-        // Add current form data to users if it's valid
-        const finalUsers = [...users, { id: Date.now(), ...values }];
-        console.log("Final Users Data:", finalUsers);
+        if (isEditMode && userData && onSave) {
+            // Edit mode - call onSave with updated data
+            const updatedUser = { ...userData, ...values };
+            onSave(updatedUser);
+        } else {
+            // Add mode - add current form data to users if it's valid
+            const finalUsers = [...users, { id: Date.now(), ...values }];
+            console.log("Final Users Data:", finalUsers);
+        }
 
         resetForm();
         resetData();
@@ -166,16 +204,18 @@ export default function AddUserModal({ show, onClose }: AddUserModalProps) {
                         </tr>
                     </tbody>
                 </table>
-                <div className={styles.user_modal_add_button}>
-                    <Button
-                        title="Add User"
-                        className={styles.user_modal_add_button_button}
-                        onClick={() => handleAddUser(values, formikProps)}
-                        icon={plusRoseIcon}
-                        iconContainerClass={styles.user_modal_add_button_icon}
-                        disabled={!isValid || !values.name || !values.contact || !values.email}
-                    />
-                </div>
+                {!isEditMode && (
+                    <div className={styles.user_modal_add_button}>
+                        <Button
+                            title="Add User"
+                            className={styles.user_modal_add_button_button}
+                            onClick={() => handleAddUser(values, formikProps)}
+                            icon={plusRoseIcon}
+                            iconContainerClass={styles.user_modal_add_button_icon}
+                            disabled={!isValid || !values.name || !values.contact || !values.email}
+                        />
+                    </div>
+                )}
             </div>
         );
     };
@@ -190,13 +230,10 @@ export default function AddUserModal({ show, onClose }: AddUserModalProps) {
                 overlay_style={styles.add_user_modal_overlay_style}
             >
                 <Formik
-                    initialValues={{
-                        name: "",
-                        contact: "",
-                        email: ""
-                    }}
+                    initialValues={getInitialValues()}
                     validationSchema={UserSchema}
                     onSubmit={handleSubmit}
+                    enableReinitialize={true}
                 >
                     {(formikProps) => (
                         <>
@@ -204,7 +241,7 @@ export default function AddUserModal({ show, onClose }: AddUserModalProps) {
                                 <div className={styles.add_user_modal_header_top}>
                                     <div className={styles.add_user_modal_header_left}>
                                         <p className={styles.add_user_modal_header_left_text}>
-                                            Add New User
+                                            {isEditMode ? "Edit User" : "Add New User"}
                                         </p>
                                     </div>
                                     <Image
@@ -226,7 +263,7 @@ export default function AddUserModal({ show, onClose }: AddUserModalProps) {
                                     onClick={() => handleCancel(formikProps.resetForm)}
                                 />
                                 <Button
-                                    title="Submit"
+                                    title={isEditMode ? "Update" : "Submit"}
                                     className={styles.add_user_modal_footer_button_submit}
                                     onClick={() => formikProps.handleSubmit()}
                                     disabled={!formikProps.isValid || (!formikProps.values.name && !formikProps.values.contact && !formikProps.values.email && users.length === 0)}
