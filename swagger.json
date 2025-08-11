@@ -491,6 +491,15 @@
                   "clientId": {
                     "type": "string",
                     "example": "client-id-here"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "properties": {
+                      "grossArea": {
+                        "type": "number",
+                        "example": 1000
+                      }
+                    }
                   }
                 }
               }
@@ -1217,139 +1226,99 @@
         }
       }
     },
-    "/api/clients/register": {
-      "post": {
-        "tags": [
-          "Clients"
-        ],
-        "summary": "Register Client",
-        "description": "Create a new client with optional user creation (Admin only)",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "name",
-                  "organizationNumber",
-                  "primaryContactName",
-                  "primaryContactEmail",
-                  "primaryContactPhone",
-                  "address",
-                  "industryType",
-                  "timezone"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "example": "Acme Corporation"
-                  },
-                  "organizationNumber": {
-                    "type": "string",
-                    "example": "123456-7890"
-                  },
-                  "primaryContactName": {
-                    "type": "string",
-                    "example": "John Doe"
-                  },
-                  "primaryContactEmail": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "john.doe@acme.com"
-                  },
-                  "primaryContactPhone": {
-                    "type": "string",
-                    "example": "+1234567890"
-                  },
-                  "address": {
-                    "type": "string",
-                    "example": "123 Business St, City, Country"
-                  },
-                  "industryType": {
-                    "type": "string",
-                    "example": "Technology"
-                  },
-                  "timezone": {
-                    "type": "string",
-                    "example": "UTC+1"
-                  },
-                  "users": [
-                    {
-                      "type": "object",
-                      "properties": {
-                        "username": {
-                          "type": "string",
-                          "example": "acme.user"
-                        },
-                        "email": {
-                          "type": "string",
-                          "format": "email",
-                          "example": "user@acme.com"
-                        },
-                        "contact": {
-                          "type": "string",
-                          "example": "+1234567890"
-                        }
-                      }
+  "/api/clients/register": {
+  "post": {
+    "tags": [
+      "Clients"
+    ],
+    "summary": "Register Client",
+    "description": "Create a new client with optional user creation (Admin only)",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "name",
+              "organizationNumber",
+              "primaryContactName",
+              "primaryContactEmail",
+              "primaryContactPhone",
+              "address",
+              "industryType",
+              "timezone"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "example": "Acme Corporation"
+              },
+              "organizationNumber": {
+                "type": "string",
+                "example": "123456-7890"
+              },
+              "primaryContactName": {
+                "type": "string",
+                "example": "John Doe"
+              },
+              "primaryContactEmail": {
+                "type": "string",
+                "format": "email",
+                "example": "john.doe@acme.com"
+              },
+              "primaryContactPhone": {
+                "type": "string",
+                "example": "+1234567890"
+              },
+              "address": {
+                "type": "string",
+                "example": "123 Business St, City, Country"
+              },
+              "industryType": {
+                "type": "string",
+                "example": "Technology"
+              },
+              "timezone": {
+                "type": "string",
+                "example": "UTC+1"
+              },
+              "websiteUrl": {
+                "type": "string",
+                "example": "https://www.acme.com"
+              },
+              "description": {
+                "type": "string",
+                "example": "Acme Corporation is a technology company"
+              },
+              "status": {
+                "type": "string",
+                "example": "active"
+              },
+              "user": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "username": {
+                      "type": "string",
+                      "example": "acme.user"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "user@acme.com"
+                    },
+                    "contact": {
+                      "type": "string",
+                      "example": "+1234567890"
                     }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Client created successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": true,
-                  "message": "Client created successfully",
-                  "data": {
-                    "id": "client-123",
-                    "name": "Acme Corporation",
-                    "organizationNumber": "123456-7890",
-                    "primaryContactName": "John Doe",
-                    "primaryContactEmail": "john.doe@acme.com",
-                    "primaryContactPhone": "+1234567890",
-                    "address": "123 Business St, City, Country",
-                    "industryType": "Technology",
-                    "timezone": "UTC+1",
-                    "createdAt": "2024-01-15T10:30:00.000Z"
                   }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "message": "Validation error",
-                  "errors": [
-                    "Client name is required",
-                    "Organization number must be unique"
-                  ]
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Client with this email already exists",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "message": "Client with this email already exists"
                 }
               }
             }
@@ -1357,6 +1326,59 @@
         }
       }
     },
+    "responses": {
+      "201": {
+        "description": "Client created successfully",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": true,
+              "message": "Client created successfully",
+              "data": {
+                "id": "client-123",
+                "name": "Acme Corporation",
+                "organizationNumber": "123456-7890",
+                "primaryContactName": "John Doe",
+                "primaryContactEmail": "john.doe@acme.com",
+                "primaryContactPhone": "+1234567890",
+                "address": "123 Business St, City, Country",
+                "industryType": "Technology",
+                "timezone": "UTC+1",
+                "createdAt": "2024-01-15T10:30:00.000Z"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "message": "Validation error",
+              "errors": [
+                "Client name is required",
+                "Organization number must be unique"
+              ]
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Client with this email already exists",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "message": "Client with this email already exists"
+            }
+          }
+        }
+      }
+    }
+  }
+},
     "/api/clients": {
       "post": {
         "tags": [
@@ -1598,103 +1620,124 @@
         }
       }
     },
-    "/api/admin/register-user": {
-      "post": {
-        "tags": [
-          "Admin"
-        ],
-        "summary": "Register Standard User",
-        "description": "Create a new standard user (Admin only)",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "username",
-                  "email",
-                  "clientId"
-                ],
-                "properties": {
-                  "username": {
-                    "type": "string",
-                    "example": "john.doe"
-                  },
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "john.doe@example.com"
-                  },
-                  "contact": {
-                    "type": "string",
-                    "example": "+1234567890"
-                  },
-                  "clientId": {
-                    "type": "string",
-                    "example": "client-id-here"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "User created successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": true,
-                  "message": "User created successfully",
-                  "data": {
-                    "id": "user-123",
-                    "username": "john.doe",
-                    "email": "john.doe@example.com",
-                    "contact": "+1234567890",
-                    "clientId": "client-456",
-                    "role": "user",
-                    "status": "active",
-                    "createdAt": "2024-01-15T10:30:00.000Z"
+   "/api/admin/register-users": {
+  "post": {
+    "tags": [
+      "Admin"
+    ],
+    "summary": "Register Standard User",
+    "description": "Create one or more standard users (Admin only)",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "clientId",
+              "users"
+            ],
+            "properties": {
+              "clientId": {
+                "type": "string",
+                "example": "405ed09d-9acf-4eb7-9413-39a58f266ca0"
+              },
+              "users": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "username",
+                    "email"
+                  ],
+                  "properties": {
+                    "username": {
+                      "type": "string",
+                      "example": "john_doe"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "john.doe@example.com"
+                    },
+                    "contact": {
+                      "type": "string",
+                      "example": "1234567890"
+                    }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "message": "Validation error",
-                  "errors": [
-                    "Username is required",
-                    "Email must be unique"
-                  ]
-                }
+          "example": {
+            "clientId": "405ed09d-9acf-4eb7-9413-39a58f266ca0",
+            "users": [
+              {
+                "username": "john_doe",
+                "email": "john.doe@example.com",
+                "contact": "1234567890"
               }
-            }
-          },
-          "409": {
-            "description": "User with this email already exists",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "message": "User with this email already exists"
-                }
-              }
-            }
+            ]
           }
         }
       }
     },
+    "responses": {
+      "201": {
+        "description": "User created successfully",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": true,
+              "message": "User created successfully",
+              "data": {
+                "id": "user-123",
+                "username": "john.doe",
+                "email": "john.doe@example.com",
+                "contact": "+1234567890",
+                "clientId": "client-456",
+                "role": "user",
+                "status": "active",
+                "createdAt": "2024-01-15T10:30:00.000Z"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "message": "Validation error",
+              "errors": [
+                "Username is required",
+                "Email must be unique"
+              ]
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "User with this email already exists",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "message": "User with this email already exists"
+            }
+          }
+        }
+      }
+    }
+  }
+},
     "/api/admin/standard-users": {
       "get": {
         "tags": [

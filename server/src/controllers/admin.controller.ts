@@ -138,7 +138,7 @@ export const registerUsers = async (req: Request, res: Response) => {
     if (!client) {
       return res.status(404).json({
         success: false,
-        error: 'Client not found'
+        error: 'Client not found with this details'
       });
     }
 
