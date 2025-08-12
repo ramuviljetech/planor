@@ -251,8 +251,8 @@ export interface PriceItem {
   updatedAt: string;
   buildingId?: string;
   object: string; // The actual type like "11x13 Fast"
-  price: number;
-  interval: string;
+  price?: number;
+  interval?: string;
   pricelistId?: string; // Reference to the pricelist this item belongs to
 }
 

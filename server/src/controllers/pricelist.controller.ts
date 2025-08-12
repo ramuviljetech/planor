@@ -517,8 +517,8 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         object: typedPriceData.type, // The actual type like "11x13 Fast"
-        price: typedPriceData.price,
-        interval: typedPriceData.interval,
+        price: undefined,
+        interval: undefined,
         // pricelistId will be set to the created document's ID after creation
         //interval will be set to the created document's interval after creation
       }
