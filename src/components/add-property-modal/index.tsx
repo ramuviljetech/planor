@@ -21,10 +21,11 @@ interface PropertyFormData {
   propertyType: string;
   address: string;
   city: string;
-  grossArea: string;
+  metadata: {
+    grossArea: number;
+  };
   primaryContactName: string;
   email: string;
-  role: string;
   phone: string;
   description: string;
 }
@@ -36,12 +37,13 @@ const PropertyValidationSchema = Yup.object().shape({
   propertyType: Yup.string().required("Property type is required"),
   address: Yup.string().required("Address is required"),
   city: Yup.string().required("City is required"),
-  grossArea: Yup.string().required("Gross area is required"),
+  metadata: Yup.object().shape({
+    grossArea: Yup.number().required("Gross area is required"),
+  }),
   primaryContactName: Yup.string().required("Primary contact name is required"),
   email: Yup.string()
     .required("Email is required")
     .email("Invalid email format"),
-  role: Yup.string().required("Role is required"),
   phone: Yup.string()
     .required("Phone number is required")
     .matches(/^[\+]?[1-9][\d]{0,15}$/, "Phone number must be a valid number"),
@@ -54,10 +56,11 @@ const initialValues: PropertyFormData = {
   propertyType: "",
   address: "",
   city: "",
-  grossArea: "",
+  metadata: {
+    grossArea: 0,
+  },
   primaryContactName: "",
   email: "",
-  role: "",
   phone: "",
   description: "",
 };
@@ -171,7 +174,7 @@ export default function AddPropertyModal({
             inputContainerClass={styles.add_property_modal_input_container}
             error={touched.city && errors.city ? errors.city : undefined}
           />
-          <SelectDropDown
+          {/* <SelectDropDown
             label="Gross Area*"
             options={[
               { label: "Gross Area", value: "Gross Area" },
@@ -186,7 +189,24 @@ export default function AddPropertyModal({
             errorMessage={
               touched.grossArea && errors.grossArea ? errors.grossArea : ""
             }
+          /> */}
+          <Input
+            type="number"
+            label="Gross Area*"
+            value={values.metadata.grossArea}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            name="metadata.grossArea"
+            placeholder="Enter gross area"
+            inputStyle={styles.add_property_modal_input_section_input}
+            inputContainerClass={styles.add_property_modal_input_container}
+            error={
+              touched.metadata?.grossArea && errors.metadata?.grossArea
+                ? errors.metadata?.grossArea
+                : undefined
+            }
           />
+
           <Input
             label="Primary Contact Name*"
             value={values.primaryContactName}
@@ -213,20 +233,7 @@ export default function AddPropertyModal({
             inputContainerClass={styles.add_property_modal_input_container}
             error={touched.email && errors.email ? errors.email : undefined}
           />
-          <SelectDropDown
-            label="Role"
-            options={[
-              { label: "Admin", value: "Admin" },
-              { label: "User", value: "User" },
-              { label: "Client", value: "Client" },
-            ]}
-            selected={values.role}
-            onSelect={(value) =>
-              formikProps.setFieldValue("role", value as string)
-            }
-            showError={touched.role && errors.role ? true : false}
-            errorMessage={touched.role && errors.role ? errors.role : ""}
-          />
+
           <Input
             label="Phone*"
             value={values.phone}
