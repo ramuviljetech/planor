@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import Image from "next/image";
@@ -10,6 +10,8 @@ import SelectDropDown from "@/components/ui/select-dropdown";
 import TextArea from "@/components/ui/textarea";
 import CustomTabs from "@/components/ui/tabs";
 import styles from "./styles.module.css";
+import React from "react";
+import { clientsApiService } from "@/networking/client-api-service";
 
 interface AddClientUserModalProps {
   show: boolean;
@@ -18,22 +20,28 @@ interface AddClientUserModalProps {
 
 interface ClientFormData {
   clientName: string;
-  orgNumber: string;
+  organizationNumber: string;
   industryType: string;
   address: string;
   websiteUrl: string;
   status: string;
   primaryContactName: string;
-  email: string;
-  role: string;
-  phone: string;
+  primaryContactEmail: string;
+  primaryContactPhone: string;
   description: string;
+  users: UserFormData[];
+}
+
+interface UserFormData {
+  username: string;
+  contact: string;
+  email: string;
 }
 
 // Validation schema for client form
 const ClientValidationSchema = Yup.object().shape({
   clientName: Yup.string().required("Client name is required"),
-  orgNumber: Yup.string(),
+  organizationNumber: Yup.string(),
   industryType: Yup.string().required("Industry type is required"),
   address: Yup.string().required("Address is required"),
   websiteUrl: Yup.string()
@@ -41,15 +49,14 @@ const ClientValidationSchema = Yup.object().shape({
     .url("Invalid website URL format"),
   status: Yup.string().required("Status is required"),
   primaryContactName: Yup.string().required("Primary contact name is required"),
-  email: Yup.string()
+  primaryContactEmail: Yup.string()
     .email("Invalid email format")
     .when("$isEmailRequired", {
       is: true,
       then: (schema) => schema.required("Email is required"),
       otherwise: (schema) => schema.optional(),
     }),
-  role: Yup.string().required("Role is required"),
-  phone: Yup.string()
+  primaryContactPhone: Yup.string()
     .required("Phone number is required")
     .matches(/^[\+]?[1-9][\d]{0,15}$/, "Phone number must be a valid number"),
   description: Yup.string().required("Description is required"),
@@ -57,8 +64,8 @@ const ClientValidationSchema = Yup.object().shape({
 
 // Validation schema for user form
 const UserValidationSchema = Yup.object().shape({
-  name: Yup.string()
-    .required("Name is required"),
+  username: Yup.string()
+    .required("Username is required"),
   contact: Yup.string()
     .matches(/^[0-9+\-\s()]+$/, "Contact must contain only numbers")
     .required("Contact is required"),
@@ -67,58 +74,119 @@ const UserValidationSchema = Yup.object().shape({
     .required("Email is required"),
 });
 
+
 const initialValues: ClientFormData = {
   clientName: "",
-  orgNumber: "",
+  organizationNumber: "",
   industryType: "",
   address: "",
   websiteUrl: "",
   status: "",
   primaryContactName: "",
-  email: "",
-  role: "",
-  phone: "",
+  primaryContactEmail: "",
+  primaryContactPhone: "",
   description: "",
+  users: [],
 };
+
 
 export default function AddClientUserModal({
   show,
   onClose,
 }: AddClientUserModalProps) {
   const [activeTab, setActiveTab] = useState("client");
+  const [currentUserFormValues, setCurrentUserFormValues] = useState({
+    username: "",
+    contact: "",
+    email: ""
+  });
+
 
   const handleTabClick = () => {
     if (activeTab === "user") {
-      setActiveTab("client");
+      setActiveTab("client"); 
     }
   };
 
-  const [users, setUsers] = useState<
-    Array<{ id: number; name: string; contact: string; email: string }>
-  >([]);
+  const [users, setUsers] = useState<UserFormData[]>([]);
+
+
+
+const postClientData = async (modalData: any) => {
+  try {
+    const response = await clientsApiService.createClient(modalData);
+    console.log("✅ Client created successfully:", response);
+    return response;
+  } catch (error) {
+    console.log("❌ Error creating client:", error);
+    throw error;
+  }
+};
 
   // Handle form submission
-  const handleSubmit = (
+  const handleSubmit = async (
     values: ClientFormData,
     { setSubmitting, resetForm }: any
   ) => {
     if (activeTab === "client") {
-      console.log("Client Data:", values);
       setActiveTab("user");
     } else {
-      console.log("Users Data:", users);
-      resetForm();
-      setUsers([]);
-      setActiveTab("client");
-      onClose();
+      // When submitting from the user tab, combine client and users data into one object
+      const allUsers = [...users];
+      
+      // If there are current form values that haven't been added, include them
+      if (currentUserFormValues.username && currentUserFormValues.contact && currentUserFormValues.email) {
+        allUsers.push({
+          username: currentUserFormValues.username,
+          contact: currentUserFormValues.contact,
+          email: currentUserFormValues.email
+        });
+      }
+      
+      // Combine client and users data into a single object
+      const modalData = {
+          clientName: values.clientName,
+          organizationNumber: values.organizationNumber,
+          industryType: values.industryType,
+          address: values.address,
+          websiteUrl: values.websiteUrl,
+          status: values.status,
+          primaryContactName: values.primaryContactName,
+          primaryContactEmail: values.primaryContactEmail,
+          primaryContactPhone: values.primaryContactPhone,
+          description: values.description,
+          users: allUsers.map(user => ({
+            username: user.username,
+            contact: user.contact,
+            email: user.email
+          }))
+      };
+
+      console.log("Combined Client and Users Data:", modalData);
+
+      try {
+        await postClientData(modalData);
+        
+        // Reset form and close modal on success
+        resetForm();
+        setUsers([]);
+        setCurrentUserFormValues({ username: "", contact: "", email: "" });
+        setActiveTab("client");
+        onClose();
+      } catch (error) {
+        console.log("❌ Failed to create client:", error);
+        // Don't reset form or close modal on error
+      } finally {
+        setSubmitting(false);
+      }
     }
-    setSubmitting(false);
   };
 
   // Handle cancel
   const handleCancel = (resetForm: () => void) => {
     resetForm();
     setUsers([]);
+    setCurrentUserFormValues({ username: "", contact: "", email: "" });
     setActiveTab("client");
     onClose();
   };
@@ -127,6 +195,7 @@ export default function AddClientUserModal({
   const handleClose = (resetForm: () => void) => {
     resetForm();
     setUsers([]);
+    setCurrentUserFormValues({ username: "", contact: "", email: "" });
     setActiveTab("client");
     onClose();
   };
@@ -154,15 +223,15 @@ export default function AddClientUserModal({
           />
           <Input
             label="Org Number"
-            value={values.orgNumber}
+            value={values.organizationNumber}
             onChange={handleChange}
             onBlur={handleBlur}
-            name="orgNumber"
+            name="organizationNumber"
             placeholder="Enter org number"
             inputStyle={styles.client_info_section_input_section_input}
             error={
-              touched.orgNumber && errors.orgNumber
-                ? errors.orgNumber
+              touched.organizationNumber && errors.organizationNumber
+                ? errors.organizationNumber
                 : undefined
             }
           />
@@ -177,9 +246,9 @@ export default function AddClientUserModal({
             onSelect={(value) =>
               formikProps.setFieldValue("industryType", value as string)
             }
-            showError={
-              touched.industryType && errors.industryType ? true : false
-            }
+                         showError={
+               !!(touched.industryType && errors.industryType)
+             }
             errorMessage={
               touched.industryType && errors.industryType
                 ? errors.industryType
@@ -215,15 +284,17 @@ export default function AddClientUserModal({
           <SelectDropDown
             label="Status*"
             options={[
-              { label: "Active", value: "Active" },
-              { label: "Inactive", value: "Inactive" },
+              { label: "Active", value: "active" },
+              { label: "Inactive", value: "inactive" },
             ]}
             selected={values.status}
-            onSelect={(value) =>
+            onSelect={(value) =>{
               formikProps.setFieldValue("status", value as string)
+              console.log("value", value)}
             }
-            showError={touched.status && errors.status ? true : false}
+            showError={!!(touched.status && errors.status)}
             errorMessage={touched.status && errors.status ? errors.status : ""}
+            
           />
           <Input
             label="Primary Contact Name*"
@@ -241,37 +312,23 @@ export default function AddClientUserModal({
           />
           <Input
             label="Email"
-            value={values.email}
+            value={values.primaryContactEmail}
             onChange={handleChange}
             onBlur={handleBlur}
-            name="email"
+            name="primaryContactEmail"
             placeholder="Enter email"
             inputStyle={styles.client_info_section_input_section_input}
-            error={touched.email && errors.email ? errors.email : undefined}
-          />
-          <SelectDropDown
-            label="Role*"
-            options={[
-              { label: "Admin", value: "Admin" },
-              { label: "Client", value: "Client" },
-              { label: "User", value: "User" },
-            ]}
-            selected={values.role}
-            onSelect={(value) =>
-              formikProps.setFieldValue("role", value as string)
-            }
-            showError={touched.role && errors.role ? true : false}
-            errorMessage={touched.role && errors.role ? errors.role : ""}
+            error={touched.primaryContactEmail && errors.primaryContactEmail ? errors.primaryContactEmail : undefined}
           />
           <Input
             label="Phone*"
-            value={values.phone}
+            value={values.primaryContactPhone}
             onChange={handleChange}
             onBlur={handleBlur}
-            name="phone"
+            name="primaryContactPhone"
             placeholder="Enter phone"
             inputStyle={styles.client_info_section_input_section_input}
-            error={touched.phone && errors.phone ? errors.phone : undefined}
+            error={touched.primaryContactPhone && errors.primaryContactPhone ? errors.primaryContactPhone : undefined}
           />
         </div>
         <div className={styles.client_info_input_bottom_section}>
@@ -298,18 +355,23 @@ export default function AddClientUserModal({
       <div className={styles.user_info_section}>
         <Formik
           initialValues={{
-            name: "",
+            username: "",
             contact: "",
             email: ""
           }}
           validationSchema={UserValidationSchema}
           onSubmit={(values, { resetForm }) => {
-            setUsers([...users, { id: Date.now(), ...values }]);
+            setUsers([...users, { username: values.username, contact: values.contact, email: values.email }]);
             resetForm();
           }}
         >
           {(formikProps) => {
             const { values, errors, touched, handleChange, handleBlur, isValid } = formikProps;
+            
+            // Update current form values whenever they change
+            React.useEffect(() => {
+              setCurrentUserFormValues(values);
+            }, [values]);
             
             return (
               <>
@@ -330,9 +392,9 @@ export default function AddClientUserModal({
                   </thead>
                   <tbody>
                     {users.map((user) => (
-                      <tr key={user.id} className={styles.user_info_section_table_row}>
+                      <tr key={user.username} className={styles.user_info_section_table_row}>
                         <td className={styles.user_info_section_table_cell}>
-                          {user.name}
+                          {user.username}
                         </td>
                         <td className={styles.user_info_section_table_cell}>
                           {user.contact}
@@ -349,17 +411,17 @@ export default function AddClientUserModal({
                           <Input
                             label=""
                             placeholder="Enter here"
-                            name="name"
-                            value={values.name}
+                            name="username"
+                            value={values.username}
                             onChange={handleChange}
                             onBlur={handleBlur}
                             inputStyle={styles.user_info_section_input}
                             inputContainerClass={styles.user_info_section_input_container}
                             inputWrapperClass={styles.user_info_section_input_wrapper}
                           />
-                          {errors.name && touched.name && (
+                          {errors.username && touched.username && (
                             <div className={styles.client_user_modal_error_message}>
-                              {errors.name}
+                              {errors.username}
                             </div>
                           )}
                         </div>
@@ -412,14 +474,34 @@ export default function AddClientUserModal({
                     title="Add User"
                     className={styles.user_info_section_add_button_button}
                     onClick={() => {
-                      if (isValid && values.name && values.contact && values.email) {
-                        setUsers([...users, { id: Date.now(), ...values }]);
+                      // Validate contact format
+                      const contactRegex = /^[0-9+\-\s()]+$/;
+                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                      
+                      const isContactValid = contactRegex.test(values.contact);
+                      const isEmailValid = emailRegex.test(values.email);
+                      const isUsernameValid = values.username.trim() !== '';
+                      
+                      if (isUsernameValid && isContactValid && isEmailValid) {
+                        const newUser = { username: values.username, contact: values.contact, email: values.email };
+                        setUsers([...users, newUser]);
                         formikProps.resetForm();
+                      } else {
+                        // Show validation errors
+                        formikProps.setTouched(
+                          Object.keys(values).reduce(
+                            (acc: any, key) => {
+                              acc[key] = true;
+                              return acc;
+                            },
+                            {}
+                          )
+                        );
                       }
                     }}
                     icon={plusRoseIcon}
                     iconContainerClass={styles.user_info_section_add_button_icon}
-                    disabled={!isValid || !values.name || !values.contact || !values.email}
+                    disabled={!isValid || !values.username || !values.contact || !values.email}
                   />
                 </div>
               </>
@@ -518,8 +600,13 @@ export default function AddClientUserModal({
                   }
                 }}
                 disabled={
-                  (activeTab === "user" && users.length === 0) ||
-                  (activeTab === "client" && formikProps.isSubmitting)
+                  Boolean(
+                    (activeTab === "user" && users.length === 0 && 
+                     (!currentUserFormValues.username || !currentUserFormValues.contact || !currentUserFormValues.email)) ||
+                    (activeTab === "client" && formikProps.isSubmitting) ||
+                    (activeTab === "user" && currentUserFormValues.username && currentUserFormValues.contact && currentUserFormValues.email && 
+                     (!/^[0-9+\-\s()]+$/.test(currentUserFormValues.contact) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentUserFormValues.email)))
+                  )
                 }
               />
             </div>
