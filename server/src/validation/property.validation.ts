@@ -70,16 +70,7 @@ export const createPropertySchema = Joi.object({
       'any.required': 'Email is required',
       'string.empty': 'Email cannot be empty'
     }),
-  role: Joi.string()
-    .min(2)
-    .max(50)
-    .required()
-    .messages({
-      'string.min': 'Role must be at least 2 characters long',
-      'string.max': 'Role cannot exceed 50 characters',
-      'any.required': 'Role is required',
-      'string.empty': 'Role cannot be empty'
-    }),
+
   phone: Joi.string()
     .min(10)
     .max(20)
@@ -178,15 +169,6 @@ export const updatePropertySchema = Joi.object({
     .messages({
       'string.email': 'Please provide a valid email address',
       'string.empty': 'Email cannot be empty'
-    }),
-  role: Joi.string()
-    .min(2)
-    .max(50)
-    .optional()
-    .messages({
-      'string.min': 'Role must be at least 2 characters long',
-      'string.max': 'Role cannot exceed 50 characters',
-      'string.empty': 'Role cannot be empty'
     }),
   phone: Joi.string()
     .min(10)

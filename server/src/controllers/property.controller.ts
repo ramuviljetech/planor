@@ -257,7 +257,7 @@ export const createPropertyController = async (req: Request, res: Response) => {
       city: propertyData.city,
       primaryContactName: propertyData.primaryContactName,
       email: propertyData.email,
-      role: propertyData.role,
+      // role: propertyData.role,
       phone: propertyData.phone,
       description: propertyData.description || '',
       inactive: propertyData.inactive || false,

@@ -136,7 +136,7 @@ export interface Property {
   city: string;
   primaryContactName: string;
   email: string;
-  role: string;
+  // role: string;
   phone: string;
   description: string;
   inactive: boolean;
@@ -382,7 +382,7 @@ export interface CreatePropertyRequest {
   city: string;
   primaryContactName: string;
   email: string;
-  role: string;
+  // role: string;
   phone: string;
   description: string;
   inactive?: boolean;

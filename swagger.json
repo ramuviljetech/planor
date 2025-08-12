@@ -1249,7 +1249,7 @@
               "organizationNumber",
               "primaryContactName",
               "primaryContactEmail",
-              "primaryContactPhone",
+              "primaryContactPhoneNumber",
               "address",
               "industryType",
               "websiteUrl",
@@ -1274,7 +1274,7 @@
                 "format": "email",
                 "example": "john.doe@acme.com"
               },
-              "primaryContactPhone": {
+              "primaryContactPhoneNumber": {
                 "type": "string",
                 "example": "+1234567890"
               },
@@ -1338,7 +1338,7 @@
                 "organizationNumber": "123456-7890",
                 "primaryContactName": "John Doe",
                 "primaryContactEmail": "john.doe@acme.com",
-                "primaryContactPhone": "+1234567890",
+                "primaryContactPhoneNumber": "+1234567890",
                 "address": "123 Business St, City, Country",
                 "industryType": "Technology",
                 "timezone": "UTC+1",
