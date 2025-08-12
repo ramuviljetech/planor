@@ -2173,7 +2173,8 @@
             "in": "path",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "user-123"
             }
           }
         ],
@@ -2646,6 +2647,8 @@
                   "data": {
                     "id": "pricelist-123",
                     "interval": "1-year",
+                    "object": "515 x 130 fast",
+                    "type": "window",
                     "price": 1000,
                     "buildingId": "building-123",
                     "isGlobal": false,

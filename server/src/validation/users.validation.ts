@@ -20,10 +20,10 @@ export const updateUserProfileSchema = Joi.object({
       'string.empty': 'Email cannot be empty'
     }),
   status: Joi.string()
-    .valid('active', 'deactive')
+    .valid('active', 'inactive')
     .optional()
     .messages({
-      'any.only': 'Status must be active or deactive'
+      'any.only': 'Status must be active or inactive'
     })
 })
 

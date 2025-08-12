@@ -221,10 +221,10 @@ export const updateUserSchema = Joi.object({
       'any.required': 'Email is required'
     }),
   status: Joi.string()
-    .valid('active', 'deactive', 'block')
+    .valid('active', 'inactive', 'block')
     .required()
     .messages({
-      'any.only': 'Status must be active, deactive, or block'
+      'any.only': 'Status must be active, inactive, or block'
     }),
   password: Joi.string()
     .min(8)
