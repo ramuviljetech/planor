@@ -8,7 +8,7 @@ export enum UserRole {
 // User Status Enum
 export enum UserStatus {
   ACTIVE = 'active',
-  DEACTIVE = 'deactive',
+  DEACTIVE = 'inactive',
   BLOCK = 'block'
 }
 

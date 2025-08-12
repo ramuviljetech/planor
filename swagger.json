@@ -1245,17 +1245,19 @@
           "schema": {
             "type": "object",
             "required": [
-              "name",
+              "clientName",
               "organizationNumber",
               "primaryContactName",
               "primaryContactEmail",
               "primaryContactPhone",
               "address",
               "industryType",
-              "timezone"
+              "websiteUrl",
+              "description",
+              "status"
             ],
             "properties": {
-              "name": {
+              "clientName": {
                 "type": "string",
                 "example": "Acme Corporation"
               },
@@ -1283,10 +1285,6 @@
               "industryType": {
                 "type": "string",
                 "example": "Technology"
-              },
-              "timezone": {
-                "type": "string",
-                "example": "UTC+1"
               },
               "websiteUrl": {
                 "type": "string",

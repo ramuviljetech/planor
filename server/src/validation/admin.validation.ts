@@ -9,7 +9,8 @@ export const createClientOnlySchema = Joi.object({
   industryType: Joi.string().required(),
   address: Joi.string().required(),
   websiteUrl: Joi.string().uri().optional().allow(''),
-  timezone: Joi.string().required(),
+  // timezone: Joi.string().required(),
+  status: Joi.string().valid('active', 'inactive', 'block').required(),
   primaryContactName: Joi.string().min(2).max(100).required(),
   primaryContactEmail: Joi.string().email({ tlds: { allow: false } }).required(),
   // primaryContactRole: Joi.string().optional().allow(''),
@@ -90,12 +91,6 @@ export const createClientAndUserSchema = Joi.object({
     .messages({
       'string.uri': 'Please provide a valid website URL'
     }),
-  timezone: Joi.string()
-    .required()
-    .messages({
-      'any.required': 'Timezone is required',
-      'string.empty': 'Timezone cannot be empty'
-    }),
   primaryContactName: Joi.string()
     .min(2)
     .max(100)
@@ -132,6 +127,7 @@ export const createClientAndUserSchema = Joi.object({
     .messages({
       'string.empty': 'Description cannot be empty if provided'
     }),
+  status: Joi.string().valid('active', 'inactive', 'block').required(),
   // User fields (required) - can be single user or array of users
   user: Joi.alternatives().try(
     // Single user object
@@ -197,7 +193,7 @@ export const createClientAndUserSchema = Joi.object({
   // Optional fields that might be present
   id: Joi.optional(),
   role: Joi.optional(),
-  status: Joi.optional(),
+  // status: Joi.optional(),
   createdAt: Joi.optional(),
   updatedAt: Joi.optional(),
   lastLoginAt: Joi.optional(),
