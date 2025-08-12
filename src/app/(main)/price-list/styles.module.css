@@ -359,7 +359,7 @@
   border-bottom: none;
 }
 
-.accordion_table_full.closed:nth-child(6) .accordion_header {
+.accordion_table_full.closed:last-child .accordion_header {
   border-bottom: none;
 }
 .accordion_header {
