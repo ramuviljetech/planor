@@ -97,7 +97,8 @@ export const validateUpdatePricelist = (req: Request, res: Response, next: NextF
   const updateData = req.body
 
 
-  const allowedFields = ['price']
+  const allowedFields = ['price', 'interval']
+  const interval = ['1-year', '2-years', '3-years', '4-years', '5-years', '6-years', '7-years', '8-years', '9-years', '10-years']
   const keys = Object.keys(updateData)
 
   // Only allow "price" field to be updated
@@ -105,7 +106,7 @@ export const validateUpdatePricelist = (req: Request, res: Response, next: NextF
   if (hasInvalidFields) {
     const response: ApiResponse = {
       success: false,
-      error: 'Only "price" field can be updated',
+      error: 'Only "price" and "interval" fields can be updated',
       statusCode: 400
     }
     return res.status(400).json(response)
@@ -128,7 +129,14 @@ export const validateUpdatePricelist = (req: Request, res: Response, next: NextF
     return res.status(400).json(response)
   }
 
- 
+  if (typeof updateData.interval !== 'string' || updateData.interval === '' || !interval.includes(updateData.interval)  ) {
+    const response: ApiResponse = {
+      success: false,
+      error: 'interval must be a valid string and must be one of the following: ' + interval.join(', ') ,
+      statusCode: 400
+    }
+    return res.status(400).json(response)
+  }
 
   // Validate price
   if (typeof updateData.price !== 'number' || isNaN(updateData.price)) {

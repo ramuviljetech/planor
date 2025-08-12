@@ -2303,7 +2303,25 @@
             "schema": {
               "type": "string"
             }
+        
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
           }
+
         ],
         "responses": {
           "200": {
@@ -2340,154 +2358,184 @@
         }
       }
     },
-    "/api/pricelist": {
-      "get": {
-        "tags": [
-          "Pricelist"
-        ],
-        "summary": "Get All Pricelists",
-        "description": "Get all pricelists with optional filters",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 1
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 10
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Pricelists retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": true,
-                  "message": "Pricelists retrieved successfully",
-                  "data": {
-                    "pricelists": [
-                      {
-                        "id": "97075fa1-38e8-4889-8a9a-85c7c7fec49e",
-                        "type": "roof",
-                        "object": "Tegeltak inkl takstol",
-                        "price": 0,
-                        "buildingId": "c8cdf168-d6c2-4593-860c-2afac580cda7",
-                        "createdAt": "2025-08-08T11:45:33.458Z",
-                        "updatedAt": "2025-08-08T11:45:33.458Z"
-                      }
-                    ],
-                    "pagination": {
-                      "page": 1,
-                      "limit": 10,
-                      "total": 15,
-                      "pages": 2
-                    }
-                  }
-                }
-              }
-            }
-          }
+ "/api/pricelist": {
+  "get": {
+    "tags": [
+      "Pricelist"
+    ],
+    "summary": "Get All Pricelists",
+    "description": "Get all pricelists with optional filters",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "parameters": [
+      {
+        "name": "page",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "default": 1
         }
       },
-      "post": {
-        "tags": [
-          "Pricelist"
-        ],
-        "summary": "Create Pricelist from Blob",
-        "description": "Create pricelist from Azure blob storage file (Admin only)",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "buildingId",
-                  "fileUrl"
+      {
+        "name": "limit",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "default": 10
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Pricelists retrieved successfully",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": true,
+              "message": "Pricelists retrieved successfully",
+              "data": {
+                "window": [
+                  {
+                    "id": "5b0055d7-8da9-4fbf-ad4f-3a90e990fb3c",
+                    "type": "window",
+                    "object": "515 x 130 fast",
+                    "price": 0,
+                    "createdAt": "2025-08-08T12:49:03.620Z",
+                    "updatedAt": "2025-08-08T12:49:03.620Z"
+                  }
                 ],
-                "properties": {
-                  "buildingId": {
-                    "type": "string",
-                    "example": "building-id-here"
-                  },
-                  "fileUrl": {
-                    "type": "string",
-                    "example": "https://storage.blob.core.windows.net/container/file.csv"
+                "roof": [
+                  {
+                    "id": "0837c10e-8a78-4a4f-92ab-c10abefdd60a",
+                    "type": "roof",
+                    "object": "Svart plåttak 200",
+                    "price": 5,
+                    "createdAt": "2025-08-08T11:47:21.380Z",
+                    "updatedAt": "2025-08-12T06:22:20.033Z"
                   }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Pricelist created successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": true,
-                  "message": "Pricelist created successfully",
-                  "data": {
-                    "id": "pricelist-123",
-                    "name": "Building Pricelist",
-                    "buildingId": "building-123",
-                    "isGlobal": false,
-                    "isActive": true,
-                    "effectiveFrom": "2024-01-01T00:00:00.000Z",
-                    "createdAt": "2024-01-15T10:30:00.000Z"
+                ],
+                "floor": [
+                  {
+                    "id": "97075fa1-38e8-4889-8a9a-85c7c7fec49e",
+                    "type": "floor",
+                    "object": "Tegeltak inkl takstol",
+                    "price": 0,
+                    "buildingId": "c8cdf168-d6c2-4593-860c-2afac580cda7",
+                    "createdAt": "2025-08-08T11:45:33.458Z",
+                    "updatedAt": "2025-08-08T11:45:33.458Z"
                   }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "message": "Validation error",
-                  "errors": [
-                    "Building ID is required",
-                    "File URL is required"
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Building not found",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "message": "Building not found"
+                ],
+                "wall": [
+                  {
+                    "id": "552038c8-555a-4651-88b3-f1282c366895",
+                    "type": "wall",
+                    "object": "YV 300",
+                    "price": 1,
+                    "createdAt": "2025-08-08T11:53:52.779Z",
+                    "updatedAt": "2025-08-08T11:54:59.367Z"
+                  }
+                ],
+                "pagination": {
+                  "page": 1,
+                  "limit": 10,
+                  "total": 29,
+                  "pages": 3
                 }
               }
             }
           }
         }
       }
+    }
+  },
+  "post": {
+    "tags": [
+      "Pricelist"
+    ],
+    "summary": "Create Pricelist from Blob",
+    "description": "Create pricelist from Azure blob storage file (Admin only)",
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "buildingId",
+              "fileUrl"
+            ],
+            "properties": {
+              "buildingId": {
+                "type": "string",
+                "example": "building-id-here"
+              },
+              "fileUrl": {
+                "type": "string",
+                "example": "https://storage.blob.core.windows.net/container/file.csv"
+              }
+            }
+          }
+        }
+      }
     },
+    "responses": {
+      "201": {
+        "description": "Pricelist created successfully",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": true,
+              "message": "Pricelist created successfully",
+              "data": {
+                "id": "pricelist-123",
+                "name": "Building Pricelist",
+                "buildingId": "building-123",
+                "isGlobal": false,
+                "isActive": true,
+                "effectiveFrom": "2024-01-01T00:00:00.000Z",
+                "createdAt": "2024-01-15T10:30:00.000Z"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "message": "Validation error",
+              "errors": [
+                "Building ID is required",
+                "File URL is required"
+              ]
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Building not found",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "message": "Building not found"
+            }
+          }
+        }
+      }
+    }
+  }
+},
     "/api/pricelist/{id}": {
       "get": {
         "tags": [
@@ -2573,19 +2621,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "name": {
+                  "interval": {
                     "type": "string",
-                    "example": "Updated Pricelist"
+                    "example": "1-year, 2-years, 3-years, 4-years, 5-years, 6-years, 7-years, 8-years, 9-years, 10-years"
                   },
-                  "isActive": {
-                    "type": "boolean",
-                    "default": true
-                  },
-                  "effectiveFrom": {
-                    "type": "string",
-                    "format": "date-time",
-                    "example": "2024-01-01T00:00:00.000Z"
-                  }
+                  "price": {
+                    "type": "number",
+                    "example": 1000
+                  } 
+
                 }
               }
             }
@@ -2601,7 +2645,8 @@
                   "message": "Pricelist updated successfully",
                   "data": {
                     "id": "pricelist-123",
-                    "name": "Updated Pricelist",
+                    "interval": "1-year",
+                    "price": 1000,
                     "buildingId": "building-123",
                     "isGlobal": false,
                     "isActive": true,

@@ -517,8 +517,10 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         object: typedPriceData.type, // The actual type like "11x13 Fast"
-        price: typedPriceData.price
+        price: typedPriceData.price,
+        interval: typedPriceData.interval,
         // pricelistId will be set to the created document's ID after creation
+        //interval will be set to the created document's interval after creation
       }
 
       // Save individual document to database
@@ -696,6 +698,7 @@ export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Re
           buildingId: priceItem.buildingId,
           pricelistId: priceItem.pricelistId,
           isGlobal: priceItem.isGlobal,
+          interval: priceItem.interval,
           createdAt: priceItem.createdAt,
           updatedAt: priceItem.updatedAt
         })
@@ -723,9 +726,64 @@ export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Re
       })
     }
 
+    // Calculate statistics
+    const { getUsersContainer, getBuildingsContainer } = await import('../config/database')
+    const usersContainer = getUsersContainer()
+    const buildingsContainer = getBuildingsContainer()
+    // const propertiesContainer = getPropertiesContainer()
+
+    // Get total clients (users with role 'client')
+    const clientsQuery = {
+      query: 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "client"'
+    }
+    const { resources: clientsCount } = await usersContainer.items.query(clientsQuery).fetchAll()
+    const totalClients = clientsCount[0] || 0
+
+    // Get new clients this month
+    const currentDate = new Date()
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+    
+    const newClientsThisMonthQuery = {
+      query: 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "client" AND c.createdAt >= @startDate AND c.createdAt <= @endDate',
+      parameters: [
+        { name: '@startDate', value: firstDayOfMonth.toISOString() },
+        { name: '@endDate', value: lastDayOfMonth.toISOString() }
+      ]
+    }
+    const { resources: newClientsCount } = await usersContainer.items.query(newClientsThisMonthQuery).fetchAll()
+    const newClientsThisMonth = newClientsCount[0] || 0
+
+    // Get total buildings
+    const buildingsQuery = {
+      query: 'SELECT VALUE COUNT(1) FROM c'
+    }
+    const { resources: buildingsCount } = await buildingsContainer.items.query(buildingsQuery).fetchAll()
+    const totalBuildings = buildingsCount[0] || 0
+
+    // Get total properties
+    // const propertiesQuery = {
+    //   query: 'SELECT VALUE COUNT(1) FROM c'
+    // }
+    // const { resources: propertiesCount } = await propertiesContainer.items.query(propertiesQuery).fetchAll()
+    // const totalProperties = propertiesCount[0] || 0
+
+    // Get total file uploads (from pricelist metadata)
+    const totalFileUploads = 0
+
     const response: ApiResponse = {
       success: true,
-      data: paginatedGroupedData,
+      data: {
+        pricelists: paginatedGroupedData,
+        statistics: {
+          totalClients,
+          newClientsThisMonth,
+          totalBuildings,
+          // totalProperties,
+          totalFileUploads,
+          // totalPriceItems: total
+        }
+      },
       message: `Found ${total} total price items grouped by categories`,
       statusCode: 200
     }

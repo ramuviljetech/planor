@@ -126,44 +126,127 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 
 
 // *Get users associated with client
+// export const getusersAssociatedWithClient = async (req: Request, res: Response) => {
+//   try {
+//       const authenticatedUser = (req as any).user
+//       const clientId = req.params.clientId
+//       const usersContainer = getUsersContainer()
+//       // const filters: ClientFilters = req.body
+//       let query: string;
+//       let parameters: any[] = [];
+          
+//       if (clientId) {
+//           // Get users belonging to the specific client
+//            query = 'SELECT * FROM c WHERE c.role = "standard_user" AND c.clientId = @clientId';
+//           parameters = [{ name: '@clientId', value: clientId }];
+//         } else {
+//           // Get all standard users
+//           query = 'SELECT * FROM c WHERE c.role = "standard_user"';
+//         }
+
+//       const { resources: users } = await usersContainer.items.query({
+//           query,
+//           parameters
+//       }).fetchAll()
+
+
+//       const withoutPassword = users.map((user) => {
+//           const { password, ...userWithoutPassword } = user
+//           return userWithoutPassword
+//       })
+
+//       return res.json({
+//           success: true,
+//           data: withoutPassword
+//       })
+//   } catch (error) {
+//       console.error('Get users associated with client error:', error)
+//       return res.status(500).json({
+//           success: false,
+//           error: 'Internal server error'
+//       })
+//   }
+// }
+
 export const getusersAssociatedWithClient = async (req: Request, res: Response) => {
   try {
-      const authenticatedUser = (req as any).user
-      const clientId = req.params.clientId
-      const usersContainer = getUsersContainer()
-      // const filters: ClientFilters = req.body
-      let query: string;
-      let parameters: any[] = [];
-          
-      if (clientId) {
-          // Get users belonging to the specific client
-           query = 'SELECT * FROM c WHERE c.role = "standard_user" AND c.clientId = @clientId';
-          parameters = [{ name: '@clientId', value: clientId }];
-        } else {
-          // Get all standard users
-          query = 'SELECT * FROM c WHERE c.role = "standard_user"';
-        }
+    const authenticatedUser = (req as any).user;
+    const clientId = req.params.clientId;
+    const usersContainer = getUsersContainer();
 
-      const { resources: users } = await usersContainer.items.query({
-          query,
-          parameters
-      }).fetchAll()
+    // Read pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
 
+    // Build base query
+    let query = '';
+    let parameters: any[] = [];
 
-      const withoutPassword = users.map((user) => {
-          const { password, ...userWithoutPassword } = user
-          return userWithoutPassword
-      })
+    if (clientId) {
+      query = `
+        SELECT * FROM c 
+        WHERE c.role = "standard_user" AND c.clientId = @clientId
+        OFFSET @offset LIMIT @limit
+      `;
+      parameters = [
+        { name: '@clientId', value: clientId },
+        { name: '@offset', value: offset },
+        { name: '@limit', value: limit }
+      ];
+    } else {
+      query = `
+        SELECT * FROM c 
+        WHERE c.role = "standard_user"
+        OFFSET @offset LIMIT @limit
+      `;
+      parameters = [
+        { name: '@offset', value: offset },
+        { name: '@limit', value: limit }
+      ];
+    }
 
-      return res.json({
-          success: true,
-          data: withoutPassword
-      })
+    // Count total for pagination
+    const countQuery = clientId
+      ? 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "standard_user" AND c.clientId = @clientId'
+      : 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "standard_user"';
+
+    const countParams = clientId ? [{ name: '@clientId', value: clientId }] : [];
+
+    const countResult = await usersContainer.items.query({
+      query: countQuery,
+      parameters: countParams
+    }).fetchAll();
+
+    const total = countResult.resources[0] ?? 0;
+    const totalPages = Math.ceil(total / limit);
+
+    // Fetch users
+    const { resources: users } = await usersContainer.items.query({
+      query,
+      parameters
+    }).fetchAll();
+
+    // Strip password field
+    const withoutPassword = users.map(({ password, ...user }) => user);
+
+    return res.json({
+      success: true,
+      data: withoutPassword,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems: total,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1
+      }
+    });
   } catch (error) {
-      console.error('Get users associated with client error:', error)
-      return res.status(500).json({
-          success: false,
-          error: 'Internal server error'
-      })
+    console.error('Get users associated with client error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
   }
-}
+};
