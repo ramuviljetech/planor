@@ -233,7 +233,6 @@ export default function AddPropertyModal({
             inputContainerClass={styles.add_property_modal_input_container}
             error={touched.email && errors.email ? errors.email : undefined}
           />
-
           <Input
             label="Phone*"
             value={values.phone}

@@ -139,7 +139,7 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
   }, [options, searchTerm]);
 
   const handleOptionClick = (option: SelectOptionType) => {
-    const value = typeof option === "string" ? option : option.label;
+    const value = typeof option === "string" ? option : option.value;
 
     if (multiSelect) {
       const currentSelected = Array.isArray(selected) ? selected : [];
@@ -275,7 +275,7 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
           {/* Options List */}
           <div className={classNames(styles.dropdownMenu, menuClass)}>
             {filteredOptions.map((option, index) => {
-              const value = typeof option === "string" ? option : option.label;
+              const value = typeof option === "string" ? option : option.value;
               const avatar = typeof option === "object" ? option.avatar : null;
               const isSelected = selectedArray.includes(value);
 
@@ -294,6 +294,7 @@ const SelectDropDown: React.FC<SelectDropDownProps> = ({
                     label={value}
                     checked={isSelected}
                     onChange={() => handleOptionClick(option)}
+                    labelClassName={styles.checkbox_label}
                   />
                 </div>
               );

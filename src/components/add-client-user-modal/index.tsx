@@ -27,7 +27,7 @@ interface ClientFormData {
   status: string;
   primaryContactName: string;
   primaryContactEmail: string;
-  primaryContactPhone: string;
+  primaryContactPhoneNumber: string;
   description: string;
   users: UserFormData[];
 }
@@ -56,7 +56,7 @@ const ClientValidationSchema = Yup.object().shape({
       then: (schema) => schema.required("Email is required"),
       otherwise: (schema) => schema.optional(),
     }),
-  primaryContactPhone: Yup.string()
+  primaryContactPhoneNumber: Yup.string()
     .required("Phone number is required")
     .matches(/^[\+]?[1-9][\d]{0,15}$/, "Phone number must be a valid number"),
   description: Yup.string().required("Description is required"),
@@ -64,8 +64,7 @@ const ClientValidationSchema = Yup.object().shape({
 
 // Validation schema for user form
 const UserValidationSchema = Yup.object().shape({
-  username: Yup.string()
-    .required("Username is required"),
+  username: Yup.string().required("Username is required"),
   contact: Yup.string()
     .matches(/^[0-9+\-\s()]+$/, "Contact must contain only numbers")
     .required("Contact is required"),
@@ -73,7 +72,6 @@ const UserValidationSchema = Yup.object().shape({
     .email("Invalid email format")
     .required("Email is required"),
 });
-
 
 const initialValues: ClientFormData = {
   clientName: "",
@@ -84,11 +82,10 @@ const initialValues: ClientFormData = {
   status: "",
   primaryContactName: "",
   primaryContactEmail: "",
-  primaryContactPhone: "",
+  primaryContactPhoneNumber: "",
   description: "",
   users: [],
 };
-
 
 export default function AddClientUserModal({
   show,
@@ -98,30 +95,27 @@ export default function AddClientUserModal({
   const [currentUserFormValues, setCurrentUserFormValues] = useState({
     username: "",
     contact: "",
-    email: ""
+    email: "",
   });
-
 
   const handleTabClick = () => {
     if (activeTab === "user") {
-      setActiveTab("client"); 
+      setActiveTab("client");
     }
   };
 
   const [users, setUsers] = useState<UserFormData[]>([]);
 
-
-
-const postClientData = async (modalData: any) => {
-  try {
-    const response = await clientsApiService.createClient(modalData);
-    console.log("✅ Client created successfully:", response);
-    return response;
-  } catch (error) {
-    console.log("❌ Error creating client:", error);
-    throw error;
-  }
-};
+  const postClientData = async (modalData: any) => {
+    try {
+      const response = await clientsApiService.createClient(modalData);
+      console.log("✅ Client created successfully:", response);
+      return response;
+    } catch (error) {
+      console.log("❌ Error creating client:", error);
+      throw error;
+    }
+  };
 
   // Handle form submission
   const handleSubmit = async (
@@ -133,40 +127,42 @@ const postClientData = async (modalData: any) => {
     } else {
       // When submitting from the user tab, combine client and users data into one object
       const allUsers = [...users];
-      
+
       // If there are current form values that haven't been added, include them
-      if (currentUserFormValues.username && currentUserFormValues.contact && currentUserFormValues.email) {
+      if (
+        currentUserFormValues.username &&
+        currentUserFormValues.contact &&
+        currentUserFormValues.email
+      ) {
         allUsers.push({
           username: currentUserFormValues.username,
           contact: currentUserFormValues.contact,
-          email: currentUserFormValues.email
+          email: currentUserFormValues.email,
         });
       }
-      
       // Combine client and users data into a single object
       const modalData = {
-          clientName: values.clientName,
-          organizationNumber: values.organizationNumber,
-          industryType: values.industryType,
-          address: values.address,
-          websiteUrl: values.websiteUrl,
-          status: values.status,
-          primaryContactName: values.primaryContactName,
-          primaryContactEmail: values.primaryContactEmail,
-          primaryContactPhone: values.primaryContactPhone,
-          description: values.description,
-          users: allUsers.map(user => ({
-            username: user.username,
-            contact: user.contact,
-            email: user.email
-          }))
+        clientName: values.clientName,
+        organizationNumber: values.organizationNumber,
+        industryType: values.industryType,
+        address: values.address,
+        websiteUrl: values.websiteUrl,
+        status: values.status,
+        primaryContactName: values.primaryContactName,
+        primaryContactEmail: values.primaryContactEmail,
+        primaryContactPhoneNumber: values.primaryContactPhoneNumber,
+        description: values.description,
+        users: allUsers.map((user) => ({
+          username: user.username,
+          contact: user.contact,
+          email: user.email,
+        })),
       };
 
       console.log("Combined Client and Users Data:", modalData);
-
       try {
         await postClientData(modalData);
-        
+
         // Reset form and close modal on success
         resetForm();
         setUsers([]);
@@ -246,9 +242,7 @@ const postClientData = async (modalData: any) => {
             onSelect={(value) =>
               formikProps.setFieldValue("industryType", value as string)
             }
-                         showError={
-               !!(touched.industryType && errors.industryType)
-             }
+            showError={!!(touched.industryType && errors.industryType)}
             errorMessage={
               touched.industryType && errors.industryType
                 ? errors.industryType
@@ -288,13 +282,12 @@ const postClientData = async (modalData: any) => {
               { label: "Inactive", value: "inactive" },
             ]}
             selected={values.status}
-            onSelect={(value) =>{
-              formikProps.setFieldValue("status", value as string)
-              console.log("value", value)}
-            }
+            onSelect={(value) => {
+              formikProps.setFieldValue("status", value as string);
+              console.log("value", value);
+            }}
             showError={!!(touched.status && errors.status)}
             errorMessage={touched.status && errors.status ? errors.status : ""}
-            
           />
           <Input
             label="Primary Contact Name*"
@@ -318,17 +311,26 @@ const postClientData = async (modalData: any) => {
             name="primaryContactEmail"
             placeholder="Enter email"
             inputStyle={styles.client_info_section_input_section_input}
-            error={touched.primaryContactEmail && errors.primaryContactEmail ? errors.primaryContactEmail : undefined}
+            error={
+              touched.primaryContactEmail && errors.primaryContactEmail
+                ? errors.primaryContactEmail
+                : undefined
+            }
           />
           <Input
             label="Phone*"
-            value={values.primaryContactPhone}
+            value={values.primaryContactPhoneNumber}
             onChange={handleChange}
             onBlur={handleBlur}
-            name="primaryContactPhone"
+            name="primaryContactPhoneNumber"
             placeholder="Enter phone"
             inputStyle={styles.client_info_section_input_section_input}
-            error={touched.primaryContactPhone && errors.primaryContactPhone ? errors.primaryContactPhone : undefined}
+            error={
+              touched.primaryContactPhoneNumber &&
+              errors.primaryContactPhoneNumber
+                ? errors.primaryContactPhoneNumber
+                : undefined
+            }
           />
         </div>
         <div className={styles.client_info_input_bottom_section}>
@@ -357,42 +359,65 @@ const postClientData = async (modalData: any) => {
           initialValues={{
             username: "",
             contact: "",
-            email: ""
+            email: "",
           }}
           validationSchema={UserValidationSchema}
           onSubmit={(values, { resetForm }) => {
-            setUsers([...users, { username: values.username, contact: values.contact, email: values.email }]);
+            setUsers([
+              ...users,
+              {
+                username: values.username,
+                contact: values.contact,
+                email: values.email,
+              },
+            ]);
             resetForm();
           }}
         >
           {(formikProps) => {
-            const { values, errors, touched, handleChange, handleBlur, isValid } = formikProps;
-            
+            const {
+              values,
+              errors,
+              touched,
+              handleChange,
+              handleBlur,
+              isValid,
+            } = formikProps;
+
             // Update current form values whenever they change
             React.useEffect(() => {
               setCurrentUserFormValues(values);
             }, [values]);
-            
+
             return (
               <>
                 {/* Table with Header and Data */}
                 <table className={styles.user_info_section_table}>
                   <thead className={styles.user_info_section_table_header}>
                     <tr className={styles.user_info_section_table_header_row}>
-                      <th className={styles.user_info_section_table_header_cell}>
+                      <th
+                        className={styles.user_info_section_table_header_cell}
+                      >
                         User Name
                       </th>
-                      <th className={styles.user_info_section_table_header_cell}>
+                      <th
+                        className={styles.user_info_section_table_header_cell}
+                      >
                         Contact
                       </th>
-                      <th className={styles.user_info_section_table_header_cell}>
+                      <th
+                        className={styles.user_info_section_table_header_cell}
+                      >
                         Email
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {users.map((user) => (
-                      <tr key={user.username} className={styles.user_info_section_table_row}>
+                      <tr
+                        key={user.username}
+                        className={styles.user_info_section_table_row}
+                      >
                         <td className={styles.user_info_section_table_cell}>
                           {user.username}
                         </td>
@@ -416,11 +441,17 @@ const postClientData = async (modalData: any) => {
                             onChange={handleChange}
                             onBlur={handleBlur}
                             inputStyle={styles.user_info_section_input}
-                            inputContainerClass={styles.user_info_section_input_container}
-                            inputWrapperClass={styles.user_info_section_input_wrapper}
+                            inputContainerClass={
+                              styles.user_info_section_input_container
+                            }
+                            inputWrapperClass={
+                              styles.user_info_section_input_wrapper
+                            }
                           />
                           {errors.username && touched.username && (
-                            <div className={styles.client_user_modal_error_message}>
+                            <div
+                              className={styles.client_user_modal_error_message}
+                            >
                               {errors.username}
                             </div>
                           )}
@@ -436,11 +467,17 @@ const postClientData = async (modalData: any) => {
                             onChange={handleChange}
                             onBlur={handleBlur}
                             inputStyle={styles.user_info_section_input}
-                            inputContainerClass={styles.user_info_section_input_container}
-                            inputWrapperClass={styles.user_info_section_input_wrapper}
+                            inputContainerClass={
+                              styles.user_info_section_input_container
+                            }
+                            inputWrapperClass={
+                              styles.user_info_section_input_wrapper
+                            }
                           />
                           {errors.contact && touched.contact && (
-                            <div className={styles.client_user_modal_error_message}>
+                            <div
+                              className={styles.client_user_modal_error_message}
+                            >
                               {errors.contact}
                             </div>
                           )}
@@ -456,11 +493,17 @@ const postClientData = async (modalData: any) => {
                             onChange={handleChange}
                             onBlur={handleBlur}
                             inputStyle={styles.user_info_section_input}
-                            inputContainerClass={styles.user_info_section_input_container}
-                            inputWrapperClass={styles.user_info_section_input_wrapper}
+                            inputContainerClass={
+                              styles.user_info_section_input_container
+                            }
+                            inputWrapperClass={
+                              styles.user_info_section_input_wrapper
+                            }
                           />
                           {errors.email && touched.email && (
-                            <div className={styles.client_user_modal_error_message}>
+                            <div
+                              className={styles.client_user_modal_error_message}
+                            >
                               {errors.email}
                             </div>
                           )}
@@ -477,31 +520,39 @@ const postClientData = async (modalData: any) => {
                       // Validate contact format
                       const contactRegex = /^[0-9+\-\s()]+$/;
                       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                      
+
                       const isContactValid = contactRegex.test(values.contact);
                       const isEmailValid = emailRegex.test(values.email);
-                      const isUsernameValid = values.username.trim() !== '';
-                      
+                      const isUsernameValid = values.username.trim() !== "";
+
                       if (isUsernameValid && isContactValid && isEmailValid) {
-                        const newUser = { username: values.username, contact: values.contact, email: values.email };
+                        const newUser = {
+                          username: values.username,
+                          contact: values.contact,
+                          email: values.email,
+                        };
                         setUsers([...users, newUser]);
                         formikProps.resetForm();
                       } else {
                         // Show validation errors
                         formikProps.setTouched(
-                          Object.keys(values).reduce(
-                            (acc: any, key) => {
-                              acc[key] = true;
-                              return acc;
-                            },
-                            {}
-                          )
+                          Object.keys(values).reduce((acc: any, key) => {
+                            acc[key] = true;
+                            return acc;
+                          }, {})
                         );
                       }
                     }}
                     icon={plusRoseIcon}
-                    iconContainerClass={styles.user_info_section_add_button_icon}
-                    disabled={!isValid || !values.username || !values.contact || !values.email}
+                    iconContainerClass={
+                      styles.user_info_section_add_button_icon
+                    }
+                    disabled={
+                      !isValid ||
+                      !values.username ||
+                      !values.contact ||
+                      !values.email
+                    }
                   />
                 </div>
               </>
@@ -599,15 +650,22 @@ const postClientData = async (modalData: any) => {
                     });
                   }
                 }}
-                disabled={
-                  Boolean(
-                    (activeTab === "user" && users.length === 0 && 
-                     (!currentUserFormValues.username || !currentUserFormValues.contact || !currentUserFormValues.email)) ||
+                disabled={Boolean(
+                  (activeTab === "user" &&
+                    users.length === 0 &&
+                    (!currentUserFormValues.username ||
+                      !currentUserFormValues.contact ||
+                      !currentUserFormValues.email)) ||
                     (activeTab === "client" && formikProps.isSubmitting) ||
-                    (activeTab === "user" && currentUserFormValues.username && currentUserFormValues.contact && currentUserFormValues.email && 
-                     (!/^[0-9+\-\s()]+$/.test(currentUserFormValues.contact) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentUserFormValues.email)))
-                  )
-                }
+                    (activeTab === "user" &&
+                      currentUserFormValues.username &&
+                      currentUserFormValues.contact &&
+                      currentUserFormValues.email &&
+                      (!/^[0-9+\-\s()]+$/.test(currentUserFormValues.contact) ||
+                        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                          currentUserFormValues.email
+                        )))
+                )}
               />
             </div>
           </>

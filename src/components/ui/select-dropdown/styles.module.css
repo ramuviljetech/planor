@@ -39,10 +39,12 @@
   line-height: 140%;
   letter-spacing: 0%;
   color: var(--fog-gray);
+  text-transform: capitalize;
 }
 
 .selectedText {
   color: var(--jet-black);
+  text-transform: capitalize;
 }
 
 .dropdownContainer {
@@ -162,7 +164,11 @@
   line-height: 20px;
   letter-spacing: -0.16px;
   color: var(--jet-black);
+  text-transform: capitalize;
 }
 .selected_item_close_icon_image {
   cursor: pointer;
+}
+.checkbox_label {
+  text-transform: capitalize;
 }
