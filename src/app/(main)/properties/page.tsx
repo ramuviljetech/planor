@@ -25,7 +25,7 @@ const PropertiesPage = () => {
 
   const tabs: TabItem[] = [
     { label: "Properties", value: "properties" },
-    { label: "Buldings", value: "buldings" },
+    { label: "Buildings", value: "buildings" },
   ];
 
   const buldingsStaticCardTitle = [
@@ -122,7 +122,7 @@ const PropertiesPage = () => {
         {activeTab === "properties" && (
           <ClientPropertiesList showPropertyListSection={false} />
         )}
-        {activeTab === "buldings" && renderBuldingsTab()}
+        {activeTab === "buildings" && renderBuldingsTab()}
       </div>
     </div>
   );
