@@ -12,6 +12,7 @@ import CustomTabs from "@/components/ui/tabs";
 import styles from "./styles.module.css";
 import React from "react";
 import { clientsApiService } from "@/networking/client-api-service";
+import { ClientDataTypes } from "@/types/client";
 
 interface AddClientUserModalProps {
   show: boolean;
@@ -29,7 +30,7 @@ interface ClientFormData {
   primaryContactEmail: string;
   primaryContactPhoneNumber: string;
   description: string;
-  users: UserFormData[];
+  user: UserFormData[];
 }
 
 interface UserFormData {
@@ -84,7 +85,7 @@ const initialValues: ClientFormData = {
   primaryContactEmail: "",
   primaryContactPhoneNumber: "",
   description: "",
-  users: [],
+  user: [],
 };
 
 export default function AddClientUserModal({
@@ -106,7 +107,7 @@ export default function AddClientUserModal({
 
   const [users, setUsers] = useState<UserFormData[]>([]);
 
-  const postClientData = async (modalData: any) => {
+  const postClientData = async (modalData: ClientDataTypes) => {
     try {
       const response = await clientsApiService.createClient(modalData);
       console.log("✅ Client created successfully:", response);
@@ -152,7 +153,7 @@ export default function AddClientUserModal({
         primaryContactEmail: values.primaryContactEmail,
         primaryContactPhoneNumber: values.primaryContactPhoneNumber,
         description: values.description,
-        users: allUsers.map((user) => ({
+        user: allUsers.map((user) => ({
           username: user.username,
           contact: user.contact,
           email: user.email,

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   accordianDownBlackIcon,
@@ -14,18 +14,21 @@ import MetricCard from "@/components/ui/metric-card";
 import { clientsStaticCardTitle } from "@/app/constants";
 import Input from "@/components/ui/input";
 import Button from "@/components/ui/button";
-import AddFolderModal from "@/components/add-folder-modal";
 import Modal from "@/components/ui/modal";
 import Avatar from "@/components/ui/avatar";
+import FallbackScreen from "@/components/ui/fallback-screen";
+import { pricelistApiService } from "@/networking/pricelist-api-service";
 import styles from "./styles.module.css";
+
 
 type TabType = "all" | "new";
 
 type TableRow = {
-  type: string;
+  object: string;
+  // type: string;
   price: string;
   unit: string;
-  interval: string;
+  intervals: string;
 };
 
 interface NewObjectRow {
@@ -51,9 +54,32 @@ const PriceListPage: React.FC = () => {
     windows: false,
     area: false,
   });
+  const [priceListData, setPriceListData] = useState<any>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Fetch price list api call
+
+  const fetchPriceList = async () => {
+    try {
+      setIsLoading(true);
+      const response = await pricelistApiService.getPriceList();
+      setPriceListData(response.data);
+    } catch (error) {
+      console.error("❌ PriceListPage: Error fetching price list:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPriceList();
+  }, []);
+
+  console.log("🔄 Price list data:", priceListData);
+
   // Define table columns
   const tableColumns = [
-    { key: "type", label: "Type" },
+    { key: "object", label: "Type" },
     { key: "price", label: "Price" },
     { key: "unit", label: "Unit" },
     { key: "interval", label: "Interval" },
@@ -267,125 +293,46 @@ const PriceListPage: React.FC = () => {
           />
         </div>
         <div className={styles.accordion_table_full_content}>
-          <table className={styles.accordion_table}>
-            <thead className={styles.accordion_table_head}>
-              <tr className={styles.accordion_table_head_row}>
-                {tableColumns.map((column) => (
-                  <th
-                    key={column.key}
-                    className={styles.accordion_table_head_item}
-                  >
-                    {column.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className={styles.accordion_table_body}>
-              {data.map((item, idx) => (
-                <tr key={idx}>
+          <div className={styles.table_container}>
+            <table className={styles.accordion_table_header}>
+              <thead>
+                <tr>
                   {tableColumns.map((column) => (
-                    <td
+                    <th
                       key={column.key}
-                      className={styles.accordion_table_body_item}
+                      className={styles.accordion_table_head_item}
                     >
-                      {item[column.key as keyof TableRow]}
-                    </td>
+                      {column.label}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+            </table>
+            <div className={styles.table_body_wrapper}>
+              <table className={styles.accordion_table_body}>
+                <tbody>
+                  {data.map((item, idx) => (
+                    <tr key={idx}>
+                      {tableColumns.map((column) => (
+                        <td
+                          key={column.key}
+                          className={styles.accordion_table_body_item}
+                        >
+                          {item[column.key as keyof TableRow]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     );
   };
 
   const renderAllObjects = () => {
-    // Sample data for each accordion
-    const accordionData = [
-      {
-        key: "walls",
-        title: "Walls",
-        data: [
-          { type: "Wall-A", price: "150 SEK", unit: "M2", interval: "1 Year" },
-          { type: "Wall-B", price: "180 SEK", unit: "M2", interval: "2 years" },
-          { type: "Wall-C", price: "220 SEK", unit: "M2", interval: "3 years" },
-        ],
-      },
-      {
-        key: "doors",
-        title: "Doors",
-        data: [
-          { type: "Door-A", price: "200 SEK", unit: "ST", interval: "1 Year" },
-          { type: "Door-B", price: "200 SEK", unit: "ST", interval: "2 years" },
-          { type: "Door-C", price: "200 SEK", unit: "ST", interval: "3 years" },
-          { type: "Door-D", price: "200 SEK", unit: "ST", interval: "2 years" },
-          { type: "Door-E", price: "200 SEK", unit: "ST", interval: "2 years" },
-        ],
-      },
-      {
-        key: "floors",
-        title: "Floors",
-        data: [
-          { type: "Floor-A", price: "300 SEK", unit: "M2", interval: "1 Year" },
-          {
-            type: "Floor-B",
-            price: "350 SEK",
-            unit: "M2",
-            interval: "2 years",
-          },
-          {
-            type: "Floor-C",
-            price: "400 SEK",
-            unit: "M2",
-            interval: "3 years",
-          },
-        ],
-      },
-      {
-        key: "roof",
-        title: "Roof",
-        data: [
-          { type: "Roof-A", price: "500 SEK", unit: "M2", interval: "1 Year" },
-          { type: "Roof-B", price: "600 SEK", unit: "M2", interval: "2 years" },
-          { type: "Roof-C", price: "700 SEK", unit: "M2", interval: "3 years" },
-        ],
-      },
-      {
-        key: "windows",
-        title: "Windows",
-        data: [
-          {
-            type: "Window-A",
-            price: "250 SEK",
-            unit: "ST",
-            interval: "1 Year",
-          },
-          {
-            type: "Window-B",
-            price: "280 SEK",
-            unit: "ST",
-            interval: "2 years",
-          },
-          {
-            type: "Window-C",
-            price: "320 SEK",
-            unit: "ST",
-            interval: "3 years",
-          },
-        ],
-      },
-      {
-        key: "area",
-        title: "Area",
-        data: [
-          { type: "Area-A", price: "100 SEK", unit: "M2", interval: "1 Year" },
-          { type: "Area-B", price: "120 SEK", unit: "M2", interval: "2 years" },
-          { type: "Area-C", price: "150 SEK", unit: "M2", interval: "3 years" },
-        ],
-      },
-    ];
-
     return (
       <>
         <div className={styles.price_list_content_middle_section}>
@@ -401,16 +348,76 @@ const PriceListPage: React.FC = () => {
           ))}
         </div>
         <div className={styles.price_list_content_accordion}>
-          {accordionData.map((accordion) => (
-            <React.Fragment key={accordion.key}>
-              {renderAccordion(
-                accordion.title,
-                accordion.data,
-                accordionStates[accordion.key as keyof typeof accordionStates],
-                () => toggleAccordion(accordion.key)
-              )}
-            </React.Fragment>
-          ))}
+          {isLoading ? (
+            <div className={styles.price_list_content_accordion_loading}>
+              <FallbackScreen 
+                title="Loading Price List"
+                subtitle="Please wait while we fetch the latest pricing data..."
+                className={styles.price_list_content_accordion_loading_fallback}
+              />
+            </div>
+          ) : (
+            (() => {
+              // Use API data for each accordion
+              const accordionData = [
+                {
+                  key: "walls",
+                  title: "Walls",
+                  data: priceListData.wall || [],
+                },
+                {
+                  key: "doors",
+                  title: "Doors",
+                  data: priceListData.door || [],
+                },
+                {
+                  key: "floors",
+                  title: "Floors",
+                  data: priceListData.floor || [],
+                },
+                {
+                  key: "roof",
+                  title: "Roof",
+                  data: priceListData.roof || [],
+                },
+                {
+                  key: "windows",
+                  title: "Windows",
+                  data: priceListData.window || [],
+                },
+                {
+                  key: "area",
+                  title: "Area",
+                  data: priceListData.area || [],
+                },
+              ];
+
+              // Filter accordions that have data (length >= 1)
+              const accordionsWithData = accordionData.filter(
+                (accordion) => accordion.data.length >= 1
+              );
+
+              // Check if all accordions have no data
+              if (accordionsWithData.length === 0) {
+                return (
+                  <div className={styles.price_list_content_accordion_no_data}>
+                    <p className={styles.price_list_content_accordion_no_data_text}>No Data Found</p>
+                  </div>
+                );
+              }
+
+              return accordionsWithData.map((accordion) => (
+                <React.Fragment key={accordion.key}>
+                  {renderAccordion(
+                    accordion.title,
+                    accordion.data,
+                    accordionStates[accordion.key as keyof typeof accordionStates],
+                    () => toggleAccordion(accordion.key)
+                  )}
+                </React.Fragment>
+              ));
+            })()
+          )}
         </div>
       </>
     );
@@ -476,6 +483,8 @@ const PriceListPage: React.FC = () => {
     );
   };
 
+
+
   return (
     <div className={styles.price_list_container}>
       <div className={styles.price_list_header}>
@@ -504,7 +513,7 @@ const PriceListPage: React.FC = () => {
         </div>
         {activeTab === "all" ? renderAllObjects() : renderNewObjectsTable()}
       </section>
-      <Modal
+      {/* <Modal
         show={showAddNewObjectModal}
         onClose={() => setShowAddNewObjectModal(false)}
       >
@@ -541,7 +550,7 @@ const PriceListPage: React.FC = () => {
             />
           </div>
         </div>
-      </Modal>
+      </Modal> */}
     </div>
   );
 };
