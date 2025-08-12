@@ -16,6 +16,7 @@ interface ImageCarouselProps {
   images: ImageType[];
   isOpen: boolean;
   onClose: () => void;
+  initialIndex?: number;
 }
 
 const THUMBNAIL_VISIBLE_COUNT = 10;
@@ -24,11 +25,17 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({
   images,
   isOpen,
   onClose,
+  initialIndex = 0,
 }) => {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(initialIndex);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isSliding, setIsSliding] = useState(false);
+
+  // Update current image when initialIndex changes
+  useEffect(() => {
+    setCurrentImageIndex(initialIndex);
+  }, [initialIndex]);
 
   // Adjust visible thumbnails if active image goes out of view
   useEffect(() => {

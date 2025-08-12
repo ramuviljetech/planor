@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  b1Icon,
+  b2Icon,
+  b3Icon,
   i3DGrayIcon,
   imageRoseIcon,
   locationBlackIcon,
@@ -28,6 +31,7 @@ import FileCategories from "@/sections/building-section/file-categories";
 import { ImageViewer } from "@/components/ui/image-viewer";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 import AddBuildingModal from "@/components/add-building-modal";
+import ImageGallery from "@/sections/building-section/image-gallery";
 import styles from "./styles.module.css";
 import { sampleActivities } from "@/app/constants";
 
@@ -51,44 +55,26 @@ const BuildingDetails: React.FC = () => {
 
   let images = [
     {
-      src: building1,
-      alt: "Main",
+      src: b1Icon,
+      alt: "Building 1",
     },
     {
-      src: building2,
-      alt: "Main",
+      src: b2Icon,
+      alt: "Building 2",
     },
     {
-      src: building3,
-      alt: "Main",
+      src: b3Icon,
+      alt: "Building 3",
     },
-    {
-      src: building4,
-      alt: "Main",
-    },
-  ];
+  ]; // Only show images based on imageCount
 
   const [showViewer, setShowViewer] = useState(false);
+  const [clickedImageIndex, setClickedImageIndex] = useState(0);
 
   const [isCarouselOpen, setIsCarouselOpen] = useState(false);
-  const images2 = [
-    building3,
-    building4,
-    building2,
-    building1,
-    building2,
-    building3,
-    building4,
-    building1,
-    building2,
-    building3,
-    building4,
-    building2,
-    building3,
-    building4,
-  ];
 
-  const openCarousel = () => {
+  const openCarousel = (imageIndex: number = 0) => {
+    setClickedImageIndex(imageIndex);
     setIsCarouselOpen(true);
   };
 
@@ -100,11 +86,20 @@ const BuildingDetails: React.FC = () => {
     setActiveTab(value);
   };
 
+  const handleImageClick = (imageIndex: number) => {
+    openCarousel(imageIndex);
+  };
+
   const renderHeaderSection = (): React.ReactNode => {
     return (
       <div className={styles.building_details_sub_container_header}>
         <p className={styles.building_details_sub_container_header_title}>
-          Stora Nygatan
+          Stora Nygatan{" "}
+          {/* <span
+            style={{ fontSize: "14px", color: "#666", fontWeight: "normal" }}
+          >
+            ({images.length} images)
+          </span> */}
         </p>
         <div className={styles.building_details_sub_container_header_right}>
           <div
@@ -141,47 +136,6 @@ const BuildingDetails: React.FC = () => {
     );
   };
 
-  const renderImagesSection = (): React.ReactNode => {
-    return (
-      <div className={styles.building_details_images_section}>
-        <div className={styles.gallery}>
-          <div className={styles.mainImage}>
-            <Image src={images[0].src} alt="Main" fill objectFit="cover" />
-          </div>
-          <div className={styles.sideImages}>
-            <div className={styles.topImage}>
-              <Image src={images[1].src} alt="Side 1" fill objectFit="cover" />
-            </div>
-            <div className={styles.bottomImages}>
-              <div className={styles.bottomLeft}>
-                <Image
-                  src={images[2].src}
-                  alt="Side 2"
-                  fill
-                  objectFit="cover"
-                />
-              </div>
-              <div
-                onClick={() => openCarousel()}
-                className={styles.bottomRight}
-              >
-                <Image
-                  src={images[3].src}
-                  alt="Side 3"
-                  fill
-                  objectFit="cover"
-                />
-                <div className={styles.overlay}>
-                  <span>10+</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const renderTabsSection = (): React.ReactNode => {
     return (
       <div className={styles.building_details_tabs_section}>
@@ -190,7 +144,12 @@ const BuildingDetails: React.FC = () => {
           defaultTab="overview"
           onTabChange={handleTabChange}
         />
-        <Button title="Add Revit" variant='plain' size="sm" onClick={() => setShowAddBuildingModal(true)} />
+        <Button
+          title="Add Revit"
+          variant="plain"
+          size="sm"
+          onClick={() => setShowAddBuildingModal(true)}
+        />
       </div>
     );
   };
@@ -221,18 +180,19 @@ const BuildingDetails: React.FC = () => {
       <div className={styles.building_details_sub_container}>
         {/* Header section */}
         {renderHeaderSection()}
-        {renderImagesSection()}
+        <ImageGallery images={images} onImageClick={handleImageClick} />
         {renderTabsSection()}
         {renderTabContent()}
       </div>
       <ImageCarousel
-        images={images2}
+        images={images.map((img) => img.src)}
         isOpen={isCarouselOpen}
         onClose={closeCarousel}
+        initialIndex={clickedImageIndex}
       />
       {showViewer && (
         <ImageViewer
-          src={building3d.src}
+          src={b1Icon.src}
           alt="building one"
           onClose={() => {
             setShowViewer(false);
@@ -241,11 +201,10 @@ const BuildingDetails: React.FC = () => {
         />
       )}
       {showAddBuildingModal && (
-        <AddBuildingModal 
-          show={showAddBuildingModal} 
+        <AddBuildingModal
+          show={showAddBuildingModal}
           onClose={() => setShowAddBuildingModal(false)}
           showOnlyRevitTab={true}
-          
         />
       )}
     </section>
