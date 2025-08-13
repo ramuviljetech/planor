@@ -69,7 +69,7 @@ const PriceListPage: React.FC = () => {
 
   // Fetch price list api call
 
-  const fetchPriceList = async () => {
+  const fetchPriceList = async (): Promise<void> => {
     try {
       setIsLoading(true);
       const response = await getPriceList();
