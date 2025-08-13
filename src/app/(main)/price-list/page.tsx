@@ -11,7 +11,7 @@ import {
   focusBlackIcon,
 } from "@/resources/images";
 import MetricCard from "@/components/ui/metric-card";
-import { clientsStaticCardTitle } from "@/app/constants";
+// import { clientsStaticCardTitle } from "@/app/constants";
 import Input from "@/components/ui/input";
 import Button from "@/components/ui/button";
 import Modal from "@/components/ui/modal";
@@ -56,6 +56,7 @@ const PriceListPage: React.FC = () => {
   });
   const [priceListData, setPriceListData] = useState<any>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const[priceListStatisticsData, setPriceListStatisticsData] = useState<any>([]);
 
   // Fetch price list api call
 
@@ -63,7 +64,8 @@ const PriceListPage: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await pricelistApiService.getPriceList();
-      setPriceListData(response.data);
+      setPriceListData(response.data.pricelists);
+      setPriceListStatisticsData(response.data.statistics);
     } catch (error) {
       console.error("❌ PriceListPage: Error fetching price list:", error);
     } finally {
@@ -332,11 +334,30 @@ const PriceListPage: React.FC = () => {
     );
   };
 
+  const clientsStaticsData = [
+    {
+      title: "Total Clients",
+      value: priceListStatisticsData?.totalClients || 0,
+    },
+    {
+      title: "New Clients This Month",
+      value: priceListStatisticsData?.newClientsThisMonth || 0,
+    },
+    {
+      title: "Total Files Uploaded",
+      value: priceListStatisticsData?.totalFileUploads || 0,
+    },
+    {
+      title: "Total Buildings",
+      value: priceListStatisticsData?.totalBuildings || 0,
+    },
+  ];
+
   const renderAllObjects = () => {
     return (
       <>
         <div className={styles.price_list_content_middle_section}>
-          {clientsStaticCardTitle.map((card, index) => (
+          {clientsStaticsData.map((card, index) => (
             <MetricCard
               key={index}
               title={card.title}
