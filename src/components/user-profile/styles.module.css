@@ -55,6 +55,7 @@
 .profile_actions {
   display: flex;
   flex-direction: column;
+  margin: 8px 0px;
 }
 .profile_actions_options {
   display: flex;
@@ -91,6 +92,7 @@
   border-top-width: 1px;
   border-top: 1px solid var(--pearl-gray);
   cursor: pointer;
+  padding-top: 12px;
 }
 .logout_container:hover {
   background-color: var(--rose-tint);
