@@ -14,6 +14,7 @@ export interface Property {
   updatedAt: string;
   adminId: string;
   clientId: string;
+  grossArea?: number;
   metadata: Record<string, any>;
   numOfBuildings: number;
   role?: string;

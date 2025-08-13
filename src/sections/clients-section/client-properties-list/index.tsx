@@ -83,7 +83,7 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
       propertyCode: property.propertyCode,
       propertyType: property.propertyType,
       city: property.city,
-      metadata: property.metadata.grossArea || "-",
+      metadata: property.grossArea || "-",
       originalData: property,
     }));
   }, [propertiesData]);
@@ -96,8 +96,7 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
       (row) =>
         row.propertyName.toLowerCase().includes(searchValue.toLowerCase()) ||
         row.propertyCode.toLowerCase().includes(searchValue.toLowerCase()) ||
-        row.city.toLowerCase().includes(searchValue.toLowerCase()) ||
-        row.metadata.toLowerCase().includes(searchValue.toLowerCase())
+        row.city.toLowerCase().includes(searchValue.toLowerCase())
     );
   }, [transformedRows, searchValue]);
 

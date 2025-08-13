@@ -5,7 +5,7 @@ interface MaintenanceSummaryResponse {
   success: boolean;
   message: string;
   data: {
-    totalCosts: {
+    totalMaintenanceCost: {
       doors: number;
       floors: number;
       windows: number;

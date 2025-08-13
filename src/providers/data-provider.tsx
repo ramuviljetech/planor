@@ -217,7 +217,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       const maintananceResponse = await getMaintenanceSummaryData();
       console.log("data", maintananceResponse);
       setDashboard({
-        maintenanceSummary: maintananceResponse.data.totalCosts,
+        maintenanceSummary: maintananceResponse.data.totalMaintenanceCost,
         isLoading: false,
         lastFetched: Date.now(),
       });
@@ -239,8 +239,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
     try {
       const maintananceResponse = await getMaintenanceSummaryData();
+      console.log("data", maintananceResponse);
       setDashboard({
-        maintenanceSummary: maintananceResponse.data.totalCosts,
+        maintenanceSummary: maintananceResponse.data.totalMaintenanceCost,
         isLoading: false,
         lastFetched: Date.now(),
       });

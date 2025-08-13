@@ -25,9 +25,10 @@ import AddPropertyModal from "@/components/add-property-modal";
 import Modal from "@/components/ui/modal";
 import ClientsFilter from "@/sections/clients-section/clients-filter";
 import { useAuth } from "@/providers";
-import { useDataProvider } from "@/providers/data-provider";
 import FallbackScreen from "@/components/ui/fallback-screen";
 import styles from "./styles.module.css";
+import { getMaintenanceSummaryData } from "@/networking/dashboard-api-service";
+import { getClients } from "@/networking/client-api-service";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -48,16 +49,58 @@ interface MaintenanceSummary {
   areas: number;
 }
 
+interface ClientData {
+  id: string;
+  clientName: string;
+  clientId: string;
+  properties: number;
+  createdOn: string;
+  totalMaintenanceCost: Record<string, number>;
+  status: string;
+}
+
+interface DashboardData {
+  maintenanceSummary: MaintenanceSummary | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+interface ClientsData {
+  data: ClientData[];
+  statistics: {
+    totalClients: number;
+    newClientsThisMonth: number;
+    totalBuildings: number;
+    totalFileUploads: number;
+  } | null;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+  } | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
-  const {
-    clients,
-    dashboard,
-    fetchClients,
-    fetchMaintenanceSummaryData,
-    forceRefreshDashboardData,
-    updateClientsPagination,
-  } = useDataProvider();
+
+  // Local state for dashboard data
+  const [dashboardData, setDashboardData] = useState<DashboardData>({
+    maintenanceSummary: null,
+    isLoading: false,
+    error: null,
+  });
+
+  // Local state for clients data
+  const [clientsData, setClientsData] = useState<ClientsData>({
+    data: [],
+    statistics: null,
+    pagination: null,
+    isLoading: false,
+    error: null,
+  });
+
   const [selectedFilter, setSelectedFilter] = useState<string>("clients");
   const [
     selectedYearlyMaintenanceSummary,
@@ -74,56 +117,99 @@ export default function DashboardPage() {
   const router = useRouter();
   const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
 
-  // Fetch dashboard data when component mounts (with caching)
-  useEffect(() => {
-    // Only fetch if we don't have maintenance data yet
-    const hasMaintenanceData =
-      dashboard.maintenanceSummary &&
-      (dashboard.maintenanceSummary.doors > 0 ||
-        dashboard.maintenanceSummary.floors > 0 ||
-        dashboard.maintenanceSummary.windows > 0 ||
-        dashboard.maintenanceSummary.walls > 0 ||
-        dashboard.maintenanceSummary.roofs > 0 ||
-        dashboard.maintenanceSummary.areas > 0);
+  // Fetch maintenance summary data
+  const fetchMaintenanceSummaryData = async () => {
+    try {
+      setDashboardData((prev) => ({ ...prev, isLoading: true, error: null }));
+      const response = await getMaintenanceSummaryData();
 
-    if (!hasMaintenanceData && !dashboard.isLoading) {
-      console.log("🔄 Dashboard: Fetching maintenance data (no cached data)");
-      fetchMaintenanceSummaryData();
-    } else {
-      console.log(
-        "✅ Dashboard: Using existing maintenance data (doors:",
-        dashboard.maintenanceSummary.doors,
-        ")"
-      );
+      if (response.success && response.data) {
+        setDashboardData({
+          maintenanceSummary: response.data.totalMaintenanceCost,
+          isLoading: false,
+          error: null,
+        });
+      } else {
+        throw new Error(response.message || "Failed to fetch maintenance data");
+      }
+    } catch (error) {
+      console.error("Error fetching maintenance summary:", error);
+      setDashboardData((prev) => ({
+        ...prev,
+        isLoading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch maintenance data",
+      }));
     }
-  }, [
-    fetchMaintenanceSummaryData,
-    dashboard.maintenanceSummary,
-    dashboard.isLoading,
-  ]);
+  };
 
-  // Fetch clients data when dashboard loads (with caching)
-  useEffect(() => {
-    // Only fetch if we don't have clients data yet
-    if (clients.data.length === 0 && !clients.isLoading) {
-      console.log("🔄 Dashboard: Fetching clients data (no cached data)");
-      fetchClients(1);
-    } else {
-      console.log(
-        "✅ Dashboard: Using existing clients data (count:",
-        clients.data.length,
-        ")"
-      );
+  // Fetch clients data
+  const fetchClientsData = async (page: number = 1) => {
+    try {
+      setClientsData((prev) => ({ ...prev, isLoading: true, error: null }));
+      const response = await getClients(page, itemsPerPage);
+
+      if (response.success && response.data) {
+        // Transform the API response to match our expected format
+        const transformedClients =
+          response.data.clients || response.data.data || [];
+        const statistics = response.data.statistics || {
+          totalClients: response.data.totalClients || transformedClients.length,
+          newClientsThisMonth: response.data.newClientsThisMonth || 0,
+          totalBuildings: response.data.totalBuildings || 0,
+          totalFileUploads: response.data.totalFileUploads || 0,
+        };
+        const pagination = response.data.pagination || {
+          currentPage: page,
+          totalPages: Math.ceil(
+            (response.data.totalClients || transformedClients.length) /
+              itemsPerPage
+          ),
+          totalItems: response.data.totalClients || transformedClients.length,
+        };
+
+        setClientsData({
+          data: transformedClients,
+          statistics,
+          pagination,
+          isLoading: false,
+          error: null,
+        });
+      } else {
+        throw new Error(response.message || "Failed to fetch clients data");
+      }
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      setClientsData((prev) => ({
+        ...prev,
+        isLoading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch clients data",
+      }));
     }
-  }, [fetchClients, clients.data.length, clients.isLoading]);
+  };
+
+  // Fetch dashboard data when component mounts
+  useEffect(() => {
+    fetchMaintenanceSummaryData();
+  }, []);
+
+  // Fetch clients data when dashboard loads
+  useEffect(() => {
+    fetchClientsData(1);
+  }, []);
 
   // Transform API clients data to table format
   const transformedClientsData = useMemo(() => {
-    if (!clients.data || clients.data.length === 0) {
+    if (!clientsData.data || clientsData.data.length === 0) {
       return [];
     }
 
-    return clients.data.map((client) => ({
+    return clientsData.data.map((client) => ({
       id: client.id,
       clientName: client.clientName,
       clientId: client.clientId,
@@ -133,17 +219,17 @@ export default function DashboardPage() {
         month: "short",
         year: "numeric",
       }),
-      maintenanceCost: Object.values(client.totalMaintenanceCost).reduce(
+      maintenanceCost: Object.values(client.totalMaintenanceCost || {}).reduce(
         (sum, cost) => sum + cost,
         0
       ),
       status: client.status === "active" ? "Active" : "Inactive",
     }));
-  }, [clients.data]);
+  }, [clientsData.data]);
 
   // Transform maintenance summary data to dashboard format
   const dashboardApiData = useMemo(() => {
-    if (!dashboard.maintenanceSummary) {
+    if (!dashboardData.maintenanceSummary) {
       return {
         metricCards: [],
         contributionData: [],
@@ -152,7 +238,7 @@ export default function DashboardPage() {
       };
     }
 
-    const totalCosts = dashboard.maintenanceSummary;
+    const totalCosts = dashboardData.maintenanceSummary;
     const totalValue = Object.values(totalCosts).reduce(
       (sum: number, value: any) => sum + (value || 0),
       0
@@ -245,7 +331,7 @@ export default function DashboardPage() {
       totalValue: formatTotalValue(totalValue),
       totalPercentageChange: "+3.4%", // You might want to get this from API
     };
-  }, [dashboard.maintenanceSummary]);
+  }, [dashboardData.maintenanceSummary]);
 
   // Table data and handlers
   const columns: TableColumn[] = [
@@ -291,10 +377,10 @@ export default function DashboardPage() {
   ];
 
   const totalItems =
-    clients.statistics?.totalClients || transformedClientsData.length;
+    clientsData.statistics?.totalClients || transformedClientsData.length;
   const totalPages =
-    clients.pagination?.totalPages || Math.ceil(totalItems / itemsPerPage);
-  const currentPageFromApi = clients.pagination?.currentPage || 1;
+    clientsData.pagination?.totalPages || Math.ceil(totalItems / itemsPerPage);
+  const currentPageFromApi = clientsData.pagination?.currentPage || 1;
 
   // Use the data directly from API response since it's already paginated
   const currentRows = transformedClientsData;
@@ -307,7 +393,7 @@ export default function DashboardPage() {
   const handlePageChange = (page: number) => {
     console.log("🔄 Dashboard: Page change requested to page", page);
     setSelectedRowId("");
-    updateClientsPagination(page);
+    fetchClientsData(page);
   };
 
   const handleViewDetails = (rowId: string | number) => {
@@ -337,13 +423,14 @@ export default function DashboardPage() {
     setSelectedYearlyMaintenanceSummary(year);
     // TODO: Trigger API call here to fetch new data based on the selected filters
     // For now, we can refresh the dashboard data when filters change
-    // fetchDashboardData();
+    // fetchMaintenanceSummaryData();
   };
 
   // Manual refresh function for dashboard data
   const handleRefreshDashboard = () => {
     console.log("🔄 Dashboard: Manual refresh requested");
-    forceRefreshDashboardData();
+    fetchMaintenanceSummaryData();
+    fetchClientsData(1);
   };
 
   const renderClients = () => {
@@ -373,7 +460,7 @@ export default function DashboardPage() {
           searchBarStyle={styles.dashboard_clients_search_bar}
           actionButtonStyle={styles.dashboard_clients_add_client_button}
         />
-        {clients.isLoading && clients.data.length === 0 ? (
+        {clientsData.isLoading && clientsData.data.length === 0 ? (
           <div className={styles.dashboard_clients_container}>
             <FallbackScreen
               title="Loading Clients"
@@ -387,31 +474,31 @@ export default function DashboardPage() {
             <div className={styles.dashboard_clients_middle_container}>
               <MetricCard
                 title="Total Clients"
-                value={clients.statistics?.totalClients || 0}
+                value={clientsData.statistics?.totalClients || 0}
                 className={styles.dashboard_clients_static_card}
                 titleStyle={styles.dashboard_clients_static_card_title}
               />
               <MetricCard
                 title="New This Month"
-                value={clients.statistics?.newClientsThisMonth || 0}
+                value={clientsData.statistics?.newClientsThisMonth || 0}
                 className={styles.dashboard_clients_static_card}
                 titleStyle={styles.dashboard_clients_static_card_title}
               />
               <MetricCard
                 title="Total Buildings"
-                value={clients.statistics?.totalBuildings || 0}
+                value={clientsData.statistics?.totalBuildings || 0}
                 className={styles.dashboard_clients_static_card}
                 titleStyle={styles.dashboard_clients_static_card_title}
               />
               <MetricCard
                 title="File Uploads"
-                value={clients.statistics?.totalFileUploads || 0}
+                value={clientsData.statistics?.totalFileUploads || 0}
                 className={styles.dashboard_clients_static_card}
                 titleStyle={styles.dashboard_clients_static_card_title}
               />
             </div>
             <div className={styles.table_container_wrapper}>
-              {clients.data.length !== 0 ? (
+              {clientsData.data.length !== 0 ? (
                 <CommonTableWithPopover
                   columns={columns}
                   rows={currentRows}
@@ -429,7 +516,7 @@ export default function DashboardPage() {
                   actionIconClassName={styles.actionIcon}
                   popoverMenuClassName={styles.action_popoverMenu}
                   popoverMenuItemClassName={styles.action_popoverMenuItem}
-                  disabled={clients.isLoading}
+                  disabled={clientsData.isLoading}
                 />
               ) : (
                 <div className={styles.no_clients_found_container}>
@@ -438,7 +525,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
               )}
-              {clients.isLoading && clients.data.length > 0 && (
+              {clientsData.isLoading && clientsData.data.length > 0 && (
                 <div className={styles.pagination_loading_overlay}>
                   <div className={styles.pagination_loading_spinner}>
                     <div className={styles.spinner}></div>
@@ -460,14 +547,14 @@ export default function DashboardPage() {
         <button
           onClick={handleRefreshDashboard}
           className={styles.refresh_button}
-          disabled={dashboard.isLoading || clients.isLoading}
+          disabled={dashboardData.isLoading || clientsData.isLoading}
         >
           🔄 Refresh Data
         </button>
       </div> */}
 
       {/* Yearly Maintenance Costs Summary */}
-      {dashboard.isLoading ? (
+      {dashboardData.isLoading ? (
         <div className={styles.dashboard_maintenance_loading}>
           <FallbackScreen
             title="Loading Maintenance Data"
