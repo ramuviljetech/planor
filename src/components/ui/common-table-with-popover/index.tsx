@@ -53,7 +53,8 @@ const CommonTableWithPopover: React.FC<CommonTableWithPopoverProps> = ({
   const [popoverState, setPopoverState] = useState<{
     show: boolean;
     rowId: string | number | null;
-  }>({ show: false, rowId: null });
+    rowData: any | null;
+  }>({ show: false, rowId: null, rowData: null });
 
   const actionIconRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
@@ -76,7 +77,7 @@ const CommonTableWithPopover: React.FC<CommonTableWithPopoverProps> = ({
               }}
               onClick={(e) => {
                 e.stopPropagation();
-                setPopoverState({ show: true, rowId: row.id });
+                setPopoverState({ show: true, rowId: row.id, rowData: row });
               }}
             >
               <Image
@@ -95,12 +96,12 @@ const CommonTableWithPopover: React.FC<CommonTableWithPopoverProps> = ({
   }, [columns, actionIconClassName]);
 
   const handlePopoverClose = () => {
-    setPopoverState({ show: false, rowId: null });
+    setPopoverState({ show: false, rowId: null, rowData: null });
   };
 
   const handleActionClick = (action: PopoverAction) => {
     if (popoverState.rowId) {
-      action.onClick(popoverState.rowId);
+      action.onClick(popoverState.rowData);
     }
     handlePopoverClose();
   };
