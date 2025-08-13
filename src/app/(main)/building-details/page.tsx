@@ -192,7 +192,7 @@ const BuildingDetails: React.FC = () => {
       />
       {showViewer && (
         <ImageViewer
-          src={b1Icon.src}
+          src={building3d.src}
           alt="building one"
           onClose={() => {
             setShowViewer(false);

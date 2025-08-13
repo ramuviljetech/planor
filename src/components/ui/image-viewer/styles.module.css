@@ -19,6 +19,9 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
 
 .imageViewer_closeButton {
@@ -41,27 +44,22 @@
 
 /* Image Container */
 .imageViewer_imageContainer {
-  max-width: 800px;
-  width: 100%;
-  max-height: 600px;
-  height: 80vh;
   border-radius: 16px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  width: 100%;
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  min-width: 200px;
+  min-height: 200px;
 }
 
 .imageViewer_mainImage {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 12px;
+  width: auto;
+  height: auto;
 }
 
 .imageViewer_zoomed {
@@ -144,6 +142,46 @@
 
 .imageViewer_controlButton:active {
   transform: translateY(0);
+}
+
+.imageViewer_controlButton.imageViewer_active {
+  /* background: rgba(220, 38, 127, 0.8); */
+  transform: translateY(-2px);
+  /* box-shadow: 0 4px 12px rgba(220, 38, 127, 0.3); */
+}
+
+.imageViewer_zoomIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 50px;
+  backdrop-filter: blur(4px);
+}
+
+.imageViewer_helpTooltip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: help;
+  transition: all 0.3s ease;
+}
+
+.imageViewer_helpTooltip:hover {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(1.1);
 }
 
 .imageViewer_rightControlBar .imageViewer_rightControllerBtn {

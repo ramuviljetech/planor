@@ -43,18 +43,34 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt, onClose }) => {
   const [imagePosition, setImagePosition] = useState<Position>({ x: 0, y: 0 });
   const [rotation, setRotation] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [imageDimensions, setImageDimensions] = useState<{
+    width: number;
+    height: number;
+  }>({ width: 0, height: 0 });
 
   const handleRotateLeft = () => setRotation((prev) => prev - 90);
   const handleRotateRight = () => setRotation((prev) => prev + 90);
+
+  // Reset image state when rotation changes to prevent UI issues
+  useEffect(() => {
+    if (rotation !== 0) {
+      setImagePosition({ x: 0, y: 0 });
+      if (isZoomed) {
+        setZoomLevel(1);
+        setIsZoomed(false);
+      }
+    }
+  }, [rotation, isZoomed]);
 
   const handleZoomToggle = () => {
     if (isZoomed) {
       setZoomLevel(1);
       setImagePosition({ x: 0, y: 0 });
+      setIsZoomed(false);
     } else {
       setZoomLevel(2);
+      setIsZoomed(true);
     }
-    setIsZoomed(!isZoomed);
   };
 
   const resetImageState = () => {
@@ -64,7 +80,49 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt, onClose }) => {
     setIsLoading(true);
   };
 
-  const handleImageLoad = () => setIsLoading(false);
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.target as HTMLImageElement;
+    setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+    setIsLoading(false);
+  };
+
+  // Calculate container dimensions based on rotation
+  const getContainerDimensions = () => {
+    if (imageDimensions.width === 0 || imageDimensions.height === 0) {
+      // Default dimensions while loading
+      return { width: 400, height: 300 };
+    }
+
+    const isVertical = rotation % 180 === 90 || rotation % 180 === 270;
+    const maxWidth = 800;
+    const maxHeight = 600;
+
+    if (isVertical) {
+      // When rotated 90° or 270°, swap width and height
+      const aspectRatio = imageDimensions.width / imageDimensions.height;
+      let width = Math.min(maxHeight, imageDimensions.height);
+      let height = width / aspectRatio;
+
+      if (height > maxWidth) {
+        height = maxWidth;
+        width = height * aspectRatio;
+      }
+
+      return { width: Math.round(width), height: Math.round(height) };
+    } else {
+      // When rotated 0° or 180°, use normal dimensions
+      const aspectRatio = imageDimensions.width / imageDimensions.height;
+      let width = Math.min(maxWidth, imageDimensions.width);
+      let height = width / aspectRatio;
+
+      if (height > maxHeight) {
+        height = maxHeight;
+        width = height * aspectRatio;
+      }
+
+      return { width: Math.round(width), height: Math.round(height) };
+    }
+  };
 
   const handleMouseDown = (e: MouseEvent<HTMLImageElement>) => {
     if (isZoomed) {
@@ -88,8 +146,11 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt, onClose }) => {
   const handleMouseUp = () => setIsDragging(false);
 
   const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 0.5, 3));
-    setIsZoomed(true);
+    const newZoom = Math.min(zoomLevel + 0.5, 3);
+    setZoomLevel(newZoom);
+    if (newZoom > 1) {
+      setIsZoomed(true);
+    }
   };
 
   const handleZoomOut = () => {
@@ -109,7 +170,32 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt, onClose }) => {
           break;
         case " ":
           e.preventDefault();
-          handleZoomToggle();
+          // Spacebar toggles between normal view and zoomed view
+          if (isZoomed) {
+            setZoomLevel(1);
+            setImagePosition({ x: 0, y: 0 });
+            setIsZoomed(false);
+          } else {
+            setZoomLevel(2);
+            setIsZoomed(true);
+          }
+          break;
+        case "+":
+        case "=":
+          e.preventDefault();
+          handleZoomIn();
+          break;
+        case "-":
+          e.preventDefault();
+          handleZoomOut();
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          handleRotateLeft();
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          handleRotateRight();
           break;
       }
     },
@@ -151,14 +237,34 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt, onClose }) => {
         handleZoomOut();
         break;
       case "handTool":
-        handleZoomToggle();
+        // Hand tool toggles between pan mode and normal mode
+        if (isZoomed) {
+          // If zoomed, reset to normal view
+          setZoomLevel(1);
+          setImagePosition({ x: 0, y: 0 });
+          setIsZoomed(false);
+        } else {
+          // If not zoomed, zoom in to enable panning
+          setZoomLevel(2);
+          setIsZoomed(true);
+        }
         break;
     }
   };
 
   const renderImage = () => {
+    const containerDims = getContainerDimensions();
+
     return (
-      <div className={styles.imageViewer_imageContainer}>
+      <div
+        className={styles.imageViewer_imageContainer}
+        style={{
+          width: containerDims.width,
+          height: containerDims.height,
+          maxWidth: containerDims.width,
+          maxHeight: containerDims.height,
+        }}
+      >
         {isLoading && (
           <div className={styles.imageViewer_loader}>
             <div className={styles.imageViewer_spinner}></div>
@@ -177,13 +283,22 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt, onClose }) => {
             }px, ${imagePosition.y / zoomLevel}px) rotate(${rotation}deg)`,
             cursor: isZoomed ? (isDragging ? "grabbing" : "grab") : "zoom-in",
             display: isLoading ? "none" : "block",
+            maxWidth: "100%",
+            maxHeight: "100%",
+            objectFit: "contain",
+            width: "auto",
+            height: "auto",
           }}
           onLoad={handleImageLoad}
           onMouseDown={handleMouseDown}
           onClick={(e) => {
             e.stopPropagation();
             if (!isZoomed) {
-              handleZoomToggle();
+              // Click to zoom in
+              handleZoomIn();
+            } else {
+              // Click to zoom out when already zoomed
+              handleZoomOut();
             }
           }}
           draggable={false}
@@ -201,6 +316,10 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt, onClose }) => {
             className={`${styles.imageViewer_controlButton} ${
               btn.type === "handTool" && isZoomed
                 ? styles.imageViewer_active
+                : btn.type === "zoomIn" && zoomLevel > 1
+                ? styles.imageViewer_active
+                : btn.type === "zoomOut" && zoomLevel < 1.5
+                ? styles.imageViewer_active
                 : ""
             }`}
             onClick={(e) => {
@@ -212,10 +331,28 @@ const ImageViewer: React.FC<ImageViewerProps> = ({ src, alt, onClose }) => {
                 ? "Hand tool active"
                 : btn.label
             }
+            title={`${btn.label}${
+              btn.type === "zoomIn" || btn.type === "zoomOut"
+                ? ` (${Math.round(zoomLevel * 100)}%)`
+                : ""
+            }`}
           >
             <img src={btn.icon.src} />
           </div>
         ))}
+        {/* Zoom level indicator */}
+        {/* {zoomLevel > 1 && (
+          <div className={styles.imageViewer_zoomIndicator}>
+            {Math.round(zoomLevel * 100)}%
+          </div>
+        )} */}
+        {/* Help tooltip */}
+        {/* <div
+          className={styles.imageViewer_helpTooltip}
+          title="Keyboard shortcuts: Space = Toggle zoom, +/- = Zoom in/out, Arrow keys = Rotate, Esc = Close"
+        >
+          ?
+        </div> */}
       </div>
     );
   };
