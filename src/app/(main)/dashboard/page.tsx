@@ -2,7 +2,12 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import MaintenanceSection from "@/sections/dashboard-section/maintenance";
 import MetricCard from "@/components/ui/metric-card";
-import { clientsStaticCardTitle, rowsData } from "@/app/constants";
+import {
+  clientsStaticCardTitle,
+  rowsData,
+  mockPropertiesData,
+  mockPropertiesPagination,
+} from "@/app/constants";
 import BottomSheet from "@/components/ui/bottom-sheet";
 import ClientPropertiesList from "@/sections/clients-section/client-properties-list";
 import SectionHeader from "@/components/ui/section-header";
@@ -495,7 +500,10 @@ export default function DashboardPage() {
           setSelectedRowId("");
         }}
       >
-        <ClientPropertiesList />
+        <ClientPropertiesList
+          propertiesData={mockPropertiesData}
+          pagination={mockPropertiesPagination}
+        />
       </BottomSheet>
       <AddClientUserModal
         show={showAddClientUserModal}

@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { filterIcon, propertiesBlueIcon } from "@/resources/images";
-import { clientDetailsCardsData, propertiesRowsData } from "@/app/constants";
+import { clientDetailsCardsData } from "@/app/constants";
 import SectionHeader from "@/components/ui/section-header";
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CommonTableWithPopover, {
   PopoverAction,
@@ -12,13 +12,20 @@ import CommonTableWithPopover, {
 import { TableColumn, TableRow } from "@/components/ui/common-table";
 import styles from "./styles.module.css";
 import AddPropertyModal from "@/components/add-property-modal";
+import { Property } from "@/types";
 
 interface ClientPropertiesListProps {
   showPropertyListSection?: boolean;
+  propertiesData?: Property[];
+  pagination?: any;
+  statistics?: any;
 }
 
 const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
   showPropertyListSection = true,
+  propertiesData,
+  statistics,
+  pagination,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,7 +35,10 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [showAddPropertyModal, setShowAddPropertyModal] = useState(false);
-  // Table data and handlers
+
+  console.log("statistics", statistics);
+
+  // Table columns updated to match property data
   const columns: TableColumn[] = [
     {
       key: "propertyName",
@@ -36,46 +46,81 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
       width: 200,
     },
     {
-      key: "buildings",
+      key: "numOfBuildings",
       title: "Buildings",
       width: 120,
     },
     {
-      key: "code",
+      key: "propertyCode",
       title: "Code",
       width: 100,
     },
     {
-      key: "types",
-      title: "Types",
+      key: "propertyType",
+      title: "Type",
       width: 150,
     },
     {
-      key: "clientName",
-      title: "Client Name",
+      key: "city",
+      title: "City",
+      width: 150,
+    },
+    {
+      key: "metadata",
+      title: "Gross Area",
       width: 150,
     },
   ];
 
-  const totalItems = propertiesRowsData?.length;
+  // Transform properties data to table rows
+  const transformedRows = useMemo(() => {
+    if (!propertiesData) return [];
+
+    return propertiesData.map((property) => ({
+      id: property.id,
+      propertyName: property.propertyName,
+      numOfBuildings: property.numOfBuildings,
+      propertyCode: property.propertyCode,
+      propertyType: property.propertyType,
+      city: property.city,
+      metadata: property.metadata.grossArea || "-",
+      originalData: property,
+    }));
+  }, [propertiesData]);
+
+  // Filter rows based on search
+  const filteredRows = useMemo(() => {
+    if (!searchValue) return transformedRows;
+
+    return transformedRows.filter(
+      (row) =>
+        row.propertyName.toLowerCase().includes(searchValue.toLowerCase()) ||
+        row.propertyCode.toLowerCase().includes(searchValue.toLowerCase()) ||
+        row.city.toLowerCase().includes(searchValue.toLowerCase()) ||
+        row.metadata.toLowerCase().includes(searchValue.toLowerCase())
+    );
+  }, [transformedRows, searchValue]);
+
+  const totalItems = filteredRows.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   // Get current page data
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentRows = propertiesRowsData?.slice(startIndex, endIndex) || [];
+  const currentRows = filteredRows.slice(startIndex, endIndex);
 
   const handleRowClick = (row: TableRow, index: number) => {
-    console.log("Row clicked:", {
+    console.log("Property row clicked:", {
       id: row.id,
-      clientName: row.clientName,
-      clientId: row.clientId,
-      properties: row.properties,
-      createdOn: row.createdOn,
-      maintenanceCost: row.maintenanceCost,
-      status: row.status,
+      propertyName: row.propertyName,
+      propertyCode: row.propertyCode,
+      propertyType: row.propertyType,
+      city: row.city,
+      metadata: row.metadata,
+      numOfBuildings: row.numOfBuildings,
+      originalData: row.originalData,
     });
-    // setSelectedRowId(row.id);
+    setSelectedRowId(row.id);
   };
 
   const handlePageChange = (page: number) => {
@@ -84,11 +129,16 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
   };
 
   const handleViewDetails = (rowId: string | number) => {
-    router.push("/property-details");
+    const row = currentRows.find((r) => r.id === rowId);
+    if (row?.originalData) {
+      // Navigate to property details with the property data
+      router.push(`/property-details?id=${rowId}`);
+    }
   };
 
   const handleAddBuilding = (rowId: string | number) => {
-    console.log("Add Building clicked for row:", rowId);
+    const row = currentRows.find((r) => r.id === rowId);
+    console.log("Add Building clicked for property:", row?.originalData);
     // Add your add building logic here
   };
 
@@ -105,9 +155,55 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
   ];
 
   const renderCard = () => {
+    if (!statistics) {
+      return (
+        <div className={styles.client_details_card_container}>
+          {clientDetailsCardsData.map((card, index) => (
+            <div className={styles.client_details_card} key={index}>
+              <div className={styles.client_details_card_icon}>
+                <Image
+                  src={propertiesBlueIcon}
+                  alt="client"
+                  width={24}
+                  height={24}
+                />
+              </div>
+              <div className={styles.client_details_card_content}>
+                <p className={styles.client_details_card_value}>{card.value}</p>
+                <p className={styles.client_details_card_label}>{card.title}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    const totalMaintenanceCost = Object.values(
+      statistics.totalMaintenanceCost
+    ).reduce((sum: number, cost: any) => sum + (cost || 0), 0);
+
+    const statisticsCards = [
+      {
+        title: "Properties",
+        value: statistics.totalProperties?.toString() || "0",
+      },
+      {
+        title: "Total Area",
+        value: `${(statistics.totalArea || 0).toLocaleString()} m²`,
+      },
+      {
+        title: "Maintenance Cost",
+        value: `$${totalMaintenanceCost.toLocaleString()}`,
+      },
+      {
+        title: "Buildings",
+        value: statistics.totalBuildings?.toString() || "0",
+      },
+    ];
+
     return (
       <div className={styles.client_details_card_container}>
-        {clientDetailsCardsData.map((card, index) => (
+        {statisticsCards.map((card, index) => (
           <div className={styles.client_details_card} key={index}>
             <div className={styles.client_details_card_icon}>
               <Image
@@ -136,7 +232,7 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
           searchValue={searchValue}
           onSearchChange={setSearchValue}
           searchPlaceholder="Search properties..."
-          actionButtonTitle="Add  Property"
+          actionButtonTitle="Add Property"
           onActionButtonClick={() => setShowAddPropertyModal(true)}
           filterComponent={
             <div ref={clientsFilterRef} onClick={() => {}}>

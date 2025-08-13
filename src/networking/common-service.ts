@@ -1,4 +1,5 @@
-import apiClient from "./axios-config";
+import { apiClient } from "./axios-config";
+import { Property, PropertiesStatistics, PropertiesPagination } from "@/types";
 
 interface MaintenanceCost {
   doors: number;
@@ -47,6 +48,17 @@ interface ClientsApiResponse {
   pagination: Pagination;
 }
 
+interface PropertiesApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    properties: Property[];
+    count: number;
+    statistics: PropertiesStatistics;
+    pagination: PropertiesPagination;
+  };
+}
+
 class CommonService {
   // Clients API
   async getClients(
@@ -61,6 +73,16 @@ class CommonService {
       return response.data.data;
     } catch (error) {
       console.error(`❌ CommonService: Error fetching clients:`, error);
+      throw error;
+    }
+  }
+
+  async getProperties(): Promise<PropertiesApiResponse> {
+    try {
+      const response = await apiClient.get("/properties");
+      return response.data;
+    } catch (error) {
+      console.error(`❌ CommonService: Error fetching properties:`, error);
       throw error;
     }
   }

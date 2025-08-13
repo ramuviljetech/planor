@@ -117,3 +117,9 @@
   align-items: center;
   justify-content: flex-end;
 }
+.properties_loading_fallback {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

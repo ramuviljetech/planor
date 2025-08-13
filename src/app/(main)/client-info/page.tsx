@@ -6,7 +6,12 @@ import Button from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import CustomTabs, { TabItem } from "@/components/ui/tabs";
 import Info from "@/components/ui/info";
-import { clientInfoItems, clientInfoUsersRowsData } from "@/app/constants";
+import {
+  clientInfoItems,
+  clientInfoUsersRowsData,
+  mockPropertiesData,
+  mockPropertiesPagination,
+} from "@/app/constants";
 import CommonTableWithPopover, {
   PopoverAction,
 } from "@/components/ui/common-table-with-popover";
@@ -51,6 +56,7 @@ const ClientInfo: React.FC = () => {
   const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
   const [properties, setProperties] = useState<any[]>([]);
+
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [selectedUserData, setSelectedUserData] = useState<UserData | null>(
@@ -73,9 +79,9 @@ const ClientInfo: React.FC = () => {
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
-   
+
   // Fetch client information
   const fetchClientInfo = async (clientId: string) => {
     try {
@@ -103,9 +109,18 @@ const ClientInfo: React.FC = () => {
             label: "Industry Type",
             value: clientResponse.data.industryType || "N/A",
           },
-          { label: "Email", value: clientResponse.data.primaryContactEmail || "N/A" },
-          { label: "Website URL", value: clientResponse.data.websiteUrl || "N/A" },
-          { label: "Description", value: clientResponse.data.description || "N/A" },
+          {
+            label: "Email",
+            value: clientResponse.data.primaryContactEmail || "N/A",
+          },
+          {
+            label: "Website URL",
+            value: clientResponse.data.websiteUrl || "N/A",
+          },
+          {
+            label: "Description",
+            value: clientResponse.data.description || "N/A",
+          },
         ];
         setClientInfo(transformedData);
       }
@@ -129,8 +144,7 @@ const ClientInfo: React.FC = () => {
           email: user.email || "N/A",
         }));
         setTableData(transformedUserDetails);
-      } 
-      else {
+      } else {
         setTableData([]);
       }
     } catch (error) {
@@ -146,8 +160,7 @@ const ClientInfo: React.FC = () => {
       if (properties.data) {
         setProperties(properties.data);
         console.log("Properties:", properties.data);
-      }
-      else {
+      } else {
         console.log("No properties found");
       }
     } catch (error) {
@@ -159,10 +172,11 @@ const ClientInfo: React.FC = () => {
   // Fetch maintance plan
   const fetchMaintancePlan = async (clientId: string) => {
     try {
-      const maintancePlan = await maintancePlanApiService.getMaintancePlan(clientId);
+      const maintancePlan = await maintancePlanApiService.getMaintancePlan(
+        clientId
+      );
       console.log("Maintance plan:", maintancePlan.data);
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error fetching maintance plan:", error);
       setHasError(true);
     }
@@ -175,14 +189,14 @@ const ClientInfo: React.FC = () => {
 
     setHasError(false);
     setIsLoading(true);
-    
+
     const fetchAllData = async () => {
       try {
         await Promise.all([
           fetchClientInfo(clientId),
           fetchUserDetails(clientId),
           fetchProperties(clientId),
-          fetchMaintancePlan(clientId)
+          // fetchMaintancePlan(clientId),
         ]);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -194,7 +208,6 @@ const ClientInfo: React.FC = () => {
 
     fetchAllData();
   }, [searchParams]);
-
 
   // Table data and handlers
   const columns: TableColumn[] = [
@@ -319,15 +332,15 @@ const ClientInfo: React.FC = () => {
   const handleRetry = () => {
     const clientId = searchParams?.get("id");
     if (!clientId) return;
-    
+
     setHasError(false);
     setIsLoading(true);
-    
+
     const fetchAllData = async () => {
       try {
         await Promise.all([
           fetchClientInfo(clientId),
-          fetchUserDetails(clientId)
+          fetchUserDetails(clientId),
         ]);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -443,41 +456,39 @@ const ClientInfo: React.FC = () => {
                 onClick={handleAddUser}
               />
             </div>
-                         {/* Users List table */}
-             {isLoading && tableData.length > 0 ? (
-               <div className={styles.table_loading_overlay}>
-                 <div className={styles.table_loading_spinner}>
-                   <div className={styles.spinner}></div>
-                   <span>Loading users...</span>
-                 </div>
-               </div>
-             ) : tableData.length === 0 ? (
-               <div className={styles.no_users_found_container}>
-                 <p className={styles.no_users_found_text}>
-                   No users found
-                 </p>
-               </div>
-             ) : (
-               <CommonTableWithPopover
-                 columns={columns}
-                 rows={currentRows}
-                 onRowClick={handleRowClick}
-                 selectedRowId={selectedRowId}
-                 pagination={{
-                   currentPage,
-                   totalPages,
-                   totalItems,
-                   itemsPerPage,
-                   onPageChange: handlePageChange,
-                   showItemCount: true,
-                 }}
-                 actions={actions}
-                 actionIconClassName={styles.client_info_overview_action_icon}
-                 popoverMenuClassName={styles.action_popoverMenu}
-                 popoverMenuItemClassName={styles.action_popoverMenuItem}
-                 disabled={isLoading}
-               />
-             )}
+            {/* Users List table */}
+            {isLoading && tableData.length > 0 ? (
+              <div className={styles.table_loading_overlay}>
+                <div className={styles.table_loading_spinner}>
+                  <div className={styles.spinner}></div>
+                  <span>Loading users...</span>
+                </div>
+              </div>
+            ) : tableData.length === 0 ? (
+              <div className={styles.no_users_found_container}>
+                <p className={styles.no_users_found_text}>No users found</p>
+              </div>
+            ) : (
+              <CommonTableWithPopover
+                columns={columns}
+                rows={currentRows}
+                onRowClick={handleRowClick}
+                selectedRowId={selectedRowId}
+                pagination={{
+                  currentPage,
+                  totalPages,
+                  totalItems,
+                  itemsPerPage,
+                  onPageChange: handlePageChange,
+                  showItemCount: true,
+                }}
+                actions={actions}
+                actionIconClassName={styles.client_info_overview_action_icon}
+                popoverMenuClassName={styles.action_popoverMenu}
+                popoverMenuItemClassName={styles.action_popoverMenuItem}
+                disabled={isLoading}
+              />
+            )}
           </div>
         </div>
       </div>
