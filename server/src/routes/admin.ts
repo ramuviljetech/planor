@@ -6,9 +6,10 @@ import {
   updateUser,
   getStandardUsers,
   deleteStandardUser,
-  getMaintenanceCosts,
+  // getMaintenanceCosts,
   registerUsers
 } from '../controllers/admin.controller'
+import { getMaintenanceCostsHandler } from '../controllers/pricelist.controller'
 
 const router = express.Router()
 
@@ -25,7 +26,8 @@ router.get('/standard-users', authMiddleware, requireAdmin, getStandardUsers)
 // ?Future Scope: DELETE /api/admin/delete-users/:id - Delete standard user
 router.delete('/delete-users/:id', authMiddleware, requireAdmin, deleteStandardUser)
 
-// !GET /api/admin/dashboard   - Get total maintenance costs and individual costs
-router.get('/dashboard', authMiddleware, getMaintenanceCosts)
+// *GET /api/pricelist/maintenance-costs - Get maintenance costs breakdown
+router.get('/dashboard', authMiddleware, getMaintenanceCostsHandler)
+
 
 export { router as adminRoutes }

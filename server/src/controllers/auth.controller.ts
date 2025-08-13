@@ -1,5 +1,5 @@
-import { Request, Response } from 'express'
-import { UserStatus,} from '../types'
+import { Request, Response , NextFunction} from 'express'
+import { next, UserStatus,} from '../types'
 import { findUserByEmail, updateUserLastLogin } from '../entities/auth.entity'
 import { comparePassword, generateTempToken, generateToken, JWT_EXPIRES_IN } from '../utils/common'
 import { generateNumericOTP } from '../utils/otp'
@@ -7,37 +7,29 @@ import { createOtpRecord, deleteOtpRecord, findOtpByEmail, updateOtpRecord } fro
 import { sendMail } from '../services/mail.service'
 import { getUsersContainer } from '../config/database'
 import { hashPassword } from '../utils/common'
+import { CustomError } from '../middleware/errorHandler'
 
 
 // User login
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body
 
     // Find user by email
     const user = await findUserByEmail(email)
     if (!user || !user.id) {
-      return res.status(401).json({
-        success: false,
-        error: 'Invalid email or password'
-      })
+      throw new CustomError('Invalid email or password', 401)
     }
 
     // Check if user is blocked (blocked users cannot login)
     if (user.status === UserStatus.BLOCK) {
-      return res.status(401).json({
-        success: false,
-        error: 'Account is blocked'
-      })
+      throw new CustomError('Account is blocked', 401)
     }
 
     // Verify password
     const isPasswordValid = await comparePassword(password, user.password || '')
     if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        error: 'Invalid email or password'
-      })
+      throw new CustomError('Invalid email or password', 401)
     }
 
     // Update last login time
@@ -49,7 +41,7 @@ export const login = async (req: Request, res: Response) => {
     // Generate JWT token
     const token = generateToken(updatedUser)
 
-    return res.json({
+    res.status(200).json({
       success: true,
       message: 'Login successful',
       data: {
@@ -59,33 +51,24 @@ export const login = async (req: Request, res: Response) => {
       }
     })
   } catch (error) {
-    console.error('Login error:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    })
+    // console.error('Login error:', error)
+    next(error)
   }
 } 
 
 // Send OTP to email
-export const sendOtp = async (req: Request, res: Response) => {
+export const sendOtp = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email } = req.body
 
     // Get user from database
     const user = await findUserByEmail(email)
     if(!user){        
-      return res.status(400).json({
-        success: false,
-        error: 'User not found with this email'
-      })
+      throw new CustomError('User not found with this email', 400)
     } 
     
     if(user.status === UserStatus.BLOCK){
-      return res.status(400).json({
-        success: false,
-        error: 'User is blocked with this email'
-      })
+      throw new CustomError('User is blocked with this email', 400)
     }
     // Generate OTP
     const otp = generateNumericOTP()
@@ -111,16 +94,12 @@ export const sendOtp = async (req: Request, res: Response) => {
       email: email
     })
 
-    return res.json({
+    res.status(200).json({
       success: true,
       message: 'OTP sent successfully to your email' 
     })
   } catch (error) {
-    console.error('Send OTP error:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to send OTP. Please try again.'
-    })
+    next(error)
   }
 }
 
@@ -131,35 +110,23 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
     const user = await findUserByEmail(email)
     if(!user){
-      return res.status(400).json({
-        success: false,
-        error: 'User not found with this email'
-      })
+      throw new CustomError('User not found with this email', 400)
     } 
     // Get OTP from database
     const otpRecord = await findOtpByEmail(email)
 
     if (!otpRecord) {
-      return res.status(400).json({
-        success: false,
-        error: 'OTP not found or expired. Please request a new OTP.'
-      })
+      throw new CustomError('OTP not found or expired. Please request a new OTP.', 400)
     }
 
     // Check if OTP is already used
     if (otpRecord.used) {
-      return res.status(400).json({
-        success: false,
-        error: 'OTP has already been used. Please request a new OTP.'
-      })
+      throw new CustomError('OTP has already been used. Please request a new OTP.', 400)
     }
 
     // Verify OTP
     if (otpRecord.otp !== otp) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid OTP. Please check and try again.'
-      })
+      throw new CustomError('Invalid OTP. Please check and try again.', 400)
     }
 
     // Mark OTP as used
@@ -173,10 +140,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
     // Get user from database
     // const user = await findUserByEmail(email)
     // if(!user){        
-    //   return res.status(400).json({
-    //     success: false,
-    //     error: 'User not found'
-    //   })
+    //   throw new CustomError('User not found', 400)
     // } 
     
     // Generate JWT token 
@@ -185,24 +149,20 @@ export const verifyOtp = async (req: Request, res: Response) => {
     // const tempToken = tempGenerateToken(otpRecord)
   
 
-    return res.json({
+    res.status(200).json({
       success: true,
       message: 'OTP verified successfully',
       token: token,
       // expiresIn: process.env.TEMP_EXPIRES_IN || 5 * 60 * 1000
     })
   } catch (error) {
-    console.error('Verify OTP error:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to verify OTP. Please try again.'
-    })
+    next(error)
   }
 }
 
 
 //POST /api/auth/change-password - Change password
-export const changePassword = async (req: Request, res: Response) => {
+export const changePassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // const authenticatedUser = (req as any).user
     const { password } = req.body
@@ -213,37 +173,25 @@ export const changePassword = async (req: Request, res: Response) => {
 
     // Validate required fields
     if (!password) {
-      return res.status(400).json({
-        success: false,
-        error: 'Password is required'
-      })
+      throw new CustomError('Password is required', 400)
     }
 
     // Validate new password strength
     if (password.length < 8) {
-      return res.status(400).json({
-        success: false,
-        error: 'New password must be at least 8 characters long'
-      })
+      throw new CustomError('New password must be at least 8 characters long', 400)
     }
 
     // Get current user
     const { resource: currentUser } = await usersContainer.item(id, id).read()
 
     if (!currentUser) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      })
+      throw new CustomError('User not found', 404)
     }
 
     // Verify current password
     // const isCurrentPasswordValid = await comparePassword(currentPassword, currentUser.password)
     // if (!isCurrentPasswordValid) {
-    //   return res.status(401).json({
-    //     success: false,
-    //     error: 'Current password is incorrect'
-    //   })
+    //   throw new CustomError('Current password is incorrect', 401)
     // }
 
     // Hash new password
@@ -258,17 +206,13 @@ export const changePassword = async (req: Request, res: Response) => {
 
     await usersContainer.item(id, id).replace(updatedUser)
 
-    res.json({
+    res.status(200).json({
       success: true,
       message: 'Password changed successfully'
     })
     return
   } catch (error) {
-    console.error('Change password error:', error)
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    })
+    next(error)
     return
   }
 }

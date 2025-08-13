@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { UserRole, UserStatus, UpdateUserRequest } from '../types'
+import { UserRole, UserStatus, UpdateUserRequest, next } from '../types'
 import {
   findUserById,
   findUserByEmailExcludingId,
@@ -13,7 +13,8 @@ import { sendMail } from '../services/mail.service'
 import { generateNumericOTP } from '../utils/otp'
 import { hashPassword, comparePassword } from '../utils/common'
 import { getUsersContainer } from '../config/database'
-import { findUserByEmail } from '@/entities/auth.entity'
+import { findUserByEmail } from '../entities/auth.entity'
+import { CustomError } from '../middleware/errorHandler'
 
 // !Get user profile
 export const getUserProfile = async (req: Request, res: Response) => {
@@ -26,10 +27,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
     if (authenticatedUser.role === 'admin') {
       // Admin can fetch any user by ID (from params)
       if (!id) {
-        return res.status(400).json({
-          success: false,
-          error: 'User ID is required for admin access'
-        })
+        throw new CustomError('User ID is required for admin access', 400)
       }
       targetUserId = id
     } else {
@@ -41,25 +39,20 @@ export const getUserProfile = async (req: Request, res: Response) => {
     const user = await findUserById(targetUserId)
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      })
+      throw new CustomError('User not found ', 404)
     }
 
     // Remove password from response
     const { password, ...userWithoutPassword } = user
 
-    return res.json({
+    res.status(200).json({
       success: true,
-      data: userWithoutPassword
+      data: userWithoutPassword,
+      message: 'User profile retrieved successfully',
+      statusCode: 200
     })
   } catch (error) {
-    console.error('Get profile error:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    })
+    next(error)
   }
 }
 
@@ -134,7 +127,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 //       // const filters: ClientFilters = req.body
 //       let query: string;
 //       let parameters: any[] = [];
-          
+
 //       if (clientId) {
 //           // Get users belonging to the specific client
 //            query = 'SELECT * FROM c WHERE c.role = "standard_user" AND c.clientId = @clientId';
@@ -230,7 +223,7 @@ export const getusersAssociatedWithClient = async (req: Request, res: Response) 
     // Strip password field
     const withoutPassword = users.map(({ password, ...user }) => user);
 
-    return res.json({
+    res.status(200).json({
       success: true,
       data: withoutPassword,
       pagination: {
@@ -243,10 +236,6 @@ export const getusersAssociatedWithClient = async (req: Request, res: Response) 
       }
     });
   } catch (error) {
-    console.error('Get users associated with client error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
+    next(error)
   }
 };

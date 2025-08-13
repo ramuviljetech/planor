@@ -144,8 +144,8 @@ export interface Property {
   updatedAt: Date;
   adminId: string;
   clientId: string;
-  metadata?: {
-    grossArea?: number;
+  metadata: {
+    grossArea: number;
   };
 }
 
@@ -388,8 +388,8 @@ export interface CreatePropertyRequest {
   description: string;
   inactive?: boolean;
   clientId: string;
-  metadata?: {
-    grossArea?: number;
+  metadata: {
+    grossArea: number;
   };
 }
 
@@ -463,3 +463,8 @@ export interface AppError extends Error {
   isOperational?: boolean;
   code?: string;
 } 
+
+//   Next Function
+export function next(error: unknown) {
+  throw new Error('Function not implemented.')
+}

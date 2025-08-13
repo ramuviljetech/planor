@@ -1,6 +1,6 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { v4 as uuidv4 } from 'uuid'
-import { Property, CreatePropertyRequest, PropertyWithBuildingCount } from '../types'
+import { Property, CreatePropertyRequest, PropertyWithBuildingCount, next } from '../types'
 import {
   findPropertyById,
   findPropertyByCode,
@@ -14,8 +14,12 @@ import {
   searchProperties,
   getPropertiesWithFilters,
   calculatePropertyStatistics,
-  addBuildingCountsToProperties
+  addBuildingCountsToProperties,
+  getPropertiesWithFiltersAndStats,
+  // getEmptyPropertiesResponse,
+  // getFilteredStatistics
 } from '../entities/property.entity'
+import { CustomError } from '../middleware/errorHandler';
 
 // Get all properties (Admin only) or properties by client ID
 // export const getAllPropertiesController = async (req: Request, res: Response) => {
@@ -93,7 +97,7 @@ import {
 //   }
 // }
 
-export const getAllPropertiesController = async (req: Request, res: Response) => {
+export const getAllPropertiesController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authenticatedUser = (req as any).user;
     const { 
@@ -104,14 +108,9 @@ export const getAllPropertiesController = async (req: Request, res: Response) =>
       limit = '10'
     } = req.query;
    
-    let properties: Property[] = [];
-    let statistics: any = null;
-
     // Pagination values - ensure they are positive integers
     const currentPage = Math.max(1, parseInt(page as string, 10) || 1);
-    const itemsPerPage = Math.max(1, Math.min(100, parseInt(limit as string, 10) || 10)); // Max 100 items per page
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
+    const itemsPerPage = Math.max(1, Math.min(100, parseInt(limit as string, 10) || 10));
 
     // Build filters object
     const filters: any = {};
@@ -121,102 +120,55 @@ export const getAllPropertiesController = async (req: Request, res: Response) =>
 
     // If clientId is provided, allow access without admin role
     if (clientId && typeof clientId === 'string') {
-      const allProperties = await getPropertiesWithFilters(filters);
-      const totalItems = allProperties.length;
+      // Get properties with all filters including clientId
+      const result = await getPropertiesWithFiltersAndStats(filters, currentPage, itemsPerPage);
       
-      // Apply pagination to the filtered results
-      properties = allProperties.slice(startIndex, endIndex);
-      statistics = await calculatePropertyStatistics(filters);
-
-      // Add numOfBuildings to each property efficiently
-      const propertiesWithBuildingCounts = await addBuildingCountsToProperties(properties);
-
-      return res.json({
+       res.status(200).json({
         success: true,
         message: 'Properties retrieved successfully for client',
         data: {
-          properties: propertiesWithBuildingCounts,
-          count: totalItems,
-          clientId,
-          statistics,
-          pagination: {
-            currentPage,
-            itemsPerPage,
-            totalItems,
-            totalPages: Math.ceil(totalItems / itemsPerPage),
-            hasNextPage: endIndex < totalItems,
-            hasPreviousPage: currentPage > 1
-          },
+          ...result,
+          clientId
         }
       });
     }
 
     // If no clientId, require admin access
-    // if (!authenticatedUser || authenticatedUser.role !== 'admin') {
-    //   return res.status(403).json({
-    //     success: false,
-    //     error: 'Admin access required to view all properties'
-    //   });
-    // }
+    if (!authenticatedUser || authenticatedUser.role !== 'admin') {
+       throw new CustomError('Admin access required to view all properties', 403)
+     
+    }
 
-    const allProperties = Object.keys(filters).length > 0
-      ? await getPropertiesWithFilters(filters)
-      : await getAllProperties();
+    // Get properties with filters and statistics (admin access)
+    const result = await getPropertiesWithFiltersAndStats(filters, currentPage, itemsPerPage);
 
-    const totalItems = allProperties.length;
-    
-    // Apply pagination to the results
-    properties = allProperties.slice(startIndex, endIndex);
-    statistics = await calculatePropertyStatistics(Object.keys(filters).length > 0 ? filters : undefined);
-
-    // Add numOfBuildings to each property efficiently
-    const propertiesWithBuildingCounts = await addBuildingCountsToProperties(properties);
-
-    return res.json({
+    // Return response
+    res.status(200).json({
       success: true,
       message: 'Properties retrieved successfully',
-      data: {
-        properties: propertiesWithBuildingCounts,
-        count: totalItems,
-        statistics,
-        pagination: {
-          currentPage,
-          itemsPerPage,
-          totalItems,
-          totalPages: Math.ceil(totalItems / itemsPerPage),
-          hasNextPage: endIndex < totalItems,
-          hasPreviousPage: currentPage > 1
-        },
-      }
+      data: result
     });
   } catch (error) {
-    console.error('Get properties error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
+    next(error)
   }
 };
 
 
 // Get property by ID (Admin only)
-export const getPropertyById = async (req: Request, res: Response) => {
+export const getPropertyById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params
 
     const property = await findPropertyById(id)
     if (!property) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      })
+      throw new CustomError('Property not found', 404)
     }
 
     // Add building count to the property
     const propertyWithBuildingCount = await addBuildingCountsToProperties([property]);
     const propertyWithCount = propertyWithBuildingCount[0];
 
-    return res.json({
+    res.status(200).json({
       success: true,
       message: 'Property retrieved successfully',
       data: {
@@ -224,27 +176,20 @@ export const getPropertyById = async (req: Request, res: Response) => {
       }
     })
   } catch (error) {
-    console.error('Get property by ID error:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    })
+    next(error)
   }
 }
 
 // Create new property (Admin only)
-export const createPropertyController = async (req: Request, res: Response) => {
+export const createPropertyController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authenticatedUser = (req as any).user
     const propertyData: CreatePropertyRequest = req.body
-
+    console.log(propertyData)
     // Check if property with same code already exists
     const existingProperty = await findPropertyByCode(propertyData.propertyCode)
     if (existingProperty) {
-      return res.status(409).json({
-        success: false,
-        error: 'Property with this code already exists'
-      })
+      throw new CustomError('Property with this code already exists', 409)
     }
 
     // Create new property
@@ -271,7 +216,7 @@ export const createPropertyController = async (req: Request, res: Response) => {
     // Save property to database
     await createProperty(newProperty)
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: 'Property created successfully',
       data: {
@@ -279,16 +224,12 @@ export const createPropertyController = async (req: Request, res: Response) => {
       }
     })
   } catch (error) {
-    console.error('Property creation error:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    })
+    next(error)
   }
 }
 
 //? Update property (Admin only) future update
-export const updatePropertyController = async (req: Request, res: Response) => {
+export const updatePropertyController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authenticatedUser = (req as any).user
     const { id } = req.params
@@ -297,20 +238,14 @@ export const updatePropertyController = async (req: Request, res: Response) => {
     // Check if property exists
     const existingProperty = await findPropertyById(id)
     if (!existingProperty) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      })
+      throw new CustomError('Property not found', 404)
     }
 
     // Check if property code is being updated and if it already exists
     if (updateData.propertyCode && updateData.propertyCode !== existingProperty.propertyCode) {
       const propertyWithSameCode = await findPropertyByCodeExcludingId(updateData.propertyCode, id)
       if (propertyWithSameCode) {
-        return res.status(409).json({
-          success: false,
-          error: 'Property with this code already exists'
-        })
+        throw new CustomError('Property with this code already exists', 409)
       }
     }
 
@@ -320,7 +255,7 @@ export const updatePropertyController = async (req: Request, res: Response) => {
       updatedAt: new Date()
     })
 
-    return res.json({
+    res.status(200).json({
       success: true,
       message: 'Property updated successfully',
       data: {
@@ -328,40 +263,84 @@ export const updatePropertyController = async (req: Request, res: Response) => {
       }
     })
   } catch (error) {
-    console.error('Property update error:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    })
+    next(error)
   }
 }
 
 // ?Delete property (Admin only) future update
-export const deletePropertyController = async (req: Request, res: Response) => {
+export const deletePropertyController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params
 
     // Check if property exists
     const existingProperty = await findPropertyById(id)
     if (!existingProperty) {
-      return res.status(404).json({
-        success: false,
-        error: 'Property not found'
-      })
+      throw new CustomError('Property not found', 404)
     }
 
     // Delete property
     await deleteProperty(id)
 
-    return res.json({
+    res.status(200).json({
       success: true,
       message: 'Property deleted successfully'
     })
   } catch (error) {
-    console.error('Property deletion error:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    })
+    next(error)
   }
 } 
+
+
+// export const getPropertyStatisticsController = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     const authenticatedUser = (req as any).user;
+//     const { 
+//       search, 
+//       adminId, 
+//       clientId
+//     } = req.query;
+
+//     // Build filters object
+//     const filters: any = {};
+//     if (adminId && typeof adminId === 'string') filters.adminId = adminId;
+//     if (clientId && typeof clientId === 'string') filters.clientId = clientId;
+//     if (search && typeof search === 'string') filters.search = search;
+
+//     // If clientId is provided, allow access without admin role
+//     if (clientId && typeof clientId === 'string') {
+//       const statistics = await getFilteredStatistics(filters);
+      
+//       return res.json({
+//         success: true,
+//         message: 'Property statistics retrieved successfully for client',
+//         data: {
+//           statistics,
+//           clientId
+//         }
+//       });
+//     }
+
+//     // If no clientId, require admin access
+//     if (!authenticatedUser || authenticatedUser.role !== 'admin') {
+//       return res.status(403).json({
+//         success: false,
+//         error: 'Admin access required to view property statistics'
+//       });
+//     }
+
+//     // Get statistics based on filters (admin access)
+//     const statistics = await getFilteredStatistics(filters);
+
+//     // Return response
+//     res.status(200).json({
+//       success: true,
+//       message: 'Property statistics retrieved successfully',
+//       data: {
+//         statistics
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Get property statistics error:', error);
+//     next(error);
+//   }
+// }; 

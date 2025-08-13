@@ -2593,49 +2593,64 @@
             }
           }
         }
-      },
+      }
+    },
+      "/api/pricelist/": {
       "put": {
         "tags": [
           "Pricelist"
         ],
-        "summary": "Update Pricelist",
-        "description": "Update pricelist (Admin only)",
+        "summary": "Bulk Update Pricelist",
+        "description": "Bulk update pricelist items (Admin only)",
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "interval": {
-                    "type": "string",
-                    "example": "1-year, 2-years, 3-years, 4-years, 5-years, 6-years, 7-years, 8-years, 9-years, 10-years"
-                  },
-                  "price": {
-                    "type": "number",
-                    "example": 1000
-                  } 
-
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "object",
+                    "type",
+                    "price",
+                    "interval"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "example": "pricelist-123"
+                    },
+                    "object": {
+                      "type": "string",
+                      "example": "515 x 130 fast"
+                    },
+                    "type": {
+                      "type": "string",
+                      "example": "window"
+                    },
+                    "price": {
+                      "type": "number",
+                      "example": 1000
+                    },
+                    "interval": {
+                      "type": "string",
+                      "example": "1-year, 2-years, 3-years, 4-years, 5-years, 6-years, 7-years, 8-years, 9-years, 10-years"
+                    }
+                  }
                 }
               }
             }
           }
         },
+
         "responses": {
           "200": {
             "description": "Pricelist updated successfully",
@@ -2713,6 +2728,43 @@
                 "example": {
                   "success": false,
                   "message": "Pricelist not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pricelist/dashboard": {
+      "get": {
+        "tags": [
+          "Pricelist"
+        ],
+        "summary": "Get Dashboard",
+        "description": "Get dashboard data", 
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard data retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "message": "Dashboard data retrieved successfully",
+                  "data": { 
+                    "totalMaintenanceCost":{
+                      "doors": 1000,
+                      "floors": 1000,
+                      "windows": 1000,
+                      "walls": 1000,
+                      "roofs": 1000,
+                      "areas": 1000
+                    }
+                  }
                 }
               }
             }

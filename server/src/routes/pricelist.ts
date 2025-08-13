@@ -4,14 +4,15 @@ import {
   createPricelistFromBlob,
   getAllPricelistsHandler,
   getPricelistById,
-  updatePricelistHandler,
+  UpdatePricelistHandler,
+  getMaintenanceCostsHandler,
+  // bulkUpdatePricelistHandler,
   deletePricelistHandler,
   testAzureStorageHandler,
 } from '../controllers/pricelist.controller'
 import {
   validateCreatePricelistFromBlob,
-  validateUpdatePricelist,
-  validatePricelistQuery
+  validateBulkUpdatePricelist,
 } from '../validation/pricelist.validation'
 
 const router = express.Router()
@@ -30,8 +31,12 @@ router.get('/test-azure-storage', authMiddleware, testAzureStorageHandler)
 router.get('/:id', authMiddleware, getPricelistById)
 
 
-// *PUT /api/pricelist/:id - Update pricelist
-router.put('/:id', authMiddleware, requireAdmin, validateUpdatePricelist, updatePricelistHandler)
+// *PUT /api/pricelist - Bulk update pricelist
+router.put('/', authMiddleware, requireAdmin, validateBulkUpdatePricelist, UpdatePricelistHandler)
+
+
+
+// *PUT /api/pricelist/bulk - Bulk update multiple pricelist items 
 
 //*?DELETE /api/pricelist/:id - Delete pricelist
 router.delete('/:id', authMiddleware, requireAdmin, deletePricelistHandler)

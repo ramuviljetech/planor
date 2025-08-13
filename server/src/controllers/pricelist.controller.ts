@@ -1,20 +1,23 @@
-import { Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import { ApiResponse, PriceList, PriceItem, AuthenticatedRequest } from '../types'
-import { 
+import {
   createPriceItem,
   checkExistingPriceItem,
-  findPricelistById, 
-  updatePricelist, 
+  findPricelistById,
+  updatePricelist,
   deletePricelist,
   getPricelistsWithFilters,
- 
+  bulkUpdatePricelistItems,
+  calculateMaintenanceCosts
+
 } from '../entities/pricelist.entity'
 import { v4 as uuidv4 } from 'uuid'
-import { 
-  isAzureStorageConfigured, 
-  getAzureStorageConfig, 
-  testAzureStorageConnection 
+import {
+  isAzureStorageConfigured,
+  getAzureStorageConfig,
+  testAzureStorageConnection
 } from '../config/azure-storage'
+import { CustomError } from '../middleware/errorHandler'
 
 /**
  * Pricelist Controller
@@ -38,36 +41,36 @@ const extractDataFromBlobUrl = async (blobUrl: string, sasToken?: string, fileNa
     if (!isAzureStorageConfigured()) {
       throw new Error('Azure Storage is not configured. Please check your environment variables.')
     }
-    
+
     // Parse the blob URL to extract container and blob name
     const url = new URL(blobUrl)
     const pathParts = url.pathname.split('/').filter(part => part.length > 0)
-    
+
     if (pathParts.length < 2) {
       throw new Error('Invalid blob URL format. Expected: https://account.blob.core.windows.net/container/blob-path')
     }
-    
+
     const containerName = pathParts[0]
     const blobName = pathParts.slice(1).join('/') // Handle nested paths like "Files/Areaschedule.csv"
-    
+
     console.log(`Extracting data from container: ${containerName}, blob: ${blobName}`)
-    
+
     // Get Azure Storage configuration
     const config = getAzureStorageConfig()
-    
+
     // Create blob service client
     const { createBlobServiceClient } = await import('../config/azure-storage')
     const blobServiceClient = createBlobServiceClient()
-    
+
     // Get container client
     const containerClient = blobServiceClient.getContainerClient(containerName)
-    
+
     // Get blob client
     const blobClient = containerClient.getBlobClient(blobName)
-    
+
     // Download the blob content
     const downloadResponse = await blobClient.download()
-    
+
     if (!downloadResponse.readableStreamBody) {
       throw new Error('Failed to download blob content')
     }
@@ -75,10 +78,10 @@ const extractDataFromBlobUrl = async (blobUrl: string, sasToken?: string, fileNa
     // Convert stream to text using a more robust approach
     const chunks: Uint8Array[] = []
     const stream = downloadResponse.readableStreamBody as any
-    
+
     if (stream && typeof stream.getReader === 'function') {
       const reader = stream.getReader()
-      
+
       try {
         while (true) {
           const { done, value } = await reader.read()
@@ -93,7 +96,7 @@ const extractDataFromBlobUrl = async (blobUrl: string, sasToken?: string, fileNa
       const buffer = await streamToBuffer(stream)
       chunks.push(buffer)
     }
-    
+
     const content = new TextDecoder().decode(Buffer.concat(chunks))
     const contentType = downloadResponse.contentType || ''
 
@@ -130,15 +133,15 @@ const extractDataFromBlobUrl = async (blobUrl: string, sasToken?: string, fileNa
 const streamToBuffer = async (stream: any): Promise<Uint8Array> => {
   return new Promise((resolve, reject) => {
     const chunks: Uint8Array[] = []
-    
+
     stream.on('data', (chunk: Uint8Array) => {
       chunks.push(chunk)
     })
-    
+
     stream.on('end', () => {
       resolve(Buffer.concat(chunks))
     })
-    
+
     stream.on('error', (error: any) => {
       reject(error)
     })
@@ -147,179 +150,179 @@ const streamToBuffer = async (stream: any): Promise<Uint8Array> => {
 
 // Parse CSV data
 const parseCSV = (csvText: string, fileName?: string): any[] => {
-    console.log('Raw CSV text:', csvText.substring(0, 500) + '...') // Debug: show first 500 chars
-    const lines = csvText.trim().split('\n').map(line => line.trim())
-  
-    const data: any[] = []
-    
-    // Determine file type from fileName
-    let fileType = 'unknown'
-    if (fileName) {
-      const fileNameLower = fileName.toLowerCase()
-      if (fileNameLower.includes('window')) { fileType = 'window' }
-      else if (fileNameLower.includes('door')) { fileType = 'door' }
-      else if (fileNameLower.includes('floor')) { fileType = 'floor' }
-      else if (fileNameLower.includes('wall')) { fileType = 'wall' }
-      else if (fileNameLower.includes('roof')) { fileType = 'roof' }
-      else if (fileNameLower.includes('area')) { fileType = 'area' }
-    }
+  console.log('Raw CSV text:', csvText.substring(0, 500) + '...') // Debug: show first 500 chars
+  const lines = csvText.trim().split('\n').map(line => line.trim())
 
-    // Check header row to determine format
-    let isAreaFormat = false
-    if (lines.length > 0) {
-      // Look for the actual header row (skip title rows)
-      let headerLine = ''
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]
-        if (line.includes('Areatyp') && line.includes('Area')) {
-          headerLine = line
-          break
-        }
-      }
-      
-      if (headerLine) {
-        let headerFields: string[] = []
-        if (headerLine.includes('\t')) {
-          headerFields = headerLine.split('\t').map(f => f.trim())
-        } else if (headerLine.includes(';')) {
-          headerFields = headerLine.split(';').map(f => f.trim())
-        }
-        
-        // Check if header contains "Areatyp" and "Area" columns
-        const hasAreatypHeader = headerFields.some(field => field.toLowerCase().includes('areatyp'))
-        const hasAreaHeader = headerFields.some(field => field.toLowerCase().includes('area') && !field.toLowerCase().includes('areatyp'))
-        isAreaFormat = hasAreatypHeader && hasAreaHeader
-        
-        console.log('Found header line:', headerLine)
-        console.log('Header fields:', headerFields)
-        console.log('Is area format:', isAreaFormat)
-      } else {
-        // Fallback: check if filename contains 'area'
-        isAreaFormat = fileType === 'area'
-        console.log('No header found, using file type:', fileType, 'Is area format:', isAreaFormat)
-      }
-    }
-  
-    for (let i = 0; i < lines.length; i++) {
-      const entries = Object.entries({ [lines[i]]: lines[i] })
-      if (entries.length === 0) continue
-  
-      // Extract the single key and value from each object (bad CSV parse result)
-      const rawLine = entries[0][1]
-  
-            if (!rawLine) continue
+  const data: any[] = []
 
-      // Handle both tab and semicolon separators
-      let fields: string[]
-      if (rawLine.includes('\t')) {
-        fields = rawLine.split('\t').map(f => f.trim())
-      } else if (rawLine.includes(';')) {
-        fields = rawLine.split(';').map(f => f.trim())
-      } else {
-        continue // Skip lines without proper separators
-      }
-  
-      // Skip if it's a header, title, or empty line
-      if (fields.length < 2 || fields.every(f => f === '') || 
-          rawLine.includes('Areatyp') || rawLine.includes('Areaförteckning')) continue
-
-      console.log('Processing fields:', fields) // Debug: show fields being processed
-      let item: any = {}
-      
-      if (isAreaFormat || fileType === 'area') {
-        // New area format: Areatyp;Area
-        if (fields.length >= 2) {
-          const [areatyp, area] = fields
-          console.log('areatyp', areatyp, 'area', area)
-          item = {
-            Typ: areatyp,
-            'Project Name': fileType, // Use detected file type (roof, floor, wall, area, etc.)
-            Antal: '1', // Default count to 1 for area types
-            Level: '',
-            'Element ID': '',
-            Area: area || '0'
-          }
-        }
-      } else if (fileType === 'floor' || fileType === 'wall') {
-        // Floor/Wall structure: Typ;Project Name;Antal;Area;Element ID
-        if (fields.length >= 5) {
-          const [type, object, count, area, elementId] = fields
-          item = {
-            Typ: type,
-            'Project Name': object,
-            Antal: count || '1',
-            Level: '', // No level field in this structure
-            'Element ID': elementId,
-            Area: area || '0'  // Area is in 4th position
-          }
-        }
-      } else if (fileType === 'window' || fileType === 'door') {
-        // Window/Door structure: Typ;Project Name;Antal;Level;Element ID (or similar)
-        if (fields.length >= 4) {
-          const [type, object, count, level, elementId] = fields
-          item = {
-            Typ: type,
-            'Project Name': object,
-            Antal: count || '1',
-            Level: level,
-            'Element ID': elementId,
-            Area: '0' // Windows/doors typically don't have area
-          }
-        }
-      } else {
-        // Generic structure - try to detect
-        if (fields.length >= 4) {
-          const [type, object, thirdField, fourthField, elementId] = fields
-          // Check if third field is a number (count) or has m² (area)
-          const isThirdFieldCount = !isNaN(parseFloat(thirdField))
-          const isThirdFieldArea = thirdField.includes('m²')
-          const isFourthFieldArea = fourthField && fourthField.includes('m²')
-          
-          if (isThirdFieldArea) {
-            // Area structure: Typ;Project Name;Area;Level;Element ID
-            item = {
-              Typ: type,
-              'Project Name': object,
-              Antal: '1',
-              Level: fourthField || '',
-              'Element ID': elementId,
-              Area: thirdField || '0'
-            }
-          } else if (isFourthFieldArea) {
-            // Count + Area structure: Typ;Project Name;Antal;Area;Element ID
-            item = {
-              Typ: type,
-              'Project Name': object,
-              Antal: thirdField || '1',
-              Level: '',
-              'Element ID': elementId,
-              Area: fourthField || '0'
-            }
-          } else if (isThirdFieldCount) {
-            // Count structure: Typ;Project Name;Antal;Level;Element ID
-            item = {
-              Typ: type,
-              'Project Name': object,
-              Antal: thirdField,
-              Level: fourthField || '',
-              'Element ID': elementId,
-              Area: '0'
-            }
-          }
-        }
-      }
-      
-      if (Object.keys(item).length > 0) {
-        console.log('Parsed item:', item) // Debug: show each parsed item
-        data.push(item)
-      } else {
-        console.log('Skipped line - no valid item created:', rawLine)
-      }
-    }
-  
-    return data
+  // Determine file type from fileName
+  let fileType = 'unknown'
+  if (fileName) {
+    const fileNameLower = fileName.toLowerCase()
+    if (fileNameLower.includes('window')) { fileType = 'window' }
+    else if (fileNameLower.includes('door')) { fileType = 'door' }
+    else if (fileNameLower.includes('floor')) { fileType = 'floor' }
+    else if (fileNameLower.includes('wall')) { fileType = 'wall' }
+    else if (fileNameLower.includes('roof')) { fileType = 'roof' }
+    else if (fileNameLower.includes('area')) { fileType = 'area' }
   }
-  
+
+  // Check header row to determine format
+  let isAreaFormat = false
+  if (lines.length > 0) {
+    // Look for the actual header row (skip title rows)
+    let headerLine = ''
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      if (line.includes('Areatyp') && line.includes('Area')) {
+        headerLine = line
+        break
+      }
+    }
+
+    if (headerLine) {
+      let headerFields: string[] = []
+      if (headerLine.includes('\t')) {
+        headerFields = headerLine.split('\t').map(f => f.trim())
+      } else if (headerLine.includes(';')) {
+        headerFields = headerLine.split(';').map(f => f.trim())
+      }
+
+      // Check if header contains "Areatyp" and "Area" columns
+      const hasAreatypHeader = headerFields.some(field => field.toLowerCase().includes('areatyp'))
+      const hasAreaHeader = headerFields.some(field => field.toLowerCase().includes('area') && !field.toLowerCase().includes('areatyp'))
+      isAreaFormat = hasAreatypHeader && hasAreaHeader
+
+      console.log('Found header line:', headerLine)
+      console.log('Header fields:', headerFields)
+      console.log('Is area format:', isAreaFormat)
+    } else {
+      // Fallback: check if filename contains 'area'
+      isAreaFormat = fileType === 'area'
+      console.log('No header found, using file type:', fileType, 'Is area format:', isAreaFormat)
+    }
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const entries = Object.entries({ [lines[i]]: lines[i] })
+    if (entries.length === 0) continue
+
+    // Extract the single key and value from each object (bad CSV parse result)
+    const rawLine = entries[0][1]
+
+    if (!rawLine) continue
+
+    // Handle both tab and semicolon separators
+    let fields: string[]
+    if (rawLine.includes('\t')) {
+      fields = rawLine.split('\t').map(f => f.trim())
+    } else if (rawLine.includes(';')) {
+      fields = rawLine.split(';').map(f => f.trim())
+    } else {
+      continue // Skip lines without proper separators
+    }
+
+    // Skip if it's a header, title, or empty line
+    if (fields.length < 2 || fields.every(f => f === '') ||
+      rawLine.includes('Areatyp') || rawLine.includes('Areaförteckning')) continue
+
+    console.log('Processing fields:', fields) // Debug: show fields being processed
+    let item: any = {}
+
+    if (isAreaFormat || fileType === 'area') {
+      // New area format: Areatyp;Area
+      if (fields.length >= 2) {
+        const [areatyp, area] = fields
+        console.log('areatyp', areatyp, 'area', area)
+        item = {
+          Typ: areatyp,
+          'Project Name': fileType, // Use detected file type (roof, floor, wall, area, etc.)
+          Antal: '1', // Default count to 1 for area types
+          Level: '',
+          'Element ID': '',
+          Area: area || '0'
+        }
+      }
+    } else if (fileType === 'floor' || fileType === 'wall') {
+      // Floor/Wall structure: Typ;Project Name;Antal;Area;Element ID
+      if (fields.length >= 5) {
+        const [type, object, count, area, elementId] = fields
+        item = {
+          Typ: type,
+          'Project Name': object,
+          Antal: count || '1',
+          Level: '', // No level field in this structure
+          'Element ID': elementId,
+          Area: area || '0'  // Area is in 4th position
+        }
+      }
+    } else if (fileType === 'window' || fileType === 'door') {
+      // Window/Door structure: Typ;Project Name;Antal;Level;Element ID (or similar)
+      if (fields.length >= 4) {
+        const [type, object, count, level, elementId] = fields
+        item = {
+          Typ: type,
+          'Project Name': object,
+          Antal: count || '1',
+          Level: level,
+          'Element ID': elementId,
+          Area: '0' // Windows/doors typically don't have area
+        }
+      }
+    } else {
+      // Generic structure - try to detect
+      if (fields.length >= 4) {
+        const [type, object, thirdField, fourthField, elementId] = fields
+        // Check if third field is a number (count) or has m² (area)
+        const isThirdFieldCount = !isNaN(parseFloat(thirdField))
+        const isThirdFieldArea = thirdField.includes('m²')
+        const isFourthFieldArea = fourthField && fourthField.includes('m²')
+
+        if (isThirdFieldArea) {
+          // Area structure: Typ;Project Name;Area;Level;Element ID
+          item = {
+            Typ: type,
+            'Project Name': object,
+            Antal: '1',
+            Level: fourthField || '',
+            'Element ID': elementId,
+            Area: thirdField || '0'
+          }
+        } else if (isFourthFieldArea) {
+          // Count + Area structure: Typ;Project Name;Antal;Area;Element ID
+          item = {
+            Typ: type,
+            'Project Name': object,
+            Antal: thirdField || '1',
+            Level: '',
+            'Element ID': elementId,
+            Area: fourthField || '0'
+          }
+        } else if (isThirdFieldCount) {
+          // Count structure: Typ;Project Name;Antal;Level;Element ID
+          item = {
+            Typ: type,
+            'Project Name': object,
+            Antal: thirdField,
+            Level: fourthField || '',
+            'Element ID': elementId,
+            Area: '0'
+          }
+        }
+      }
+    }
+
+    if (Object.keys(item).length > 0) {
+      console.log('Parsed item:', item) // Debug: show each parsed item
+      data.push(item)
+    } else {
+      console.log('Skipped line - no valid item created:', rawLine)
+    }
+  }
+
+  return data
+}
+
 // Validate and transform data
 const validateAndTransformData = (data: any[], fileName?: string): { prices: { [key: string]: any }; typeCounts: { [key: string]: number }; typeAreas: { [key: number]: number } } => {
   const prices: { [key: string]: any } = {}
@@ -328,7 +331,7 @@ const validateAndTransformData = (data: any[], fileName?: string): { prices: { [
 
   console.log("data", data);
   console.log("fileName", fileName);
-  
+
   // Extract object type from file name (e.g., "Windowschedule.csv" -> "window")
   let objectTypeFromFile = 'unknown'
   if (fileName) {
@@ -347,7 +350,7 @@ const validateAndTransformData = (data: any[], fileName?: string): { prices: { [
       objectTypeFromFile = 'area'
     }
   }
-  
+
   for (const item of data) {
     const type = item['Typ']
     const object = item['Project Name'] || objectTypeFromFile // Use file name object type as fallback
@@ -357,7 +360,7 @@ const validateAndTransformData = (data: any[], fileName?: string): { prices: { [
     // Remove m² suffix and convert Swedish comma to decimal point
     const cleanAreaString = areaString.replace(/ m²/g, '').replace(',', '.')
     const area = parseFloat(cleanAreaString) || 0
-    
+
     // Debug logging for area parsing
     if (areaString !== '0') {
       console.log(`Area parsing: "${areaString}" -> "${cleanAreaString}" -> ${area}`)
@@ -396,21 +399,16 @@ const validateAndTransformData = (data: any[], fileName?: string): { prices: { [
 
   return { prices, typeCounts, typeAreas }
 }
-  
+
 
 //* POST /api/pricelist - Create a new pricelist from Azure blob URL for a building
-export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Response) => {
+export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Response, next: NextFunction  ) => {
   try {
     const { buildingId, fileUrl, isActive = true } = req.body
 
     // Validate required fields
     if (!buildingId || !fileUrl) {
-      const response: ApiResponse = {
-        success: false,
-        error: 'buildingId and fileUrl are required',
-        statusCode: 400
-      }
-      return res.status(400).json(response)
+      throw new CustomError('buildingId and fileUrl are required', 400)
     }
 
     // Import building entity to check if building exists
@@ -419,12 +417,7 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
     // Check if building exists
     const building = await findBuildingById(buildingId)
     if (!building) {
-      const response: ApiResponse = {
-        success: false,
-        error: 'Building not found',
-        statusCode: 404
-      }
-      return res.status(404).json(response)
+      throw new CustomError('Building not found', 404)
     }
 
     // Extract data from the blob URL with optional SAS token
@@ -432,16 +425,11 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
     const url = new URL(fileUrl)
     const pathParts = url.pathname.split('/').filter(part => part.length > 0)
     const fileName = pathParts.length >= 2 ? pathParts[pathParts.length - 1] : undefined
-    
+
     const extractedData = await extractDataFromBlobUrl(fileUrl, fileName)
-    
+
     if (!extractedData || extractedData.length === 0) {
-      const response: ApiResponse = {
-        success: false,
-        error: 'No valid data found in the blob file',
-        statusCode: 400
-      }
-      return res.status(400).json(response)
+      throw new CustomError('No valid data found in the blob file', 400)
     }
 
 
@@ -450,19 +438,14 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
     const { prices, typeCounts, typeAreas } = validateAndTransformData(extractedData, fileName)
 
     if (Object.keys(prices).length === 0) {
-      const response: ApiResponse = {
-        success: false,
-        error: 'No valid data found in the file. For area files, required fields: Areatyp, Area. For other files, required fields: Typ, Project Name, Antal, Area',
-        statusCode: 400
-      }
-      return res.status(400).json(response)
+      throw new CustomError('No valid data found in the file. For area files, required fields: Areatyp, Area. For other files, required fields: Typ, Project Name, Antal, Area', 400)
     }
 
     // Create individual documents for each type
     const createdDocuments = []
-    const documentDataForMetadata: Array<{document: any, originalData: any, isAreaType: boolean}> = []
-    
-          // We'll use the created price item's ID as the pricelistId
+    const documentDataForMetadata: Array<{ document: any, originalData: any, isAreaType: boolean }> = []
+
+    // We'll use the created price item's ID as the pricelistId
 
     // Extract object type from file name
     let objectTypeFromFile = 'unknown'
@@ -490,13 +473,13 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
       }
 
       const typedPriceData = priceData as any
-      
+
       // Determine if this is a floor/wall type that should use area instead of count
-      const isAreaType = objectTypeFromFile === 'floor' || objectTypeFromFile === 'wall' || objectTypeFromFile === 'area'|| objectTypeFromFile === 'roof'
-      
+      const isAreaType = objectTypeFromFile === 'floor' || objectTypeFromFile === 'wall' || objectTypeFromFile === 'area' || objectTypeFromFile === 'roof'
+
       // Check if a record with the same type and object already exists in the pricelist container
       const existingRecord = await checkExistingPriceItem(buildingId, objectTypeFromFile, typedPriceData.type)
-      
+
       if (existingRecord) {
         console.log(`Found existing record: ${objectTypeFromFile} - ${typedPriceData.type}, will update building metadata`)
         // Use the existing record's ID as the pricelistId (same type and object)
@@ -510,7 +493,7 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
         })
         continue // Skip creating new record in pricelist container
       }
-      
+
       const documentData: PriceItem = {
         id: uuidv4(),
         type: objectTypeFromFile, // window, door, floor, etc.
@@ -533,92 +516,92 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
       })
     }
 
-          // Update building metadata with individual price item data
-      const buildingMetadata = building.metadata || {}
-      let existingPricelistMetadata = building.buildingObjects || {}
-      
-      // Handle transition from array format to object format
-      if (Array.isArray(existingPricelistMetadata)) {
-        // Convert old array format to new object format
-        const newFormat: Record<string, any[]> = {}
-        for (const item of existingPricelistMetadata) {
-          const objectTypeKey = `${item.type}s` // e.g., "windows", "doors", "floors"
-          if (!newFormat[objectTypeKey]) {
-            newFormat[objectTypeKey] = []
-          }
-          newFormat[objectTypeKey].push(item)
+    // Update building metadata with individual price item data
+    const buildingMetadata = building.metadata || {}
+    let existingPricelistMetadata = building.buildingObjects || {}
+
+    // Handle transition from array format to object format
+    if (Array.isArray(existingPricelistMetadata)) {
+      // Convert old array format to new object format
+      const newFormat: Record<string, any[]> = {}
+      for (const item of existingPricelistMetadata) {
+        const objectTypeKey = `${item.type}s` // e.g., "windows", "doors", "floors"
+        if (!newFormat[objectTypeKey]) {
+          newFormat[objectTypeKey] = []
         }
-        existingPricelistMetadata = newFormat
+        newFormat[objectTypeKey].push(item)
       }
-      
-      // Ensure it's an object with proper typing
-      const typedPricelistMetadata = existingPricelistMetadata as Record<string, any[]>
-      
-      // Initialize objects structure if it doesn't exist
-      if (!typedPricelistMetadata[`${objectTypeFromFile}s`]) {
-        typedPricelistMetadata[`${objectTypeFromFile}s`] = []
+      existingPricelistMetadata = newFormat
+    }
+
+    // Ensure it's an object with proper typing
+    const typedPricelistMetadata = existingPricelistMetadata as Record<string, any[]>
+
+    // Initialize objects structure if it doesn't exist
+    if (!typedPricelistMetadata[`${objectTypeFromFile}s`]) {
+      typedPricelistMetadata[`${objectTypeFromFile}s`] = []
+    }
+
+    // Add or update pricelist metadata for each document
+    for (const { document: createdDocument, originalData, isAreaType } of documentDataForMetadata) {
+      const objectTypeKey = `${createdDocument.type}s` // e.g., "windows", "doors", "floors"
+
+      // Initialize the array for this object type if it doesn't exist
+      if (!typedPricelistMetadata[objectTypeKey]) {
+        typedPricelistMetadata[objectTypeKey] = []
       }
-      
-      // Add or update pricelist metadata for each document
-      for (const { document: createdDocument, originalData, isAreaType } of documentDataForMetadata) {
-        const objectTypeKey = `${createdDocument.type}s` // e.g., "windows", "doors", "floors"
-        
-        // Initialize the array for this object type if it doesn't exist
-        if (!typedPricelistMetadata[objectTypeKey]) {
-          typedPricelistMetadata[objectTypeKey] = []
-        }
-        
-        const existingIndex = typedPricelistMetadata[objectTypeKey].findIndex((item: any) => 
-          item.object === createdDocument.object
-        )
-        
-        if (existingIndex >= 0) {
-          // Update existing item - increase count or area
-          if (isAreaType) {
-            // For area types (floor, wall, roof, area), sum both areas and counts
-            const currentArea = Number(typedPricelistMetadata[objectTypeKey][existingIndex].area) || 0
-            const newArea = Number(originalData.area || 0)
-            typedPricelistMetadata[objectTypeKey][existingIndex].area = currentArea + newArea
-            
-            const currentCount = Number(typedPricelistMetadata[objectTypeKey][existingIndex].count) || 0
-            const newCount = Number(originalData.count || 1)
-            typedPricelistMetadata[objectTypeKey][existingIndex].count = currentCount + newCount
-            
-            console.log(`Updated area and count for ${createdDocument.type} - ${createdDocument.object}: area=${currentArea} + ${newArea} = ${typedPricelistMetadata[objectTypeKey][existingIndex].area}, count=${currentCount} + ${newCount} = ${typedPricelistMetadata[objectTypeKey][existingIndex].count}`)
-          } else {
-            // For non-area types (doors, windows), sum the counts only
-            const currentCount = Number(typedPricelistMetadata[objectTypeKey][existingIndex].count) || 0
-            const newCount = Number(originalData.count) || 0
-            typedPricelistMetadata[objectTypeKey][existingIndex].count = currentCount + newCount
-            console.log(`Updated count for ${createdDocument.type} - ${createdDocument.object}: ${currentCount} + ${newCount} = ${typedPricelistMetadata[objectTypeKey][existingIndex].count}`)
-            // Remove area field for count types
-            delete typedPricelistMetadata[objectTypeKey][existingIndex].area
-          }
-          typedPricelistMetadata[objectTypeKey][existingIndex].id = createdDocument.id // Store individual document ID
-          typedPricelistMetadata[objectTypeKey][existingIndex].pricelistId = createdDocument.id // Store the pricelist item ID (same type and object)
+
+      const existingIndex = typedPricelistMetadata[objectTypeKey].findIndex((item: any) =>
+        item.object === createdDocument.object
+      )
+
+      if (existingIndex >= 0) {
+        // Update existing item - increase count or area
+        if (isAreaType) {
+          // For area types (floor, wall, roof, area), sum both areas and counts
+          const currentArea = Number(typedPricelistMetadata[objectTypeKey][existingIndex].area) || 0
+          const newArea = Number(originalData.area || 0)
+          typedPricelistMetadata[objectTypeKey][existingIndex].area = currentArea + newArea
+
+          const currentCount = Number(typedPricelistMetadata[objectTypeKey][existingIndex].count) || 0
+          const newCount = Number(originalData.count || 1)
+          typedPricelistMetadata[objectTypeKey][existingIndex].count = currentCount + newCount
+
+          console.log(`Updated area and count for ${createdDocument.type} - ${createdDocument.object}: area=${currentArea} + ${newArea} = ${typedPricelistMetadata[objectTypeKey][existingIndex].area}, count=${currentCount} + ${newCount} = ${typedPricelistMetadata[objectTypeKey][existingIndex].count}`)
         } else {
-          // Add new item with complete information
-          const newItem: any = {
-            id: uuidv4(), // Individual document ID
-            type: createdDocument.type, // window, door, floor, etc.
-            object: createdDocument.object, // The actual type like "6x6 Fast"
-            pricelistId: createdDocument.id // Store the pricelist item ID (same type and object)
-          }
-          
-          if (isAreaType) {
-            // For area types (floor, wall, roof, area), store both area and count
-            newItem.area = Number(originalData.area || 0)
-            newItem.count = Number(originalData.count || 1) // Default count to 1 if not provided
-            console.log(`Added new area item with count: ${createdDocument.type} - ${createdDocument.object}: area=${newItem.area}, count=${newItem.count}`)
-          } else {
-            // For non-area types (doors, windows), store count only
-            newItem.count = Number(originalData.count)
-            console.log(`Added new count item: ${createdDocument.type} - ${createdDocument.object}: ${newItem.count}`)
-          }
-          
-          typedPricelistMetadata[objectTypeKey].push(newItem)
+          // For non-area types (doors, windows), sum the counts only
+          const currentCount = Number(typedPricelistMetadata[objectTypeKey][existingIndex].count) || 0
+          const newCount = Number(originalData.count) || 0
+          typedPricelistMetadata[objectTypeKey][existingIndex].count = currentCount + newCount
+          console.log(`Updated count for ${createdDocument.type} - ${createdDocument.object}: ${currentCount} + ${newCount} = ${typedPricelistMetadata[objectTypeKey][existingIndex].count}`)
+          // Remove area field for count types
+          delete typedPricelistMetadata[objectTypeKey][existingIndex].area
         }
+        typedPricelistMetadata[objectTypeKey][existingIndex].id = createdDocument.id // Store individual document ID
+        typedPricelistMetadata[objectTypeKey][existingIndex].pricelistId = createdDocument.id // Store the pricelist item ID (same type and object)
+      } else {
+        // Add new item with complete information
+        const newItem: any = {
+          id: uuidv4(), // Individual document ID
+          type: createdDocument.type, // window, door, floor, etc.
+          object: createdDocument.object, // The actual type like "6x6 Fast"
+          pricelistId: createdDocument.id // Store the pricelist item ID (same type and object)
+        }
+
+        if (isAreaType) {
+          // For area types (floor, wall, roof, area), store both area and count
+          newItem.area = Number(originalData.area || 0)
+          newItem.count = Number(originalData.count || 1) // Default count to 1 if not provided
+          console.log(`Added new area item with count: ${createdDocument.type} - ${createdDocument.object}: area=${newItem.area}, count=${newItem.count}`)
+        } else {
+          // For non-area types (doors, windows), store count only
+          newItem.count = Number(originalData.count)
+          console.log(`Added new count item: ${createdDocument.type} - ${createdDocument.object}: ${newItem.count}`)
+        }
+
+        typedPricelistMetadata[objectTypeKey].push(newItem)
       }
+    }
 
     // Update building with new metadata
     const updatedBuilding = await updateBuilding(buildingId, {
@@ -628,7 +611,7 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
       buildingObjects: typedPricelistMetadata
     })
 
-    const response: ApiResponse = {
+    res.status(201).json({
       success: true,
       data: {
         documents: createdDocuments,
@@ -637,59 +620,172 @@ export const createPricelistFromBlob = async (req: AuthenticatedRequest, res: Re
       },
       message: `Created ${createdDocuments.length} individual documents for pricelist with ${Object.keys(typeCounts).length} types`,
       statusCode: 201
-    }
+    })
 
-    return res.status(201).json(response)
   } catch (error) {
-    console.error('Error creating pricelist from blob:', error)
-    
-    const response: ApiResponse = {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-      statusCode: 500
-    }
-    
-   return res.status(500).json(response)
+    next(error)
   }
 }
 
 //* GET /api/pricelist - Get all pricelists
-export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Response) => {
+// export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Response) => {
+//   try {
+//     const { search, page, limit } = req.query
+
+//     // Build filters
+//     const filters: any = {}
+//     // Temporarily disable admin filtering since the data doesn't have createdBy field
+//     // if (req.user?.role === 'admin' && req.user?.id) {
+//     //   filters.adminId = req.user.id
+//     // }
+//     if (search) filters.search = search as string
+//     // if (isActive !== undefined) filters.isActive = isActive === 'true'
+//     // if (isGlobal !== undefined) filters.isGlobal = isGlobal === 'true'
+//     if (page) filters.page = parseInt(page as string)
+//     if (limit) filters.limit = parseInt(limit as string)
+
+//     // Get all price items without pagination first to group them
+//     const { pricelists, total } = await getPricelistsWithFilters({
+//       ...filters,
+//       page: undefined, // Remove pagination to get all records for grouping
+//       limit: undefined
+//     })
+
+//     // Group price items by category (windows, doors, etc.)
+//     const groupedPriceItems: { [key: string]: any[] } = {}
+
+//     pricelists.forEach((priceItem: any) => {
+//       // Each item is a PriceItem with a 'type' field
+//       const category = priceItem.type
+
+//       if (category) {
+//         if (!groupedPriceItems[category]) {
+//           groupedPriceItems[category] = []
+//         }
+
+//         // Add the price item to the appropriate category
+//         groupedPriceItems[category].push({
+//           id: priceItem.id,
+//           type: priceItem.type,
+//           object: priceItem.object,
+//           price: priceItem.price,
+//           buildingId: priceItem.buildingId,
+//           pricelistId: priceItem.pricelistId,
+//           isGlobal: priceItem.isGlobal,
+//           interval: priceItem.interval,
+//           createdAt: priceItem.createdAt,
+//           updatedAt: priceItem.updatedAt
+//         })
+//       }
+//     })
+
+//     // console.log('Debug: Final grouped categories:', Object.keys(groupedPriceItems))
+//     // console.log('Debug: Total records found:', total)
+//     // console.log('Debug: Records processed:', pricelists.length)
+
+//     // Apply pagination to the grouped data if page and limit are provided
+//     let paginatedGroupedData = groupedPriceItems
+
+//     if (page && limit) {
+//       const pageNum = parseInt(page as string) || 1
+//       const limitNum = parseInt(limit as string) || 10
+//       const startIndex = (pageNum - 1) * limitNum
+//       const endIndex = startIndex + limitNum
+
+//       paginatedGroupedData = {}
+
+//       Object.keys(groupedPriceItems).forEach(category => {
+//         const categoryData = groupedPriceItems[category]
+//         paginatedGroupedData[category] = categoryData.slice(startIndex, endIndex)
+//       })
+//     }
+
+//     // Calculate statistics
+//     const { getUsersContainer, getBuildingsContainer } = await import('../config/database')
+//     const usersContainer = getUsersContainer()
+//     const buildingsContainer = getBuildingsContainer()
+//     // const propertiesContainer = getPropertiesContainer()
+
+//     // Get total clients (users with role 'client')
+//     const clientsQuery = {
+//       query: 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "client"'
+//     }
+//     const { resources: clientsCount } = await usersContainer.items.query(clientsQuery).fetchAll()
+//     const totalClients = clientsCount[0] || 0
+
+//     // Get new clients this month
+//     const currentDate = new Date()
+//     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+//     const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+
+//     const newClientsThisMonthQuery = {
+//       query: 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "client" AND c.createdAt >= @startDate AND c.createdAt <= @endDate',
+//       parameters: [
+//         { name: '@startDate', value: firstDayOfMonth.toISOString() },
+//         { name: '@endDate', value: lastDayOfMonth.toISOString() }
+//       ]
+//     }
+//     const { resources: newClientsCount } = await usersContainer.items.query(newClientsThisMonthQuery).fetchAll()
+//     const newClientsThisMonth = newClientsCount[0] || 0
+
+//     // Get total buildings
+//     const buildingsQuery = {
+//       query: 'SELECT VALUE COUNT(1) FROM c'
+//     }
+//     const { resources: buildingsCount } = await buildingsContainer.items.query(buildingsQuery).fetchAll()
+//     const totalBuildings = buildingsCount[0] || 0
+
+//     // Get total properties
+//     // const propertiesQuery = {
+//     //   query: 'SELECT VALUE COUNT(1) FROM c'
+//     // }
+//     // const { resources: propertiesCount } = await propertiesContainer.items.query(propertiesQuery).fetchAll()
+//     // const totalProperties = propertiesCount[0] || 0
+
+//     // Get total file uploads (from pricelist metadata)
+//     const totalFileUploads = 0
+
+//     res.status(200).json({
+//       success: true,
+//       data: {
+//         pricelists: paginatedGroupedData,
+//         statistics: {
+//           totalClients,
+//           newClientsThisMonth,
+//           totalBuildings,
+//           // totalProperties,
+//           totalFileUploads,
+//           // totalPriceItems: total
+//         }
+//       },
+//       message: `Found ${total} total price items grouped by categories`,
+//       statusCode: 200
+//     })
+
+//   } catch (error) {
+//     next(error)
+//   }
+// }
+
+
+export const getAllPricelistsHandler = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const { search, page, limit } = req.query
+    //  Fetch all price items (no filters, no pagination)
+    const { pricelists, total } = await getPricelistsWithFilters();
 
-    // Build filters
-    const filters: any = {}
-    // Temporarily disable admin filtering since the data doesn't have createdBy field
-    // if (req.user?.role === 'admin' && req.user?.id) {
-    //   filters.adminId = req.user.id
-    // }
-    if (search) filters.search = search as string
-    // if (isActive !== undefined) filters.isActive = isActive === 'true'
-    // if (isGlobal !== undefined) filters.isGlobal = isGlobal === 'true'
-    if (page) filters.page = parseInt(page as string)
-    if (limit) filters.limit = parseInt(limit as string)
+    // Group price items by their category/type
+    const groupedPriceItems: { [key: string]: any[] } = {};
 
-    // Get all price items without pagination first to group them
-    const { pricelists, total } = await getPricelistsWithFilters({
-      ...filters,
-      page: undefined, // Remove pagination to get all records for grouping
-      limit: undefined
-    })
-
-    // Group price items by category (windows, doors, etc.)
-    const groupedPriceItems: { [key: string]: any[] } = {}
-    
     pricelists.forEach((priceItem: any) => {
-      // Each item is a PriceItem with a 'type' field
-      const category = priceItem.type
-      
+      const category = priceItem.type;
       if (category) {
         if (!groupedPriceItems[category]) {
-          groupedPriceItems[category] = []
+          groupedPriceItems[category] = [];
         }
-        
-        // Add the price item to the appropriate category
         groupedPriceItems[category].push({
           id: priceItem.id,
           type: priceItem.type,
@@ -700,183 +796,149 @@ export const getAllPricelistsHandler = async (req: AuthenticatedRequest, res: Re
           isGlobal: priceItem.isGlobal,
           interval: priceItem.interval,
           createdAt: priceItem.createdAt,
-          updatedAt: priceItem.updatedAt
-        })
+          updatedAt: priceItem.updatedAt,
+          metadata: priceItem.metadata
+        });
       }
-    })
-    
-    console.log('Debug: Final grouped categories:', Object.keys(groupedPriceItems))
-    console.log('Debug: Total records found:', total)
-    console.log('Debug: Records processed:', pricelists.length)
+    });
 
-    // Apply pagination to the grouped data if page and limit are provided
-    let paginatedGroupedData = groupedPriceItems
-    
-    if (page && limit) {
-      const pageNum = parseInt(page as string) || 1
-      const limitNum = parseInt(limit as string) || 10
-      const startIndex = (pageNum - 1) * limitNum
-      const endIndex = startIndex + limitNum
+    // Fetch statistics
+    const { getUsersContainer, getBuildingsContainer } = await import('../config/database');
+    const usersContainer = getUsersContainer();
+    const buildingsContainer = getBuildingsContainer();
 
-      paginatedGroupedData = {}
-      
-      Object.keys(groupedPriceItems).forEach(category => {
-        const categoryData = groupedPriceItems[category]
-        paginatedGroupedData[category] = categoryData.slice(startIndex, endIndex)
-      })
-    }
-
-    // Calculate statistics
-    const { getUsersContainer, getBuildingsContainer } = await import('../config/database')
-    const usersContainer = getUsersContainer()
-    const buildingsContainer = getBuildingsContainer()
-    // const propertiesContainer = getPropertiesContainer()
-
-    // Get total clients (users with role 'client')
     const clientsQuery = {
       query: 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "client"'
-    }
-    const { resources: clientsCount } = await usersContainer.items.query(clientsQuery).fetchAll()
-    const totalClients = clientsCount[0] || 0
+    };
+    const { resources: clientsCount } = await usersContainer.items.query(clientsQuery).fetchAll();
+    const totalClients = clientsCount[0] || 0;
 
-    // Get new clients this month
-    const currentDate = new Date()
-    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
-    
+    const currentDate = new Date();
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
     const newClientsThisMonthQuery = {
       query: 'SELECT VALUE COUNT(1) FROM c WHERE c.role = "client" AND c.createdAt >= @startDate AND c.createdAt <= @endDate',
       parameters: [
         { name: '@startDate', value: firstDayOfMonth.toISOString() },
         { name: '@endDate', value: lastDayOfMonth.toISOString() }
       ]
-    }
-    const { resources: newClientsCount } = await usersContainer.items.query(newClientsThisMonthQuery).fetchAll()
-    const newClientsThisMonth = newClientsCount[0] || 0
+    };
+    const { resources: newClientsCount } = await usersContainer.items.query(newClientsThisMonthQuery).fetchAll();
+    const newClientsThisMonth = newClientsCount[0] || 0;
 
-    // Get total buildings
     const buildingsQuery = {
       query: 'SELECT VALUE COUNT(1) FROM c'
-    }
-    const { resources: buildingsCount } = await buildingsContainer.items.query(buildingsQuery).fetchAll()
-    const totalBuildings = buildingsCount[0] || 0
+    };
+    const { resources: buildingsCount } = await buildingsContainer.items.query(buildingsQuery).fetchAll();
+    const totalBuildings = buildingsCount[0] || 0;
 
-    // Get total properties
-    // const propertiesQuery = {
-    //   query: 'SELECT VALUE COUNT(1) FROM c'
-    // }
-    // const { resources: propertiesCount } = await propertiesContainer.items.query(propertiesQuery).fetchAll()
-    // const totalProperties = propertiesCount[0] || 0
-
-    // Get total file uploads (from pricelist metadata)
-    const totalFileUploads = 0
-
-    const response: ApiResponse = {
+    // Return response
+    res.status(200).json({
       success: true,
       data: {
-        pricelists: paginatedGroupedData,
+        pricelists: groupedPriceItems,
         statistics: {
           totalClients,
           newClientsThisMonth,
           totalBuildings,
-          // totalProperties,
-          totalFileUploads,
-          // totalPriceItems: total
+          totalFileUploads: 0 // placeholder
         }
       },
       message: `Found ${total} total price items grouped by categories`,
       statusCode: 200
-    }
-
-    res.status(200).json(response)
+    });
   } catch (error) {
-    console.error('Error getting all pricelists:', error)
-    
-    const response: ApiResponse = {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-      statusCode: 500
-    }
-    
-    res.status(500).json(response)
+    next(error);
   }
-}
+};
+
+
 
 //* GET /api/pricelist/:id - Get pricelist by ID
-export const getPricelistById = async (req: AuthenticatedRequest, res: Response) => {
+export const getPricelistById = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params
 
     const pricelist = await findPricelistById(id)
 
     if (!pricelist) {
-      const response: ApiResponse = {
-        success: false,
-        error: 'Pricelist not found',
-        statusCode: 404
-      }
-      return res.status(404).json(response)
+      throw new CustomError('Pricelist not found', 404)
     }
 
-    const response: ApiResponse = {
+    res.status(200).json({
       success: true,
       data: pricelist,
       message: 'Pricelist found successfully',
       statusCode: 200
-    }
+    })
 
-   return res.status(200).json(response)
   } catch (error) {
-    console.error('Error getting pricelist by ID:', error)
-    
-    const response: ApiResponse = {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-      statusCode: 500
-    }
-    
-   return res.status(500).json(response)
+    next(error)
   }
 }
 
-//* PUT /api/pricelist/:id - Update pricelist
-//!can we update multiple pricelists at once? 
-export const updatePricelistHandler = async (req: AuthenticatedRequest, res: Response) => {
+
+// *PUT /api/pricelist - Bulk update pricelist
+export const UpdatePricelistHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params
-    const updateData = req.body
+    const updates = req.body
 
-    const existingPricelist = await findPricelistById(id)
-
-    if (!existingPricelist) {
-      const response: ApiResponse = {
-        success: false,
-        error: 'Pricelist not found',
-        statusCode: 404
-      }
-      return res.status(404).json(response)
+    if (!Array.isArray(updates) || updates.length === 0) {
+      throw new CustomError('Request body must be a non-empty array of pricelist updates', 400)
     }
 
-    const updatedPricelist = await updatePricelist(id, updateData)
+    const updatedPricelists = await bulkUpdatePricelistItems(updates)
+
+    if (updatedPricelists.length === 0) {
+      throw new CustomError('No pricelists were updated successfully', 400)
+    }
+
+    res.status(200).json({
+      success: true,
+      data: updatedPricelists,
+      message: `Successfully updated ${updatedPricelists.length} pricelist items`,
+      statusCode: 200
+    })
+   
+
+    //  return res.status(200).json(response)
+  } catch (error) {
+    next(error)
+  }
+}
+
+// *GET /api/pricelist/dashboard - Get dashboard data
+export const getMaintenanceCostsHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const { propertyId, clientId } = req.query
+
+    // Get filters from query parameters
+    const filters: { propertyId?: string; clientId?: string } = {}
+    if (propertyId) filters.propertyId = propertyId as string
+    if (clientId) filters.clientId = clientId as string
+
+    // Calculate maintenance costs using the entity function
+    const maintenanceCosts = await calculateMaintenanceCosts(filters)
 
     const response: ApiResponse = {
       success: true,
-      data: updatedPricelist,
-      message: 'Pricelist updated successfully',
+      data: maintenanceCosts,
+      message: 'Maintenance costs calculated successfully',
       statusCode: 200
     }
 
-   return res.status(200).json(response)
+    return res.status(200).json(response)
   } catch (error) {
-    console.error('Error updating pricelist:', error)
-    
+    console.error('Error getting maintenance costs:', error)
+
     const response: ApiResponse = {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
       statusCode: 500
     }
-    
-   return res.status(500).json(response)
+
+    return res.status(500).json(response)
   }
 }
 
@@ -904,17 +966,17 @@ export const deletePricelistHandler = async (req: AuthenticatedRequest, res: Res
       statusCode: 200
     }
 
-   return res.status(200).json(response)
+    return res.status(200).json(response)
   } catch (error) {
     console.error('Error deleting pricelist:', error)
-    
+
     const response: ApiResponse = {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
       statusCode: 500
     }
-    
-   return res.status(500).json(response)
+
+    return res.status(500).json(response)
   }
 }
 
@@ -922,23 +984,23 @@ export const deletePricelistHandler = async (req: AuthenticatedRequest, res: Res
 export const testAzureStorageHandler = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const result = await testAzureStorageConnection()
-    
+
     const response: ApiResponse = {
       success: result.success,
       message: result.message,
       statusCode: result.success ? 200 : 500
     }
-    
+
     return res.status(result.success ? 200 : 500).json(response)
   } catch (error) {
     console.error('Error testing Azure Storage:', error)
-    
+
     const response: ApiResponse = {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
       statusCode: 500
     }
-    
+
     return res.status(500).json(response)
   }
 }

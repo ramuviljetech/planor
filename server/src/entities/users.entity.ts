@@ -8,7 +8,7 @@ export const findUserById = async (id: string): Promise<User | null> => {
     const { resource: user } = await usersContainer.item(id, id).read()
     return user || null
   } catch (error) {
-    console.error('Error finding user by ID:', error)
+    // console.error('Error finding user by ID:', error)
     throw error
   }
 }
@@ -28,7 +28,7 @@ export const findUserByEmailExcludingId = async (email: string, userId: string):
     const { resources: users } = await usersContainer.items.query(query).fetchAll()
     return users.length > 0 ? users[0] : null
   } catch (error) {
-    console.error('Error finding user by email excluding ID:', error)
+    // console.error('Error finding user by email excluding ID:', error)
     throw error
   }
 }
@@ -54,7 +54,7 @@ export const updateUser = async (id: string, userData: Partial<UpdateUserRequest
     }
     return result
   } catch (error) {
-    console.error('Error updating user:', error)
+    // console.error('Error updating user:', error)
     throw error
   }
 }
@@ -81,7 +81,7 @@ export const createOtpRecord = async (otpData: {
     }
     return result
   } catch (error) {
-    console.error('Error creating OTP record:', error)
+    // console.error('Error creating OTP record:', error)
     throw error
   }
 }
@@ -103,7 +103,7 @@ export const deleteOtpRecord = async (email: string): Promise<void> => {
       await otpContainer.item(otpRecords[0].id, email).delete()
     }
   } catch (error) {
-    console.error('Error deleting OTP record:', error)
+    // console.error('Error deleting OTP record:', error)
     // Don't throw error as OTP might not exist
   }
 }
@@ -125,8 +125,8 @@ export const findOtpByEmail = async (email: string) => {
     
     return otpRecords.length > 0 ? otpRecords[0] : null
   } catch (error) {
-    console.error('Error finding OTP record:', error)
-    return null
+    // console.error('Error finding OTP record:', error)
+    throw error
   }
 }
 
@@ -153,7 +153,7 @@ export const updateOtpRecord = async (email: string, otpData: any) => {
     }
     return result
   } catch (error) {
-    console.error('Error updating OTP record:', error)
+    // console.error('Error updating OTP record:', error)
     throw error
   }
 } 

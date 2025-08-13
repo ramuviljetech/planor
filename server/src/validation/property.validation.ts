@@ -99,12 +99,12 @@ export const createPropertySchema = Joi.object({
   metadata: Joi.object({
     grossArea: Joi.number()
       .positive()
-      .optional()
+      .required()
       .messages({
         'number.base': 'Gross area must be a number',
         'number.positive': 'Gross area must be a positive number'
       })
-  }).optional()
+  }).optional().unknown(false)
 })
 
 // Update property validation schema

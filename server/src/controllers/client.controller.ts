@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import {
     CreateClientRequest,
@@ -6,12 +6,11 @@ import {
     UserStatus,
     CreateStandardUserRequest,
     ClientFilters,
-    ApiResponse
+    next
 } from '../types'
 import {
     findUserByEmail,
     createUser,
-    findClientById,
 } from '../entities/admin.entity'
 import { findClientByEmail, createClient, getClientsWithFilters } from '../entities/client.entity'
 import { hashPassword } from '../utils/common'
@@ -20,52 +19,38 @@ import {
     createClientOnlySchema,
     createClientAndUserSchema
 } from '../validation/admin.validation'
+import { CustomError } from '../middleware/errorHandler'
 
 // Create new client (Admin only) - can create client only or client + users
-export const registerClient = async (req: Request, res: Response) => {
+export const registerClient = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const clientData: CreateClientRequest = req.body;
-      const authenticatedUser = (req as any).user;
-  
-      console.log('Client data received:', JSON.stringify(clientData, null, 2));
-      console.log('User data:', clientData.user);
-  
-      let validationResult;
-  
-      if (clientData.user) {
-        // If `user` is present, use the combined schema
-        console.log('Using createClientAndUserSchema');
-        validationResult = createClientAndUserSchema.validate(clientData);
-      } else {
-        // Otherwise, use the client-only schema
-        console.log('Using createClientOnlySchema');
-        const { user, ...clientOnlyData } = clientData;
-        validationResult = createClientOnlySchema.validate(clientOnlyData);
-      }
-  
-      console.log('Validation result:', validationResult);
+        const clientData: CreateClientRequest = req.body;
+        const authenticatedUser = (req as any).user;
+        let validationResult;
+
+        if (clientData.user) {
+            // If `user` is present, use the combined schema
+            validationResult = createClientAndUserSchema.validate(clientData);
+        } else {
+            // Otherwise, use the client-only schema
+            const { user, ...clientOnlyData } = clientData;
+            validationResult = createClientOnlySchema.validate(clientOnlyData);
+        }
 
         if (validationResult.error) {
-            return res.status(400).json({
-                success: false,
-                error: 'Validation failed',
-                details: validationResult.error.details.map((detail: any) => detail.message)
-            })
+            throw new CustomError('Validation failed', 400, validationResult.error.details.map((detail: any) => detail.message))
         }
 
         // Check if client with this email already exists
         const existingClient = await findClientByEmail(clientData.primaryContactEmail)
         if (existingClient) {
-            return res.status(409).json({
-                success: false,
-                error: 'Client with this email already exists'
-            })
+            throw new CustomError('Client with this email already exists', 409)
         }
 
         // Create new client
         const newClient = await createClient(clientData, authenticatedUser.id)
         if (!clientData.user) {
-            return res.status(201).json({
+            res.status(201).json({
                 success: true,
                 message: 'Client created successfully',
                 data: { client: newClient }
@@ -74,30 +59,22 @@ export const registerClient = async (req: Request, res: Response) => {
 
         // If user data is provided, create user(s) as well
         if (clientData.user) {
-            console.log('Creating user(s) for the new client...')
 
             // Normalize user data to array format
             const usersToCreate = Array.isArray(clientData.user) ? clientData.user : [clientData.user]
-console.log('Users to create:', usersToCreate);
 
             // Check for duplicate emails among the users to be created
             const userEmails = usersToCreate.map(u => u.email)
             const uniqueEmails = new Set(userEmails)
             if (uniqueEmails.size !== userEmails.length) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Duplicate email addresses found among users'
-                })
+                throw new CustomError('Duplicate email addresses found among users', 400)
             }
 
             // Check if any of the users already exist
             for (const userData of usersToCreate) {
                 const existingUser = await findUserByEmail(userData.email)
                 if (existingUser) {
-                    return res.status(409).json({
-                        success: false,
-                        error: `User with email ${userData.email} already exists`
-                    })
+                    throw new CustomError(`User with email ${userData.email} already exists`, 409)
                 }
             }
 
@@ -130,7 +107,7 @@ console.log('Users to create:', usersToCreate);
                             clientName: newClient.name
                         });
                     } catch (emailError) {
-                        console.error(`Failed to send welcome email to ${userData.email}:`, emailError);
+                        throw new CustomError(`Failed to send welcome email to ${userData.email}:`, 500)
                     }
                 }
 
@@ -147,70 +124,53 @@ console.log('Users to create:', usersToCreate);
 
             const results = await Promise.all(userCreationTasks);
             const createdUsers = results.map(r => r.user);
-            // const temporaryPasswords = results.map(r => r.temporaryPassword);
 
             const message = usersToCreate.length === 1
                 ? 'Client and standard user created successfully'
                 : `Client and ${usersToCreate.length} standard users created successfully`;
 
-            return res.status(201).json({
+            res.status(201).json({
                 success: true,
                 message,
                 data: {
                     client: newClient,
                     users: createdUsers,
-                    // temporaryPasswords
                 }
             });
         }
 
         // Fallback return for client-only creation (should not reach here due to early return above)
-        return res.status(201).json({
+        res.status(201).json({
             success: true,
             message: 'Client created successfully',
             data: { client: newClient }
         });
     } catch (error) {
-        console.error('Client creation error:', error);
-        const response: ApiResponse = {
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error occurred',
-            statusCode: 500
-          }
-        return res.status(500).json(response);
+        next(error)
     }
 }
 
 // Get clients with filters (Admin only)
-export const getClients = async (req: Request, res: Response) => {
-  try {
-    const authenticatedUser = (req as any).user;
-    const filters: ClientFilters = req.body;
-    
-    console.log('Filters:', filters);
-    
-    if (authenticatedUser.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Access denied. Admin privileges required.',
-      });
+export const getClients = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const authenticatedUser = (req as any).user;
+        const filters: ClientFilters = req.body;
+
+        if (authenticatedUser.role !== 'admin') {
+            throw new CustomError('Access denied. Admin privileges required.', 403)
+        }
+
+        // Use the new utility function from client entity
+        const result = await getClientsWithFilters(filters);
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+        next(error)
     }
-
-    // Use the new utility function from client entity
-    const result = await getClientsWithFilters(filters);
-
-    return res.json({
-      success: true,
-      data: result
-    });
-
-  } catch (error) {
-    console.error('Get clients error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
 };
 
 

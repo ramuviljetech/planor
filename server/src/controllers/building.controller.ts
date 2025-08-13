@@ -82,7 +82,7 @@ export const getAllBuildingsController = async (req: Request, res: Response) => 
       }
     })
   } catch (error) {
-    console.error('Get buildings error:', error)
+    // console.error('Get buildings error:', error)
     return res.status(500).json({
       success: false,
       error: 'Internal server error'

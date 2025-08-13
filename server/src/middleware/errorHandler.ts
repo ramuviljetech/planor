@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 export interface AppError extends Error {
   statusCode?: number;
   isOperational?: boolean;
+  details?: string[];
 }
 
 export const errorHandler = (
@@ -13,7 +14,7 @@ export const errorHandler = (
 ) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
-
+  const details = err.details || [];
   console.error(`Error ${statusCode}: ${message}`);
   console.error(err.stack);
 
@@ -21,6 +22,7 @@ export const errorHandler = (
     error: {
       message,
       statusCode,
+      details,
       timestamp: new Date().toISOString(),
       path: req.originalUrl
     }
@@ -31,11 +33,13 @@ export const errorHandler = (
 export class CustomError extends Error implements AppError {
   public statusCode: number;
   public isOperational: boolean;
+  public details: string [];
 
-  constructor(message: string, statusCode: number = 500) {
+  constructor(message: string, statusCode: number = 500, details: string[] = []) {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = true;
+    this.details = details;
 
     Error.captureStackTrace(this, this.constructor);
   }
