@@ -18,6 +18,8 @@ import Modal from "@/components/ui/modal";
 import Avatar from "@/components/ui/avatar";
 import FallbackScreen from "@/components/ui/fallback-screen";
 import { pricelistApiService } from "@/networking/pricelist-api-service";
+import { newObjectsTableHeadings, allObjectsAccordionTableColumns } from "@/app/constants";
+
 import styles from "./styles.module.css";
 
 
@@ -57,6 +59,9 @@ const PriceListPage: React.FC = () => {
   const [priceListData, setPriceListData] = useState<any>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const[priceListStatisticsData, setPriceListStatisticsData] = useState<any>([]);
+  const [itemsWithoutPrice, setItemsWithoutPrice] = useState<any[]>([]);
+  const [filteredAccordionData, setFilteredAccordionData] = useState<any[]>([]);
+  const [newObjectsData, setNewObjectsData] = useState<NewObjectRow[]>([]);
 
   // Fetch price list api call
 
@@ -69,6 +74,7 @@ const PriceListPage: React.FC = () => {
     } catch (error) {
       console.error("❌ PriceListPage: Error fetching price list:", error);
     } finally {
+      // setIsLoading(true);//
       setIsLoading(false);
     }
   };
@@ -77,15 +83,105 @@ const PriceListPage: React.FC = () => {
     fetchPriceList();
   }, []);
 
-  console.log("🔄 Price list data:", priceListData);
+  // Filter items with and without prices when priceListData changes
+  useEffect(() => {
+    if (priceListData) {
+      const allItemsWithoutPrice: any[] = [];
+      
+      const accordionData = [
+        {
+          key: "walls",
+          title: "Walls",
+          data: (priceListData.wall || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Walls" });
+              return false;
+            }
+            return true;
+          }),
+        },
+        {
+          key: "doors",
+          title: "Doors",
+          data: (priceListData.door || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Doors" });
+              return false;
+            }
+            return true;
+          }),
+        },
+        {
+          key: "floors",
+          title: "Floors",
+          data: (priceListData.floor || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Floors" });
+              return false;
+            }
+            return true;
+          }),
+        },
+        {
+          key: "roof",
+          title: "Roof",
+          data: (priceListData.roof || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Roof" });
+              return false;
+            }
+            return true;
+          }),
+        },
+        {
+          key: "windows",
+          title: "Windows",
+          data: (priceListData.window || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Windows" });
+              return false;
+            }
+            return true;
+          }),
+        },
+        {
+          key: "area",
+          title: "Area",
+          data: (priceListData.area || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Area" });
+              return false;
+            }
+            return true;
+          }),
+        },
+      ];
 
-  // Define table columns
-  const tableColumns = [
-    { key: "object", label: "Type" },
-    { key: "price", label: "Price" },
-    { key: "unit", label: "Unit" },
-    { key: "interval", label: "Interval" },
-  ];
+             // Update state with items without prices
+       setItemsWithoutPrice(allItemsWithoutPrice);
+       setFilteredAccordionData(accordionData);
+       
+               // Convert items without prices to NewObjectRow format and set to newObjectsData
+        const newObjectsFromItemsWithoutPrice = allItemsWithoutPrice.map((item) => ({
+          id: item.id || "", // Use original ID or fallback
+          object: item.object || "",
+          type: item.category || "",
+          price: "",
+          unit: item.unit || "",
+          intervals: "",
+        }));
+       setNewObjectsData(newObjectsFromItemsWithoutPrice);
+       
+       console.log("Setting newObjectsData:", newObjectsFromItemsWithoutPrice);
+      
+      // Console log items without prices
+      if (allItemsWithoutPrice.length > 0) {
+        console.log("Items without prices:", allItemsWithoutPrice);
+      }
+    }
+  }, [priceListData]);
+
+  console.log("🔄 Price list data:", priceListData);
 
   const toggleAccordion = (accordionKey: string) => {
     setAccordionStates((prev) => {
@@ -102,57 +198,6 @@ const PriceListPage: React.FC = () => {
     });
   };
 
-  const [newObjectsData, setNewObjectsData] = useState<NewObjectRow[]>([
-    {
-      id: "1",
-      object: "Door",
-      type: "Door W",
-      price: "1200 SEK",
-      unit: "ST",
-      intervals: "1 Year",
-    },
-    {
-      id: "2",
-      object: "Door",
-      type: "Door W1",
-      price: "",
-      unit: "ST",
-      intervals: "",
-    },
-    {
-      id: "3",
-      object: "Door",
-      type: "Door W2",
-      price: "",
-      unit: "ST",
-      intervals: "",
-    },
-    {
-      id: "4",
-      object: "Door",
-      type: "Door W3",
-      price: "",
-      unit: "ST",
-      intervals: "",
-    },
-    {
-      id: "5",
-      object: "Door",
-      type: "Door W4",
-      price: "",
-      unit: "ST",
-      intervals: "",
-    },
-    {
-      id: "6",
-      object: "Door",
-      type: "Door W5",
-      price: "",
-      unit: "ST",
-      intervals: "",
-    },
-  ]);
-
   const handleInputChange = (
     id: string,
     field: "price" | "intervals",
@@ -164,82 +209,40 @@ const PriceListPage: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    console.log("Submitting data:", newObjectsData);
-    console.log("All table values:", {
-      totalRows: newObjectsData.length,
-      filledRows: newObjectsData.filter((row) => row.price && row.intervals)
-        .length,
-      data: newObjectsData.map((row) => ({
-        object: row.object,
-        type: row.type,
-        price: row.price || "Not entered",
-        unit: row.unit,
-        intervals: row.intervals || "Not entered",
-      })),
+    // Filter items that have both price and intervals filled
+    const completedItems = newObjectsData.filter((row) => row.price && row.intervals);
+    
+    if (completedItems.length === 0) {
+      console.log("No items with complete price and intervals data");
+      return;
+    }
+
+    // Console log each completed item with price and intervals
+    completedItems.forEach((item) => {
+      console.log("Completed Item:", {
+        object: item.object,
+        type: item.type,
+        price: item.price,
+        unit: item.unit,
+        intervals: item.intervals,
+        category: item.type
+      });
     });
+
+    console.log("Total completed items:", completedItems.length);
+    console.log("All completed items data:", completedItems);
   };
 
   const handleCancel = () => {
-    // Reset to initial state or close modal
-    setNewObjectsData([
-      {
-        id: "1",
-        object: "Door",
-        type: "Door W",
-        price: "1200 SEK",
-        unit: "ST",
-        intervals: "1 Year",
-      },
-      {
-        id: "2",
-        object: "Door",
-        type: "Door W1",
+    // Reset all input fields to empty
+    setNewObjectsData(prev => 
+      prev.map(item => ({
+        ...item,
         price: "",
-        unit: "ST",
-        intervals: "",
-      },
-      {
-        id: "3",
-        object: "Door",
-        type: "Door W2",
-        price: "",
-        unit: "ST",
-        intervals: "",
-      },
-      {
-        id: "4",
-        object: "Door",
-        type: "Door W3",
-        price: "",
-        unit: "ST",
-        intervals: "",
-      },
-      {
-        id: "5",
-        object: "Door",
-        type: "Door W4",
-        price: "",
-        unit: "ST",
-        intervals: "",
-      },
-      {
-        id: "6",
-        object: "Door",
-        type: "Door W5",
-        price: "",
-        unit: "ST",
-        intervals: "",
-      },
-    ]);
+        intervals: ""
+      }))
+    );
   };
-
-  const tableHeadings = [
-    { heading: "Object", key: "object" },
-    { heading: "Type", key: "type" },
-    { heading: "Price", key: "price" },
-    { heading: "Unit", key: "unit" },
-    { heading: "Intervals", key: "intervals" },
-  ];
 
   const renderTabs = () => {
     return (
@@ -251,8 +254,10 @@ const PriceListPage: React.FC = () => {
               tab === "all"
                 ? styles.price_list_content_header_item_section_all_objects
                 : styles.price_list_content_header_item_section_new_objects
-            } ${activeTab === tab ? styles.active_tab : styles.inactive_tab}`}
-            onClick={() => setActiveTab(tab)}
+            } ${activeTab === tab ? styles.active_tab : styles.inactive_tab} ${
+              isLoading ? styles.disabled_tab : ""
+            }`}
+            onClick={() => !isLoading && setActiveTab(tab)}
           >
             <p
               className={
@@ -299,7 +304,7 @@ const PriceListPage: React.FC = () => {
             <table className={styles.accordion_table_header}>
               <thead>
                 <tr>
-                  {tableColumns.map((column) => (
+                  {allObjectsAccordionTableColumns.map((column: any) => (
                     <th
                       key={column.key}
                       className={styles.accordion_table_head_item}
@@ -315,13 +320,13 @@ const PriceListPage: React.FC = () => {
                 <tbody>
                   {data.map((item, idx) => (
                     <tr key={idx}>
-                      {tableColumns.map((column) => (
-                        <td
-                          key={column.key}
-                          className={styles.accordion_table_body_item}
-                        >
-                          {item[column.key as keyof TableRow]}
-                        </td>
+                      {allObjectsAccordionTableColumns.map((column: any) => (
+                                                 <td
+                           key={column.key}
+                           className={styles.accordion_table_body_item}
+                         >
+                           {item[column.key as keyof TableRow] || "-"}
+                         </td>
                       ))}
                     </tr>
                   ))}
@@ -334,6 +339,10 @@ const PriceListPage: React.FC = () => {
     );
   };
 
+
+
+
+  // Clients Statistics Data
   const clientsStaticsData = [
     {
       title: "Total Clients",
@@ -377,80 +386,66 @@ const PriceListPage: React.FC = () => {
                 className={styles.price_list_content_accordion_loading_fallback}
               />
             </div>
-          ) : (
-            (() => {
-              // Use API data for each accordion
-              const accordionData = [
-                {
-                  key: "walls",
-                  title: "Walls",
-                  data: priceListData.wall || [],
-                },
-                {
-                  key: "doors",
-                  title: "Doors",
-                  data: priceListData.door || [],
-                },
-                {
-                  key: "floors",
-                  title: "Floors",
-                  data: priceListData.floor || [],
-                },
-                {
-                  key: "roof",
-                  title: "Roof",
-                  data: priceListData.roof || [],
-                },
-                {
-                  key: "windows",
-                  title: "Windows",
-                  data: priceListData.window || [],
-                },
-                {
-                  key: "area",
-                  title: "Area",
-                  data: priceListData.area || [],
-                },
-              ];
+                     ) : ( 
+             (() => {
+               // Filter accordions that have data (length >= 1)
+               const accordionsWithData = filteredAccordionData.filter(
+                 (accordion) => accordion.data.length >= 1
+               );
 
-              // Filter accordions that have data (length >= 1)
-              const accordionsWithData = accordionData.filter(
-                (accordion) => accordion.data.length >= 1
-              );
-
-              // Check if all accordions have no data
-              if (accordionsWithData.length === 0) {
-                return (
-                  <div className={styles.price_list_content_accordion_no_data}>
-                    <p className={styles.price_list_content_accordion_no_data_text}>No Data Found</p>
-                  </div>
-                );
-              }
-
-              return accordionsWithData.map((accordion) => (
-                <React.Fragment key={accordion.key}>
-                  {renderAccordion(
-                    accordion.title,
-                    accordion.data,
-                    accordionStates[accordion.key as keyof typeof accordionStates],
-                    () => toggleAccordion(accordion.key)
-                  )}
-                </React.Fragment>
-              ));
-            })()
-          )}
+               // Check if all accordions have no data
+               if (accordionsWithData.length === 0) {
+                 return (
+                   <div className={styles.price_list_content_accordion_no_data}>
+                     <p className={styles.price_list_content_accordion_no_data_text}>No Data Found</p>
+                   </div>
+                 );
+               }
+              //  if(itemsWithoutPrice.length === 0){
+              //   return (
+              //     <div className={styles.price_list_content_accordion_no_data}>
+              //       <p className={styles.price_list_content_accordion_no_data_text}>No Data Found</p>
+              //     </div>
+              //   );
+              //  } 
+               return accordionsWithData.map((accordion) => (
+                 <React.Fragment key={accordion.key}>
+                   {renderAccordion(
+                     accordion.title,
+                     accordion.data,
+                     accordionStates[accordion.key as keyof typeof accordionStates],
+                     () => toggleAccordion(accordion.key)
+                   )}
+                 </React.Fragment>
+               ));
+             })()
+           )}
         </div>
       </>
     );
   };
 
+
   const renderNewObjectsTable = () => {
+    console.log("Rendering newObjectsData:", newObjectsData);
+    
+    // If no items without prices, show only message
+    if (newObjectsData.length === 0) {
+      return (
+        <div className={styles.price_list_content_new_objects_no_data}>
+          <p className={styles.price_list_content_new_objects_no_data_text}>
+            No Data Found
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className={styles.price_list_new_objects_section}>
         <table className={styles.new_objects_table}>
           <thead className={styles.table_header}>
             <tr>
-              {tableHeadings.map((heading, index) => (
+              {newObjectsTableHeadings.map((heading: any, index: any) => (
                 <th
                   key={index}
                   className={`${styles.table_header_cell_object} `}
@@ -468,6 +463,7 @@ const PriceListPage: React.FC = () => {
                 <td className={styles.table_cell_price}>
                   <Input
                     label=""
+                    type="number"
                     value={row.price}
                     onChange={(e) =>
                       handleInputChange(row.id, "price", e.target.value)

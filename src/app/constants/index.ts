@@ -734,3 +734,18 @@ export const sampleActivities = [
     status: "Approved",
   },
 ];
+
+export const allObjectsAccordionTableColumns = [
+  { key: "object", label: "Type" },
+  { key: "price", label: "Price" },
+  { key: "unit", label: "Unit" },
+  { key: "interval", label: "Interval" },
+];
+
+export const newObjectsTableHeadings = [
+  { heading: "Object", key: "object" },
+  { heading: "Type", key: "type" },
+  { heading: "Price", key: "price" },
+  { heading: "Unit", key: "unit" },
+  { heading: "Intervals", key: "intervals" },
+];
