@@ -14,11 +14,47 @@ import { useRouter } from "next/navigation";
 import AddClientUserModal from "@/components/add-client-user-modal";
 import styles from "./styles.module.css";
 import AddPropertyModal from "@/components/add-property-modal";
-import { useDataProvider } from "@/providers/data-provider";
 import FallbackScreen from "@/components/ui/fallback-screen";
+import { getClients } from "@/networking/client-api-service";
+
+// Client data interface matching the API response
+interface ClientData {
+  id: string;
+  clientName: string;
+  clientId: string;
+  properties: number;
+  createdOn: string;
+  totalMaintenanceCost: Record<string, number>;
+  status: string;
+}
+
+interface ClientsData {
+  data: ClientData[];
+  statistics: {
+    totalClients: number;
+    newClientsThisMonth: number;
+    totalBuildings: number;
+    totalFileUploads: number;
+  } | null;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+  } | null;
+  isLoading: boolean;
+  error: string | null;
+}
 
 const Clients: React.FC = () => {
-  const { clients, fetchClients, updateClientsPagination } = useDataProvider();
+  // Local state for clients data
+  const [clientsData, setClientsData] = useState<ClientsData>({
+    data: [],
+    statistics: null,
+    pagination: null,
+    isLoading: false,
+    error: null,
+  });
+
   const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
   const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
@@ -30,27 +66,67 @@ const Clients: React.FC = () => {
     useState<boolean>(false);
   const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
-  const [hasError, setHasError] = useState<boolean>(false);
+
+  // Fetch clients data
+  const fetchClientsData = async (page: number = 1) => {
+    try {
+      setClientsData((prev) => ({ ...prev, isLoading: true, error: null }));
+      const response = await getClients(page, itemsPerPage);
+
+      if (response.success && response.data) {
+        // Transform the API response to match our expected format
+        const transformedClients =
+          response.data.clients || response.data.data || [];
+        const statistics = response.data.statistics || {
+          totalClients: response.data.totalClients || transformedClients.length,
+          newClientsThisMonth: response.data.newClientsThisMonth || 0,
+          totalBuildings: response.data.totalBuildings || 0,
+          totalFileUploads: response.data.totalFileUploads || 0,
+        };
+        const pagination = response.data.pagination || {
+          currentPage: page,
+          totalPages: Math.ceil(
+            (response.data.totalClients || transformedClients.length) /
+              itemsPerPage
+          ),
+          totalItems: response.data.totalClients || transformedClients.length,
+        };
+
+        setClientsData({
+          data: transformedClients,
+          statistics,
+          pagination,
+          isLoading: false,
+          error: null,
+        });
+      } else {
+        throw new Error(response.message || "Failed to fetch clients data");
+      }
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      setClientsData((prev) => ({
+        ...prev,
+        isLoading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch clients data",
+      }));
+    }
+  };
 
   useEffect(() => {
-    // Fetch data if not already loaded
-    if (clients.data.length === 0 && !clients.isLoading) {
-      setHasError(false);
-      fetchClients(1).catch(() => {
-        setHasError(true);
-      });
-    } else {
-      console.log("✅ Clients Page: Using cached clients data from dashboard");
-    }
+    // Fetch data when component mounts
+    fetchClientsData(1);
   }, []);
 
   // Transform API clients data to table format
   const transformedClientsData = useMemo(() => {
-    if (!clients.data || clients.data.length === 0) {
+    if (!clientsData.data || clientsData.data.length === 0) {
       return [];
     }
 
-    return clients.data.map((client) => ({
+    return clientsData.data.map((client) => ({
       id: client.id,
       clientName: client.clientName,
       clientId: client.clientId,
@@ -60,26 +136,23 @@ const Clients: React.FC = () => {
         month: "short",
         year: "numeric",
       }),
-      maintenanceCost: Object.values(client.totalMaintenanceCost).reduce(
+      maintenanceCost: Object.values(client.totalMaintenanceCost || {}).reduce(
         (sum, cost) => sum + cost,
         0
       ),
       status: client.status === "active" ? "Active" : "Inactive",
     }));
-  }, [clients.data]);
+  }, [clientsData.data]);
 
   const handleRetry = () => {
-    setHasError(false);
-    fetchClients(1).catch(() => {
-      setHasError(true);
-    });
+    fetchClientsData(1);
   };
 
   const totalItems =
-    clients.statistics?.totalClients || transformedClientsData.length;
+    clientsData.statistics?.totalClients || transformedClientsData.length;
   const totalPages =
-    clients.pagination?.totalPages || Math.ceil(totalItems / itemsPerPage);
-  const currentPageFromApi = clients.pagination?.currentPage || currentPage;
+    clientsData.pagination?.totalPages || Math.ceil(totalItems / itemsPerPage);
+  const currentPageFromApi = clientsData.pagination?.currentPage || currentPage;
 
   // Use the data directly from API response since it's already paginated
   const currentRows = transformedClientsData;
@@ -130,7 +203,7 @@ const Clients: React.FC = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     console.log("📄 Clients Page: Changing to page:", page);
-    updateClientsPagination(page);
+    fetchClientsData(page);
   };
 
   const handleViewDetails = (rowData: any) => {
@@ -159,9 +232,9 @@ const Clients: React.FC = () => {
       <div className={styles.clients_header_section}>
         <div className={styles.clients_header_section_title_container}>
           <p className={styles.clients_count}>
-            {clients.isLoading && clients.data.length === 0
+            {clientsData.isLoading && clientsData.data.length === 0
               ? "..."
-              : clients.statistics?.totalClients || 0}
+              : clientsData.statistics?.totalClients || 0}
           </p>
           <p className={styles.clients_header_section_title}>Clients</p>
         </div>
@@ -177,7 +250,7 @@ const Clients: React.FC = () => {
 
   const renderClients = () => {
     // Show error state
-    if (hasError && clients.data.length === 0) {
+    if (clientsData.error && clientsData.data.length === 0) {
       return (
         <div className={styles.clients_details_container}>
           <FallbackScreen
@@ -217,7 +290,7 @@ const Clients: React.FC = () => {
           actionButtonStyle={styles.dashboard_clients_add_client_button}
         />
 
-        {clients.isLoading && clients.data.length === 0 ? (
+        {clientsData.isLoading && clientsData.data.length === 0 ? (
           <div className={styles.clients_details_container}>
             <FallbackScreen
               title="Loading Clients"
@@ -232,9 +305,9 @@ const Clients: React.FC = () => {
               <MetricCard
                 title="Total Clients"
                 value={
-                  clients.isLoading && clients.data.length === 0
+                  clientsData.isLoading && clientsData.data.length === 0
                     ? 0
-                    : clients.statistics?.totalClients || 0
+                    : clientsData.statistics?.totalClients || 0
                 }
                 className={styles.dashboard_clients_static_card}
                 titleStyle={styles.dashboard_clients_static_card_title}
@@ -242,9 +315,9 @@ const Clients: React.FC = () => {
               <MetricCard
                 title="New This Month"
                 value={
-                  clients.isLoading && clients.data.length === 0
+                  clientsData.isLoading && clientsData.data.length === 0
                     ? 0
-                    : clients.statistics?.newClientsThisMonth || 0
+                    : clientsData.statistics?.newClientsThisMonth || 0
                 }
                 className={styles.dashboard_clients_static_card}
                 titleStyle={styles.dashboard_clients_static_card_title}
@@ -252,9 +325,9 @@ const Clients: React.FC = () => {
               <MetricCard
                 title="Total Buildings"
                 value={
-                  clients.isLoading && clients.data.length === 0
+                  clientsData.isLoading && clientsData.data.length === 0
                     ? 0
-                    : clients.statistics?.totalBuildings || 0
+                    : clientsData.statistics?.totalBuildings || 0
                 }
                 className={styles.dashboard_clients_static_card}
                 titleStyle={styles.dashboard_clients_static_card_title}
@@ -262,18 +335,18 @@ const Clients: React.FC = () => {
               <MetricCard
                 title="File Uploads"
                 value={
-                  clients.isLoading && clients.data.length === 0
+                  clientsData.isLoading && clientsData.data.length === 0
                     ? 0
-                    : clients.statistics?.totalFileUploads || 0
+                    : clientsData.statistics?.totalFileUploads || 0
                 }
                 className={styles.dashboard_clients_static_card}
                 titleStyle={styles.dashboard_clients_static_card_title}
               />
             </div>
             <div className={styles.table_container_wrapper}>
-              {clients.data.length !== 0 ? (
+              {clientsData.data.length !== 0 ? (
                 <CommonTableWithPopover
-                  key={`clients-table-${currentPageFromApi}-${clients.data.length}`}
+                  key={`clients-table-${currentPageFromApi}-${clientsData.data.length}`}
                   columns={columns}
                   rows={currentRows}
                   selectedRowId={selectedRowId}
@@ -289,7 +362,7 @@ const Clients: React.FC = () => {
                   actionIconClassName={styles.actionIcon}
                   popoverMenuClassName={styles.action_popoverMenu}
                   popoverMenuItemClassName={styles.action_popoverMenuItem}
-                  disabled={clients.isLoading}
+                  disabled={clientsData.isLoading}
                 />
               ) : (
                 <div className={styles.no_clients_found_container}>
@@ -298,7 +371,7 @@ const Clients: React.FC = () => {
                   </p>
                 </div>
               )}
-              {clients.isLoading && clients.data.length > 0 && (
+              {clientsData.isLoading && clientsData.data.length > 0 && (
                 <div className={styles.pagination_loading_overlay}>
                   <div className={styles.pagination_loading_spinner}>
                     <div className={styles.spinner}></div>
