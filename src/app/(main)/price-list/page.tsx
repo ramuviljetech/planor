@@ -17,11 +17,13 @@ import Button from "@/components/ui/button";
 import Modal from "@/components/ui/modal";
 import Avatar from "@/components/ui/avatar";
 import FallbackScreen from "@/components/ui/fallback-screen";
-import { pricelistApiService } from "@/networking/pricelist-api-service";
-import { newObjectsTableHeadings, allObjectsAccordionTableColumns } from "@/app/constants";
+import { getPriceList } from "@/networking/pricelist-api-service";
+import {
+  newObjectsTableHeadings,
+  allObjectsAccordionTableColumns,
+} from "@/app/constants";
 
 import styles from "./styles.module.css";
-
 
 type TabType = "all" | "new";
 
@@ -58,7 +60,9 @@ const PriceListPage: React.FC = () => {
   });
   const [priceListData, setPriceListData] = useState<any>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const[priceListStatisticsData, setPriceListStatisticsData] = useState<any>([]);
+  const [priceListStatisticsData, setPriceListStatisticsData] = useState<any>(
+    []
+  );
   const [itemsWithoutPrice, setItemsWithoutPrice] = useState<any[]>([]);
   const [filteredAccordionData, setFilteredAccordionData] = useState<any[]>([]);
   const [newObjectsData, setNewObjectsData] = useState<NewObjectRow[]>([]);
@@ -68,7 +72,7 @@ const PriceListPage: React.FC = () => {
   const fetchPriceList = async () => {
     try {
       setIsLoading(true);
-      const response = await pricelistApiService.getPriceList();
+      const response = await getPriceList();
       setPriceListData(response.data.pricelists);
       setPriceListStatisticsData(response.data.statistics);
     } catch (error) {
@@ -87,7 +91,7 @@ const PriceListPage: React.FC = () => {
   useEffect(() => {
     if (priceListData) {
       const allItemsWithoutPrice: any[] = [];
-      
+
       const accordionData = [
         {
           key: "walls",
@@ -157,23 +161,25 @@ const PriceListPage: React.FC = () => {
         },
       ];
 
-             // Update state with items without prices
-       setItemsWithoutPrice(allItemsWithoutPrice);
-       setFilteredAccordionData(accordionData);
-       
-               // Convert items without prices to NewObjectRow format and set to newObjectsData
-        const newObjectsFromItemsWithoutPrice = allItemsWithoutPrice.map((item) => ({
+      // Update state with items without prices
+      setItemsWithoutPrice(allItemsWithoutPrice);
+      setFilteredAccordionData(accordionData);
+
+      // Convert items without prices to NewObjectRow format and set to newObjectsData
+      const newObjectsFromItemsWithoutPrice = allItemsWithoutPrice.map(
+        (item) => ({
           id: item.id || "", // Use original ID or fallback
           object: item.object || "",
           type: item.category || "",
           price: "",
           unit: item.unit || "",
           intervals: "",
-        }));
-       setNewObjectsData(newObjectsFromItemsWithoutPrice);
-       
-       console.log("Setting newObjectsData:", newObjectsFromItemsWithoutPrice);
-      
+        })
+      );
+      setNewObjectsData(newObjectsFromItemsWithoutPrice);
+
+      console.log("Setting newObjectsData:", newObjectsFromItemsWithoutPrice);
+
       // Console log items without prices
       if (allItemsWithoutPrice.length > 0) {
         console.log("Items without prices:", allItemsWithoutPrice);
@@ -210,8 +216,10 @@ const PriceListPage: React.FC = () => {
 
   const handleSubmit = () => {
     // Filter items that have both price and intervals filled
-    const completedItems = newObjectsData.filter((row) => row.price && row.intervals);
-    
+    const completedItems = newObjectsData.filter(
+      (row) => row.price && row.intervals
+    );
+
     if (completedItems.length === 0) {
       console.log("No items with complete price and intervals data");
       return;
@@ -225,7 +233,7 @@ const PriceListPage: React.FC = () => {
         price: item.price,
         unit: item.unit,
         intervals: item.intervals,
-        category: item.type
+        category: item.type,
       });
     });
 
@@ -235,11 +243,11 @@ const PriceListPage: React.FC = () => {
 
   const handleCancel = () => {
     // Reset all input fields to empty
-    setNewObjectsData(prev => 
-      prev.map(item => ({
+    setNewObjectsData((prev) =>
+      prev.map((item) => ({
         ...item,
         price: "",
-        intervals: ""
+        intervals: "",
       }))
     );
   };
@@ -321,12 +329,12 @@ const PriceListPage: React.FC = () => {
                   {data.map((item, idx) => (
                     <tr key={idx}>
                       {allObjectsAccordionTableColumns.map((column: any) => (
-                                                 <td
-                           key={column.key}
-                           className={styles.accordion_table_body_item}
-                         >
-                           {item[column.key as keyof TableRow] || "-"}
-                         </td>
+                        <td
+                          key={column.key}
+                          className={styles.accordion_table_body_item}
+                        >
+                          {item[column.key as keyof TableRow] || "-"}
+                        </td>
                       ))}
                     </tr>
                   ))}
@@ -338,9 +346,6 @@ const PriceListPage: React.FC = () => {
       </div>
     );
   };
-
-
-
 
   // Clients Statistics Data
   const clientsStaticsData = [
@@ -380,55 +385,62 @@ const PriceListPage: React.FC = () => {
         <div className={styles.price_list_content_accordion}>
           {isLoading ? (
             <div className={styles.price_list_content_accordion_loading}>
-              <FallbackScreen 
+              <FallbackScreen
                 title="Loading Price List"
                 subtitle="Please wait while we fetch the latest pricing data..."
                 className={styles.price_list_content_accordion_loading_fallback}
               />
             </div>
-                     ) : ( 
-             (() => {
-               // Filter accordions that have data (length >= 1)
-               const accordionsWithData = filteredAccordionData.filter(
-                 (accordion) => accordion.data.length >= 1
-               );
+          ) : (
+            (() => {
+              // Filter accordions that have data (length >= 1)
+              const accordionsWithData = filteredAccordionData.filter(
+                (accordion) => accordion.data.length >= 1
+              );
 
-               // Check if all accordions have no data
-               if (accordionsWithData.length === 0) {
-                 return (
-                   <div className={styles.price_list_content_accordion_no_data}>
-                     <p className={styles.price_list_content_accordion_no_data_text}>No Data Found</p>
-                   </div>
-                 );
-               }
+              // Check if all accordions have no data
+              if (accordionsWithData.length === 0) {
+                return (
+                  <div className={styles.price_list_content_accordion_no_data}>
+                    <p
+                      className={
+                        styles.price_list_content_accordion_no_data_text
+                      }
+                    >
+                      No Data Found
+                    </p>
+                  </div>
+                );
+              }
               //  if(itemsWithoutPrice.length === 0){
               //   return (
               //     <div className={styles.price_list_content_accordion_no_data}>
               //       <p className={styles.price_list_content_accordion_no_data_text}>No Data Found</p>
               //     </div>
               //   );
-              //  } 
-               return accordionsWithData.map((accordion) => (
-                 <React.Fragment key={accordion.key}>
-                   {renderAccordion(
-                     accordion.title,
-                     accordion.data,
-                     accordionStates[accordion.key as keyof typeof accordionStates],
-                     () => toggleAccordion(accordion.key)
-                   )}
-                 </React.Fragment>
-               ));
-             })()
-           )}
+              //  }
+              return accordionsWithData.map((accordion) => (
+                <React.Fragment key={accordion.key}>
+                  {renderAccordion(
+                    accordion.title,
+                    accordion.data,
+                    accordionStates[
+                      accordion.key as keyof typeof accordionStates
+                    ],
+                    () => toggleAccordion(accordion.key)
+                  )}
+                </React.Fragment>
+              ));
+            })()
+          )}
         </div>
       </>
     );
   };
 
-
   const renderNewObjectsTable = () => {
     console.log("Rendering newObjectsData:", newObjectsData);
-    
+
     // If no items without prices, show only message
     if (newObjectsData.length === 0) {
       return (
@@ -499,8 +511,6 @@ const PriceListPage: React.FC = () => {
       </div>
     );
   };
-
-
 
   return (
     <div className={styles.price_list_container}>

@@ -216,46 +216,6 @@ const ClientsFilter = ({ onClose, onApplyFilters }: ClientsFilterProps) => {
       </section>
     );
   };
-
-  // const renderByLocationSection = () => {
-  //   return (
-  //     <section className={styles.clients_filter_by_location_section}>
-  //       <p className={styles.clients_filter_status_section_title}>
-  //         By Location
-  //       </p>
-  //       <SelectDropDown
-  //         label="Locations*"
-  //         placeholder="Select Locations"
-  //         options={[
-  //           "Hyderabad",
-  //           "Mumbai",
-  //           "Delhi",
-  //           "Chennai",
-  //           "Kolkata",
-  //           "Bengaluru",
-  //           "Pune",
-  //           "Jaipur",
-  //           "Ahmedabad",
-  //           "Surat",
-  //           "Lucknow",
-  //           "Kanpur",
-  //           "Nagpur",
-  //         ]}
-  //         selected={selectedByLocation || []}
-  //         onSelect={(value) =>
-  //           setSelectedByLocation(Array.isArray(value) ? value : [value])
-  //         }
-  //         multiSelect={true}
-  //         onCloseIconClick={(item: string) => {
-  //           setSelectedByLocation(selectedByLocation.filter((f) => f !== item));
-  //         }}
-  //         selectedItemsContainerClass={
-  //           styles.clients_filter_by_location_section_selected_items_container
-  //         }
-  //       />
-  //     </section>
-  //   );
-  // };
   const renderButtonSection = () => {
     return (
       <section className={styles.clients_filter_button_section}>
