@@ -921,24 +921,15 @@ export const getMaintenanceCostsHandler = async (req: AuthenticatedRequest, res:
     // Calculate maintenance costs using the entity function
     const maintenanceCosts = await calculateMaintenanceCosts(filters)
 
-    const response: ApiResponse = {
-      success: true,
-      data: maintenanceCosts,
-      message: 'Maintenance costs calculated successfully',
-      statusCode: 200
-    }
-
-    return res.status(200).json(response)
+   res.status(200).json({
+    success: true,
+    data: maintenanceCosts,
+    message: 'Maintenance costs calculated successfully',
+    statusCode: 200
+   })
   } catch (error) {
-    console.error('Error getting maintenance costs:', error)
-
-    const response: ApiResponse = {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-      statusCode: 500
-    }
-
-    return res.status(500).json(response)
+    // console.error('Error getting maintenance costs:', error) 
+    next(error)
   }
 }
 

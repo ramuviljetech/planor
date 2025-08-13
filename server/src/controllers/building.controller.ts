@@ -14,8 +14,7 @@ import { findPropertyById } from '../entities/property.entity'
 
 
 
-// *Get all buildings with pagination and search filters  
-  //! calculate total objects using count..what about area.?? area does not have count key.
+// *Get all buildings with pagination and search filters .
 export const getAllBuildingsController = async (req: Request, res: Response) => {
   try {
     const authenticatedUser = (req as any).user

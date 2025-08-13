@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { v4 as uuidv4 } from 'uuid'
-import { Property, CreatePropertyRequest, PropertyWithBuildingCount, next } from '../types'
+import { Property, CreatePropertyRequest, PropertyWithBuildingCount } from '../types'
 import {
   findPropertyById,
   findPropertyByCode,

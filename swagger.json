@@ -1888,266 +1888,36 @@
         }
       }
     },
-    "/api/admin/maintenance-costs": {
+    "/api/admin/dashboard": {
       "get": {
         "tags": [
           "Admin"
         ],
-        "summary": "Get Maintenance Costs",
-        "description": "Get total maintenance costs and individual costs for different building components using database aggregation queries (Admin only)",
+        "summary": "Get Dashboard",
+        "description": "Get dashboard data", 
         "security": [
           {
             "bearerAuth": []
           }
         ],
-        "parameters": [
-          {
-            "name": "propertyId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter costs by specific property ID"
-          },
-          {
-            "name": "clientId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter costs by specific client ID"
-          }
-        ],
         "responses": {
           "200": {
-            "description": "Maintenance costs calculated successfully",
+            "description": "Dashboard data retrieved successfully",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "summary": {
-                          "type": "object",
-                          "properties": {
-                            "totalMaintenanceCost": {
-                              "type": "number",
-                              "description": "Total cost across all maintenance categories"
-                            },
-                            "totalBuildings": {
-                              "type": "number",
-                              "description": "Total number of buildings in scope"
-                            },
-                            "totalArea": {
-                              "type": "number",
-                              "description": "Total area of all buildings in scope"
-                            },
-                            "maintenanceUpdates": {
-                              "type": "number",
-                              "description": "Total number of maintenance items"
-                            }
-                          }
-                        },
-                        "breakdown": {
-                          "type": "object",
-                          "properties": {
-                            "totalCosts": {
-                              "type": "object",
-                              "properties": {
-                                "doors": {
-                                  "type": "number",
-                                  "description": "Total cost for door maintenance"
-                                },
-                                "floors": {
-                                  "type": "number",
-                                  "description": "Total cost for floor maintenance"
-                                },
-                                "windows": {
-                                  "type": "number",
-                                  "description": "Total cost for window maintenance"
-                                },
-                                "walls": {
-                                  "type": "number",
-                                  "description": "Total cost for wall maintenance"
-                                },
-                                "roofs": {
-                                  "type": "number",
-                                  "description": "Total cost for roof maintenance"
-                                },
-                                "areas": {
-                                  "type": "number",
-                                  "description": "Total cost for area maintenance"
-                                }
-                              }
-                            },
-                            "detailedCosts": {
-                              "type": "object",
-                              "properties": {
-                                "doors": {
-                                  "type": "object",
-                                  "properties": {
-                                    "total": {
-                                      "type": "number",
-                                      "description": "Total cost for doors"
-                                    },
-                                    "count": {
-                                      "type": "number",
-                                      "description": "Number of door items"
-                                    },
-                                    "average": {
-                                      "type": "number",
-                                      "description": "Average cost per door item"
-                                    }
-                                  }
-                                },
-                                "floors": {
-                                  "type": "object",
-                                  "properties": {
-                                    "total": {
-                                      "type": "number",
-                                      "description": "Total cost for floors"
-                                    },
-                                    "count": {
-                                      "type": "number",
-                                      "description": "Number of floor items"
-                                    },
-                                    "average": {
-                                      "type": "number",
-                                      "description": "Average cost per floor item"
-                                    }
-                                  }
-                                },
-                                "windows": {
-                                  "type": "object",
-                                  "properties": {
-                                    "total": {
-                                      "type": "number",
-                                      "description": "Total cost for windows"
-                                    },
-                                    "count": {
-                                      "type": "number",
-                                      "description": "Number of window items"
-                                    },
-                                    "average": {
-                                      "type": "number",
-                                      "description": "Average cost per window item"
-                                    }
-                                  }
-                                },
-                                "walls": {
-                                  "type": "object",
-                                  "properties": {
-                                    "total": {
-                                      "type": "number",
-                                      "description": "Total cost for walls"
-                                    },
-                                    "count": {
-                                      "type": "number",
-                                      "description": "Number of wall items"
-                                    },
-                                    "average": {
-                                      "type": "number",
-                                      "description": "Average cost per wall item"
-                                    }
-                                  }
-                                },
-                                "roofs": {
-                                  "type": "object",
-                                  "properties": {
-                                    "total": {
-                                      "type": "number",
-                                      "description": "Total cost for roofs"
-                                    },
-                                    "count": {
-                                      "type": "number",
-                                      "description": "Number of roof items"
-                                    },
-                                    "average": {
-                                      "type": "number",
-                                      "description": "Average cost per roof item"
-                                    }
-                                  }
-                                },
-                                "areas": {
-                                  "type": "object",
-                                  "properties": {
-                                    "total": {
-                                      "type": "number",
-                                      "description": "Total cost for areas"
-                                    },
-                                    "count": {
-                                      "type": "number",
-                                      "description": "Number of area items"
-                                    },
-                                    "average": {
-                                      "type": "number",
-                                      "description": "Average cost per area item"
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        },
-                        "filters": {
-                          "type": "object",
-                          "properties": {
-                            "propertyId": {
-                              "type": "string",
-                              "nullable": true,
-                              "description": "Applied property filter"
-                            },
-                            "clientId": {
-                              "type": "string",
-                              "nullable": true,
-                              "description": "Applied client filter"
-                            }
-                          }
-                        }
-                      }
+                "example": {
+                  "success": true,
+                  "message": "Dashboard data retrieved successfully",
+                  "data": { 
+                    "totalMaintenanceCost":{
+                      "doors": 1000,
+                      "floors": 1000,
+                      "windows": 1000,
+                      "walls": 1000,
+                      "roofs": 1000,
+                      "areas": 1000
                     }
                   }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "message": "Unauthorized access"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Admin access required",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "message": "Admin access required"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "message": "Internal server error"
                 }
               }
             }
@@ -2728,43 +2498,6 @@
                 "example": {
                   "success": false,
                   "message": "Pricelist not found"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/pricelist/dashboard": {
-      "get": {
-        "tags": [
-          "Pricelist"
-        ],
-        "summary": "Get Dashboard",
-        "description": "Get dashboard data", 
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Dashboard data retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": true,
-                  "message": "Dashboard data retrieved successfully",
-                  "data": { 
-                    "totalMaintenanceCost":{
-                      "doors": 1000,
-                      "floors": 1000,
-                      "windows": 1000,
-                      "walls": 1000,
-                      "roofs": 1000,
-                      "areas": 1000
-                    }
-                  }
                 }
               }
             }
