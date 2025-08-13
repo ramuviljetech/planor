@@ -161,6 +161,24 @@ const PriceListPage: React.FC = () => {
         },
       ];
 
+      // Filter accordions that have data (length >= 1)
+      const accordionsWithData = accordionData.filter(
+        (accordion) => accordion.data.length >= 1
+      );
+
+      // If there's only one accordion with data, automatically open it
+      if (accordionsWithData.length === 1) {
+        const singleAccordionKey = accordionsWithData[0].key;
+        setAccordionStates({
+          walls: singleAccordionKey === "walls",
+          doors: singleAccordionKey === "doors",
+          floors: singleAccordionKey === "floors",
+          roof: singleAccordionKey === "roof",
+          windows: singleAccordionKey === "windows",
+          area: singleAccordionKey === "area",
+        });
+      }
+
       // Update state with items without prices
       setItemsWithoutPrice(allItemsWithoutPrice);
       setFilteredAccordionData(accordionData);
