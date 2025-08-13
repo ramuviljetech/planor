@@ -29,10 +29,10 @@ import AddPropertyModal from "@/components/add-property-modal";
 import MaintenancePlan from "@/components/maintenance-plan";
 import AddUserModal from "@/components/add-user-modal";
 import {
-  clientInfoApiService,
-  maintancePlanApiService,
-  propertiesApiService,
-  userDetailsApiService,
+  getClientInfo,
+  getProperties,
+  getUserDetails,
+  getMaintancePlan,
 } from "@/networking/client-api-service";
 import FallbackScreen from "@/components/ui/fallback-screen";
 
@@ -64,7 +64,7 @@ const ClientInfo: React.FC = () => {
   );
 
   // Table data state - initialize with static data
-  const [tableData, setTableData] = useState<any[]>([]);
+  const [clinetUsers, setClinetUsers] = useState<any[]>([]);
 
   const tabs: TabItem[] = [
     { label: "Over View", value: "overview" },
@@ -85,7 +85,7 @@ const ClientInfo: React.FC = () => {
   // Fetch client information
   const fetchClientInfo = async (clientId: string) => {
     try {
-      const clientResponse = await clientInfoApiService.getClientInfo(clientId);
+      const clientResponse = await getClientInfo(clientId);
       console.log("Client info:", clientResponse.data);
 
       if (clientResponse.data) {
@@ -133,8 +133,7 @@ const ClientInfo: React.FC = () => {
   // Fetch user details
   const fetchUserDetails = async (clientId: string) => {
     try {
-      const userDetails = await userDetailsApiService.getUserDetails(clientId);
-      console.log("User details:", userDetails.data);
+      const userDetails = await getUserDetails(clientId);
 
       if (userDetails.data) {
         const transformedUserDetails = userDetails.data.map((user: any) => ({
@@ -143,9 +142,9 @@ const ClientInfo: React.FC = () => {
           phoneNumber: user.contact || "N/A",
           email: user.email || "N/A",
         }));
-        setTableData(transformedUserDetails);
+        setClinetUsers(transformedUserDetails);
       } else {
-        setTableData([]);
+        setClinetUsers([]);
       }
     } catch (error) {
       console.error("Error fetching user details:", error);
@@ -156,7 +155,7 @@ const ClientInfo: React.FC = () => {
   // Fetch properties
   const fetchProperties = async (clientId: string) => {
     try {
-      const properties = await propertiesApiService.getProperties(clientId);
+      const properties = await getProperties(clientId);
       if (properties.data) {
         setProperties(properties.data);
         console.log("Properties:", properties.data);
@@ -172,9 +171,7 @@ const ClientInfo: React.FC = () => {
   // Fetch maintance plan
   const fetchMaintancePlan = async (clientId: string) => {
     try {
-      const maintancePlan = await maintancePlanApiService.getMaintancePlan(
-        clientId
-      );
+      const maintancePlan = await getMaintancePlan(clientId);
       console.log("Maintance plan:", maintancePlan.data);
     } catch (error) {
       console.error("Error fetching maintance plan:", error);
@@ -228,13 +225,13 @@ const ClientInfo: React.FC = () => {
     },
   ];
 
-  const totalItems = tableData?.length;
+  const totalItems = clinetUsers?.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   // Get current page data
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentRows = tableData?.slice(startIndex, endIndex) || [];
+  const currentRows = clinetUsers?.slice(startIndex, endIndex) || [];
 
   const handleRowClick = (row: TableRow, index: number) => {
     console.log("Row clicked:", {
@@ -292,7 +289,7 @@ const ClientInfo: React.FC = () => {
       console.log("Updating user:", userData);
 
       // Update the table data
-      setTableData((prevData) =>
+      setClinetUsers((prevData) =>
         prevData.map((user) =>
           user.id === userData.id
             ? {
@@ -316,7 +313,7 @@ const ClientInfo: React.FC = () => {
         email: userData.email,
       };
 
-      setTableData((prevData) => [...prevData, newUser]);
+      setClinetUsers((prevData) => [...prevData, newUser]);
     }
 
     // Reset modal state
@@ -327,30 +324,6 @@ const ClientInfo: React.FC = () => {
   const handleDeleteUser = (rowId: string | number) => {
     console.log("Delete User clicked for row:", rowId);
     // Add your delete user logic here
-  };
-
-  const handleRetry = () => {
-    const clientId = searchParams?.get("id");
-    if (!clientId) return;
-
-    setHasError(false);
-    setIsLoading(true);
-
-    const fetchAllData = async () => {
-      try {
-        await Promise.all([
-          fetchClientInfo(clientId),
-          fetchUserDetails(clientId),
-        ]);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setHasError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAllData();
   };
 
   // Define actions for the popover
@@ -402,14 +375,6 @@ const ClientInfo: React.FC = () => {
             subtitle="There was an error loading the client data. Please try refreshing the page."
             className={styles.client_info_loading_fallback}
           />
-          <div className={styles.retry_button_container}>
-            <Button
-              title="Retry"
-              variant="primary"
-              size="sm"
-              onClick={handleRetry}
-            />
-          </div>
         </div>
       );
     }
@@ -457,14 +422,7 @@ const ClientInfo: React.FC = () => {
               />
             </div>
             {/* Users List table */}
-            {isLoading && tableData.length > 0 ? (
-              <div className={styles.table_loading_overlay}>
-                <div className={styles.table_loading_spinner}>
-                  <div className={styles.spinner}></div>
-                  <span>Loading users...</span>
-                </div>
-              </div>
-            ) : tableData.length === 0 ? (
+            {clinetUsers.length === 0 ? (
               <div className={styles.no_users_found_container}>
                 <p className={styles.no_users_found_text}>No users found</p>
               </div>

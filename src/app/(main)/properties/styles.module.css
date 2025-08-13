@@ -118,7 +118,7 @@
   justify-content: flex-end;
 }
 .properties_loading_fallback {
-  min-height: 400px;
+  height: 100% !important;
   display: flex;
   align-items: center;
   justify-content: center;

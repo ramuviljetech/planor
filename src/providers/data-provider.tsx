@@ -9,8 +9,8 @@ import React, {
   useRef,
   useEffect,
 } from "react";
-import { commonService } from "@/networking/common-service";
-import { dashboardApiService } from "@/networking/dashboard-api-service";
+import { getClients } from "@/networking/client-api-service";
+import { getMaintenanceSummaryData } from "@/networking/dashboard-api-service";
 
 interface MaintenanceCost {
   doors: number;
@@ -149,17 +149,18 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
     try {
       // Use common service for API call
-      const response = await commonService.getClients(page, 5);
+      const response = await getClients(page, 5);
+      console.log("response", response);
       setClients({
-        data: response.clients || [],
-        statistics: response.statistics || {
+        data: response.data.clients || [],
+        statistics: response.data.statistics || {
           totalClients: 0,
           newClientsThisMonth: 0,
           totalFileUploads: 0,
           totalBuildings: 0,
           filteredClients: 0,
         },
-        pagination: response.pagination || {
+        pagination: response.data.pagination || {
           currentPage: page,
           totalPages: 1,
           itemsPerPage: 10,
@@ -213,9 +214,10 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     setDashboard((prev) => ({ ...prev, isLoading: true }));
 
     try {
-      const data = await dashboardApiService.getMaintenanceSummaryData();
+      const maintananceResponse = await getMaintenanceSummaryData();
+      console.log("data", maintananceResponse);
       setDashboard({
-        maintenanceSummary: data.data.totalCosts,
+        maintenanceSummary: maintananceResponse.data.totalCosts,
         isLoading: false,
         lastFetched: Date.now(),
       });
@@ -236,9 +238,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     setDashboard((prev) => ({ ...prev, isLoading: true }));
 
     try {
-      const data = await dashboardApiService.getMaintenanceSummaryData();
+      const maintananceResponse = await getMaintenanceSummaryData();
       setDashboard({
-        maintenanceSummary: data.data.totalCosts,
+        maintenanceSummary: maintananceResponse.data.totalCosts,
         isLoading: false,
         lastFetched: Date.now(),
       });

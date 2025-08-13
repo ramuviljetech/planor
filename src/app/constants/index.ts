@@ -565,18 +565,18 @@ export const buildingListColumns = [
     width: "calc(100% / 7)",
   },
   {
-    key: "usage",
-    title: "Usage",
+    key: "contactPerson",
+    title: "Contact Person",
     width: "calc(100% / 7)",
   },
   {
     key: "totalObjectsUsed",
-    title: "Total Objects Used",
+    title: "Total Objects",
     width: "calc(100% / 7)",
   },
   {
-    key: "totalMaintenanceCost",
-    title: "Total Maintenance Cost",
+    key: "status",
+    title: "Status",
     width: "calc(100% / 7)",
   },
 ];
@@ -913,3 +913,17 @@ export const mockPropertiesPagination = {
   hasNextPage: false,
   hasPreviousPage: false,
 };
+export const allObjectsAccordionTableColumns = [
+  { key: "object", label: "Type" },
+  { key: "price", label: "Price" },
+  { key: "unit", label: "Unit" },
+  { key: "interval", label: "Interval" },
+];
+
+export const newObjectsTableHeadings = [
+  { heading: "Object", key: "object" },
+  { heading: "Type", key: "type" },
+  { heading: "Price", key: "price" },
+  { heading: "Unit", key: "unit" },
+  { heading: "Intervals", key: "intervals" },
+];

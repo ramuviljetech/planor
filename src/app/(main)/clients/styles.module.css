@@ -178,7 +178,7 @@
 
 /* Loading states */
 .clients_loading_fallback {
-  min-height: 400px;
+  height: 100% !important;
   display: flex;
   align-items: center;
   justify-content: center;

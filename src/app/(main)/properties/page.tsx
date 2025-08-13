@@ -16,8 +16,16 @@ import CommonTableWithPopover, {
 import styles from "./styles.module.css";
 import { useRouter } from "next/navigation";
 import FallbackScreen from "@/components/ui/fallback-screen";
-import { Property, PropertiesStatistics, PropertiesPagination } from "@/types";
-import { commonService } from "@/networking/common-service";
+import {
+  Property,
+  PropertiesStatistics,
+  PropertiesPagination,
+  Building,
+} from "@/types/property";
+import {
+  getAllBuildings,
+  getProperties,
+} from "@/networking/properties-api-service";
 
 const PropertiesPage = () => {
   const router = useRouter();
@@ -35,7 +43,9 @@ const PropertiesPage = () => {
     useState<PropertiesPagination | null>(null);
   const [buildingsPagination, setBuildingsPagination] =
     useState<PropertiesPagination | null>(null);
-
+  const [buildings, setBuildings] = useState<Building[]>([]);
+  const [buildingsStatistics, setBuildingsStatistics] = useState<any>(null);
+  const [totalBuildings, setTotalBuildings] = useState(0);
   const tabs: TabItem[] = [
     { label: "Properties", value: "properties" },
     { label: "Buildings", value: "buildings" },
@@ -47,7 +57,7 @@ const PropertiesPage = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await commonService.getProperties();
+      const response = await getProperties();
 
       if (response.success) {
         const {
@@ -56,7 +66,6 @@ const PropertiesPage = () => {
           statistics: stats,
           pagination,
         } = response.data;
-        console.log("propertiesData", propertiesData);
         setProperties(propertiesData || []);
         setStatistics(stats || null);
         setTotalProperties(count || 0);
@@ -70,6 +79,22 @@ const PropertiesPage = () => {
       setError("Failed to fetch properties. Please try again later.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchBuildings = async () => {
+    try {
+      const response = await getAllBuildings();
+      if (response.success) {
+        setBuildings(response.data);
+        setBuildingsPagination(response.data.pagination);
+        setBuildingsStatistics(response.data.statistics);
+        setTotalBuildings(response.data.count);
+      } else {
+        setError(response.message || "Failed to fetch buildings");
+      }
+    } catch (error) {
+      console.error("Error fetching buildings:", error);
     }
   };
 
@@ -92,17 +117,12 @@ const PropertiesPage = () => {
       },
     ];
   };
-
-  // Use pagination from API response
-  const totalItems = buildingsPagination?.totalItems || 0;
-  const totalPages = buildingsPagination?.totalPages || 0;
-  const itemsPerPage = buildingsPagination?.itemsPerPage || 10;
-
   // Get current page data from API response
   const currentRows = properties || [];
 
   useEffect(() => {
     fetchProperties();
+    fetchBuildings();
   }, []); // Empty dependency array since we only want to run this once
 
   // Define popover actions

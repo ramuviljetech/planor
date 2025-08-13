@@ -12,7 +12,7 @@ import CommonTableWithPopover, {
 import { TableColumn, TableRow } from "@/components/ui/common-table";
 import styles from "./styles.module.css";
 import AddPropertyModal from "@/components/add-property-modal";
-import { Property } from "@/types";
+import { Property } from "@/types/property";
 
 interface ClientPropertiesListProps {
   showPropertyListSection?: boolean;
@@ -128,17 +128,12 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
     setSelectedRowId("");
   };
 
-  const handleViewDetails = (rowId: string | number) => {
-    const row = currentRows.find((r) => r.id === rowId);
-    if (row?.originalData) {
-      // Navigate to property details with the property data
-      router.push(`/property-details?id=${rowId}`);
-    }
+  const handleViewDetails = (rowData: any) => {
+    router.push(`/property-details?id=${encodeURIComponent(rowData?.id)}`);
   };
 
-  const handleAddBuilding = (rowId: string | number) => {
-    const row = currentRows.find((r) => r.id === rowId);
-    console.log("Add Building clicked for property:", row?.originalData);
+  const handleAddBuilding = (rowData: any) => {
+    console.log("Add Building clicked for property:", rowData);
     // Add your add building logic here
   };
 

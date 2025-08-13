@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   accordianDownBlackIcon,
@@ -11,21 +11,26 @@ import {
   focusBlackIcon,
 } from "@/resources/images";
 import MetricCard from "@/components/ui/metric-card";
-import { clientsStaticCardTitle } from "@/app/constants";
+// import { clientsStaticCardTitle } from "@/app/constants";
 import Input from "@/components/ui/input";
 import Button from "@/components/ui/button";
-import AddFolderModal from "@/components/add-folder-modal";
 import Modal from "@/components/ui/modal";
 import Avatar from "@/components/ui/avatar";
+import FallbackScreen from "@/components/ui/fallback-screen";
+import { pricelistApiService } from "@/networking/pricelist-api-service";
+import { newObjectsTableHeadings, allObjectsAccordionTableColumns } from "@/app/constants";
+
 import styles from "./styles.module.css";
+
 
 type TabType = "all" | "new";
 
 type TableRow = {
-  type: string;
+  object: string;
+  // type: string;
   price: string;
   unit: string;
-  interval: string;
+  intervals: string;
 };
 
 interface NewObjectRow {
@@ -51,13 +56,132 @@ const PriceListPage: React.FC = () => {
     windows: false,
     area: false,
   });
-  // Define table columns
-  const tableColumns = [
-    { key: "type", label: "Type" },
-    { key: "price", label: "Price" },
-    { key: "unit", label: "Unit" },
-    { key: "interval", label: "Interval" },
-  ];
+  const [priceListData, setPriceListData] = useState<any>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const[priceListStatisticsData, setPriceListStatisticsData] = useState<any>([]);
+  const [itemsWithoutPrice, setItemsWithoutPrice] = useState<any[]>([]);
+  const [filteredAccordionData, setFilteredAccordionData] = useState<any[]>([]);
+  const [newObjectsData, setNewObjectsData] = useState<NewObjectRow[]>([]);
+
+  // Fetch price list api call
+
+  const fetchPriceList = async () => {
+    try {
+      setIsLoading(true);
+      const response = await pricelistApiService.getPriceList();
+      setPriceListData(response.data.pricelists);
+      setPriceListStatisticsData(response.data.statistics);
+    } catch (error) {
+      console.error("❌ PriceListPage: Error fetching price list:", error);
+    } finally {
+      // setIsLoading(true);//
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPriceList();
+  }, []);
+
+  // Filter items with and without prices when priceListData changes
+  useEffect(() => {
+    if (priceListData) {
+      const allItemsWithoutPrice: any[] = [];
+      
+      const accordionData = [
+        {
+          key: "walls",
+          title: "Walls",
+          data: (priceListData.wall || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Walls" });
+              return false;
+            }
+            return true;
+          }),
+        },
+        {
+          key: "doors",
+          title: "Doors",
+          data: (priceListData.door || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Doors" });
+              return false;
+            }
+            return true;
+          }),
+        },
+        {
+          key: "floors",
+          title: "Floors",
+          data: (priceListData.floor || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Floors" });
+              return false;
+            }
+            return true;
+          }),
+        },
+        {
+          key: "roof",
+          title: "Roof",
+          data: (priceListData.roof || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Roof" });
+              return false;
+            }
+            return true;
+          }),
+        },
+        {
+          key: "windows",
+          title: "Windows",
+          data: (priceListData.window || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Windows" });
+              return false;
+            }
+            return true;
+          }),
+        },
+        {
+          key: "area",
+          title: "Area",
+          data: (priceListData.area || []).filter((item: any) => {
+            if (!item.price || item.price === null || item.price === "") {
+              allItemsWithoutPrice.push({ ...item, category: "Area" });
+              return false;
+            }
+            return true;
+          }),
+        },
+      ];
+
+             // Update state with items without prices
+       setItemsWithoutPrice(allItemsWithoutPrice);
+       setFilteredAccordionData(accordionData);
+       
+               // Convert items without prices to NewObjectRow format and set to newObjectsData
+        const newObjectsFromItemsWithoutPrice = allItemsWithoutPrice.map((item) => ({
+          id: item.id || "", // Use original ID or fallback
+          object: item.object || "",
+          type: item.category || "",
+          price: "",
+          unit: item.unit || "",
+          intervals: "",
+        }));
+       setNewObjectsData(newObjectsFromItemsWithoutPrice);
+       
+       console.log("Setting newObjectsData:", newObjectsFromItemsWithoutPrice);
+      
+      // Console log items without prices
+      if (allItemsWithoutPrice.length > 0) {
+        console.log("Items without prices:", allItemsWithoutPrice);
+      }
+    }
+  }, [priceListData]);
+
+  console.log("🔄 Price list data:", priceListData);
 
   const toggleAccordion = (accordionKey: string) => {
     setAccordionStates((prev) => {
@@ -74,57 +198,6 @@ const PriceListPage: React.FC = () => {
     });
   };
 
-  const [newObjectsData, setNewObjectsData] = useState<NewObjectRow[]>([
-    {
-      id: "1",
-      object: "Door",
-      type: "Door W",
-      price: "1200 SEK",
-      unit: "ST",
-      intervals: "1 Year",
-    },
-    {
-      id: "2",
-      object: "Door",
-      type: "Door W1",
-      price: "",
-      unit: "ST",
-      intervals: "",
-    },
-    {
-      id: "3",
-      object: "Door",
-      type: "Door W2",
-      price: "",
-      unit: "ST",
-      intervals: "",
-    },
-    {
-      id: "4",
-      object: "Door",
-      type: "Door W3",
-      price: "",
-      unit: "ST",
-      intervals: "",
-    },
-    {
-      id: "5",
-      object: "Door",
-      type: "Door W4",
-      price: "",
-      unit: "ST",
-      intervals: "",
-    },
-    {
-      id: "6",
-      object: "Door",
-      type: "Door W5",
-      price: "",
-      unit: "ST",
-      intervals: "",
-    },
-  ]);
-
   const handleInputChange = (
     id: string,
     field: "price" | "intervals",
@@ -136,82 +209,40 @@ const PriceListPage: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    console.log("Submitting data:", newObjectsData);
-    console.log("All table values:", {
-      totalRows: newObjectsData.length,
-      filledRows: newObjectsData.filter((row) => row.price && row.intervals)
-        .length,
-      data: newObjectsData.map((row) => ({
-        object: row.object,
-        type: row.type,
-        price: row.price || "Not entered",
-        unit: row.unit,
-        intervals: row.intervals || "Not entered",
-      })),
+    // Filter items that have both price and intervals filled
+    const completedItems = newObjectsData.filter((row) => row.price && row.intervals);
+    
+    if (completedItems.length === 0) {
+      console.log("No items with complete price and intervals data");
+      return;
+    }
+
+    // Console log each completed item with price and intervals
+    completedItems.forEach((item) => {
+      console.log("Completed Item:", {
+        object: item.object,
+        type: item.type,
+        price: item.price,
+        unit: item.unit,
+        intervals: item.intervals,
+        category: item.type
+      });
     });
+
+    console.log("Total completed items:", completedItems.length);
+    console.log("All completed items data:", completedItems);
   };
 
   const handleCancel = () => {
-    // Reset to initial state or close modal
-    setNewObjectsData([
-      {
-        id: "1",
-        object: "Door",
-        type: "Door W",
-        price: "1200 SEK",
-        unit: "ST",
-        intervals: "1 Year",
-      },
-      {
-        id: "2",
-        object: "Door",
-        type: "Door W1",
+    // Reset all input fields to empty
+    setNewObjectsData(prev => 
+      prev.map(item => ({
+        ...item,
         price: "",
-        unit: "ST",
-        intervals: "",
-      },
-      {
-        id: "3",
-        object: "Door",
-        type: "Door W2",
-        price: "",
-        unit: "ST",
-        intervals: "",
-      },
-      {
-        id: "4",
-        object: "Door",
-        type: "Door W3",
-        price: "",
-        unit: "ST",
-        intervals: "",
-      },
-      {
-        id: "5",
-        object: "Door",
-        type: "Door W4",
-        price: "",
-        unit: "ST",
-        intervals: "",
-      },
-      {
-        id: "6",
-        object: "Door",
-        type: "Door W5",
-        price: "",
-        unit: "ST",
-        intervals: "",
-      },
-    ]);
+        intervals: ""
+      }))
+    );
   };
-
-  const tableHeadings = [
-    { heading: "Object", key: "object" },
-    { heading: "Type", key: "type" },
-    { heading: "Price", key: "price" },
-    { heading: "Unit", key: "unit" },
-    { heading: "Intervals", key: "intervals" },
-  ];
 
   const renderTabs = () => {
     return (
@@ -223,8 +254,10 @@ const PriceListPage: React.FC = () => {
               tab === "all"
                 ? styles.price_list_content_header_item_section_all_objects
                 : styles.price_list_content_header_item_section_new_objects
-            } ${activeTab === tab ? styles.active_tab : styles.inactive_tab}`}
-            onClick={() => setActiveTab(tab)}
+            } ${activeTab === tab ? styles.active_tab : styles.inactive_tab} ${
+              isLoading ? styles.disabled_tab : ""
+            }`}
+            onClick={() => !isLoading && setActiveTab(tab)}
           >
             <p
               className={
@@ -267,129 +300,73 @@ const PriceListPage: React.FC = () => {
           />
         </div>
         <div className={styles.accordion_table_full_content}>
-          <table className={styles.accordion_table}>
-            <thead className={styles.accordion_table_head}>
-              <tr className={styles.accordion_table_head_row}>
-                {tableColumns.map((column) => (
-                  <th
-                    key={column.key}
-                    className={styles.accordion_table_head_item}
-                  >
-                    {column.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className={styles.accordion_table_body}>
-              {data.map((item, idx) => (
-                <tr key={idx}>
-                  {tableColumns.map((column) => (
-                    <td
+          <div className={styles.table_container}>
+            <table className={styles.accordion_table_header}>
+              <thead>
+                <tr>
+                  {allObjectsAccordionTableColumns.map((column: any) => (
+                    <th
                       key={column.key}
-                      className={styles.accordion_table_body_item}
+                      className={styles.accordion_table_head_item}
                     >
-                      {item[column.key as keyof TableRow]}
-                    </td>
+                      {column.label}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+            </table>
+            <div className={styles.table_body_wrapper}>
+              <table className={styles.accordion_table_body}>
+                <tbody>
+                  {data.map((item, idx) => (
+                    <tr key={idx}>
+                      {allObjectsAccordionTableColumns.map((column: any) => (
+                                                 <td
+                           key={column.key}
+                           className={styles.accordion_table_body_item}
+                         >
+                           {item[column.key as keyof TableRow] || "-"}
+                         </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     );
   };
 
-  const renderAllObjects = () => {
-    // Sample data for each accordion
-    const accordionData = [
-      {
-        key: "walls",
-        title: "Walls",
-        data: [
-          { type: "Wall-A", price: "150 SEK", unit: "M2", interval: "1 Year" },
-          { type: "Wall-B", price: "180 SEK", unit: "M2", interval: "2 years" },
-          { type: "Wall-C", price: "220 SEK", unit: "M2", interval: "3 years" },
-        ],
-      },
-      {
-        key: "doors",
-        title: "Doors",
-        data: [
-          { type: "Door-A", price: "200 SEK", unit: "ST", interval: "1 Year" },
-          { type: "Door-B", price: "200 SEK", unit: "ST", interval: "2 years" },
-          { type: "Door-C", price: "200 SEK", unit: "ST", interval: "3 years" },
-          { type: "Door-D", price: "200 SEK", unit: "ST", interval: "2 years" },
-          { type: "Door-E", price: "200 SEK", unit: "ST", interval: "2 years" },
-        ],
-      },
-      {
-        key: "floors",
-        title: "Floors",
-        data: [
-          { type: "Floor-A", price: "300 SEK", unit: "M2", interval: "1 Year" },
-          {
-            type: "Floor-B",
-            price: "350 SEK",
-            unit: "M2",
-            interval: "2 years",
-          },
-          {
-            type: "Floor-C",
-            price: "400 SEK",
-            unit: "M2",
-            interval: "3 years",
-          },
-        ],
-      },
-      {
-        key: "roof",
-        title: "Roof",
-        data: [
-          { type: "Roof-A", price: "500 SEK", unit: "M2", interval: "1 Year" },
-          { type: "Roof-B", price: "600 SEK", unit: "M2", interval: "2 years" },
-          { type: "Roof-C", price: "700 SEK", unit: "M2", interval: "3 years" },
-        ],
-      },
-      {
-        key: "windows",
-        title: "Windows",
-        data: [
-          {
-            type: "Window-A",
-            price: "250 SEK",
-            unit: "ST",
-            interval: "1 Year",
-          },
-          {
-            type: "Window-B",
-            price: "280 SEK",
-            unit: "ST",
-            interval: "2 years",
-          },
-          {
-            type: "Window-C",
-            price: "320 SEK",
-            unit: "ST",
-            interval: "3 years",
-          },
-        ],
-      },
-      {
-        key: "area",
-        title: "Area",
-        data: [
-          { type: "Area-A", price: "100 SEK", unit: "M2", interval: "1 Year" },
-          { type: "Area-B", price: "120 SEK", unit: "M2", interval: "2 years" },
-          { type: "Area-C", price: "150 SEK", unit: "M2", interval: "3 years" },
-        ],
-      },
-    ];
 
+
+
+  // Clients Statistics Data
+  const clientsStaticsData = [
+    {
+      title: "Total Clients",
+      value: priceListStatisticsData?.totalClients || 0,
+    },
+    {
+      title: "New Clients This Month",
+      value: priceListStatisticsData?.newClientsThisMonth || 0,
+    },
+    {
+      title: "Total Files Uploaded",
+      value: priceListStatisticsData?.totalFileUploads || 0,
+    },
+    {
+      title: "Total Buildings",
+      value: priceListStatisticsData?.totalBuildings || 0,
+    },
+  ];
+
+  const renderAllObjects = () => {
     return (
       <>
         <div className={styles.price_list_content_middle_section}>
-          {clientsStaticCardTitle.map((card, index) => (
+          {clientsStaticsData.map((card, index) => (
             <MetricCard
               key={index}
               title={card.title}
@@ -401,28 +378,74 @@ const PriceListPage: React.FC = () => {
           ))}
         </div>
         <div className={styles.price_list_content_accordion}>
-          {accordionData.map((accordion) => (
-            <React.Fragment key={accordion.key}>
-              {renderAccordion(
-                accordion.title,
-                accordion.data,
-                accordionStates[accordion.key as keyof typeof accordionStates],
-                () => toggleAccordion(accordion.key)
-              )}
-            </React.Fragment>
-          ))}
+          {isLoading ? (
+            <div className={styles.price_list_content_accordion_loading}>
+              <FallbackScreen 
+                title="Loading Price List"
+                subtitle="Please wait while we fetch the latest pricing data..."
+                className={styles.price_list_content_accordion_loading_fallback}
+              />
+            </div>
+                     ) : ( 
+             (() => {
+               // Filter accordions that have data (length >= 1)
+               const accordionsWithData = filteredAccordionData.filter(
+                 (accordion) => accordion.data.length >= 1
+               );
+
+               // Check if all accordions have no data
+               if (accordionsWithData.length === 0) {
+                 return (
+                   <div className={styles.price_list_content_accordion_no_data}>
+                     <p className={styles.price_list_content_accordion_no_data_text}>No Data Found</p>
+                   </div>
+                 );
+               }
+              //  if(itemsWithoutPrice.length === 0){
+              //   return (
+              //     <div className={styles.price_list_content_accordion_no_data}>
+              //       <p className={styles.price_list_content_accordion_no_data_text}>No Data Found</p>
+              //     </div>
+              //   );
+              //  } 
+               return accordionsWithData.map((accordion) => (
+                 <React.Fragment key={accordion.key}>
+                   {renderAccordion(
+                     accordion.title,
+                     accordion.data,
+                     accordionStates[accordion.key as keyof typeof accordionStates],
+                     () => toggleAccordion(accordion.key)
+                   )}
+                 </React.Fragment>
+               ));
+             })()
+           )}
         </div>
       </>
     );
   };
 
+
   const renderNewObjectsTable = () => {
+    console.log("Rendering newObjectsData:", newObjectsData);
+    
+    // If no items without prices, show only message
+    if (newObjectsData.length === 0) {
+      return (
+        <div className={styles.price_list_content_new_objects_no_data}>
+          <p className={styles.price_list_content_new_objects_no_data_text}>
+            No Data Found
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className={styles.price_list_new_objects_section}>
         <table className={styles.new_objects_table}>
           <thead className={styles.table_header}>
             <tr>
-              {tableHeadings.map((heading, index) => (
+              {newObjectsTableHeadings.map((heading: any, index: any) => (
                 <th
                   key={index}
                   className={`${styles.table_header_cell_object} `}
@@ -440,6 +463,7 @@ const PriceListPage: React.FC = () => {
                 <td className={styles.table_cell_price}>
                   <Input
                     label=""
+                    type="number"
                     value={row.price}
                     onChange={(e) =>
                       handleInputChange(row.id, "price", e.target.value)
@@ -476,6 +500,8 @@ const PriceListPage: React.FC = () => {
     );
   };
 
+
+
   return (
     <div className={styles.price_list_container}>
       <div className={styles.price_list_header}>
@@ -504,7 +530,7 @@ const PriceListPage: React.FC = () => {
         </div>
         {activeTab === "all" ? renderAllObjects() : renderNewObjectsTable()}
       </section>
-      <Modal
+      {/* <Modal
         show={showAddNewObjectModal}
         onClose={() => setShowAddNewObjectModal(false)}
       >
@@ -541,7 +567,7 @@ const PriceListPage: React.FC = () => {
             />
           </div>
         </div>
-      </Modal>
+      </Modal> */}
     </div>
   );
 };

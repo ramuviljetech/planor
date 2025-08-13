@@ -16,21 +16,15 @@ interface MaintenanceSummaryResponse {
   };
 }
 
-class DashboardApiService {
-  // Dashboard summary data
-  async getMaintenanceSummaryData(): Promise<MaintenanceSummaryResponse> {
-    try {
-      const response = await apiClient.get("/admin/dashboard");
-      return response.data;
-    } catch (error) {
-      console.error(
-        "❌ DashboardApiService: Error fetching maintenance summary data:",
-        error
-      );
-      throw error;
-    }
+export const getMaintenanceSummaryData = async () => {
+  try {
+    const response = await apiClient.get("/admin/dashboard");
+    return response.data;
+  } catch (error) {
+    console.error(
+      "❌ DashboardApiService: Error fetching maintenance summary data:",
+      error
+    );
+    throw error;
   }
-}
-
-// Export a singleton instance
-export const dashboardApiService = new DashboardApiService();
+};
