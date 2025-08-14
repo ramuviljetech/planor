@@ -380,7 +380,7 @@ const ClientInfo: React.FC = () => {
     }
 
     // Show loading state
-    if (isLoading && (!clientInfo || clientInfo.length === 0)) {
+    if (isLoading ) {
       return (
         <div className={styles.client_info_overview_section}>
           <FallbackScreen

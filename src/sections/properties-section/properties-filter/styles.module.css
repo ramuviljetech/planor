@@ -1,13 +1,13 @@
 .clients_filter_container {
-    width: 50%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    max-height: 80vh;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: var(--gray);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray);
   }
   
   .clients_filter_header {
@@ -149,7 +149,7 @@
     margin-top: 0px;
   }
   .clients_filter_button_section {
-    /* position: absolute; */
+    position: absolute;
     width: 100%;
     bottom: 0;
     right: 0;

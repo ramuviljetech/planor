@@ -3,7 +3,7 @@ import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 // Base configuration
 const baseConfig: AxiosRequestConfig = {
   // baseURL: process.env.NEXT_PUBLIC_API_URL || "http://192.168.0.1:3001/api",
-  baseURL: "http://192.168.0.5:3001/api",
+  baseURL: "http://192.168.0.12:3001/api",
   timeout: 30000, // Increased from 10000ms to 30000ms
   headers: {
     "Content-Type": "application/json",
