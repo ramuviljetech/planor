@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Modal from "../ui/modal";
@@ -9,10 +9,13 @@ import Button from "../ui/button";
 import SelectDropDown from "../ui/select-dropdown";
 import styles from "./styles.module.css";
 import TextArea from "../ui/textarea";
-
+import { useSearchParams } from "next/navigation";
+import { addProperty } from "@/networking/properties-api-service";
 interface AddPropertyModalProps {
   show: boolean;
   onClose: () => void;
+  clientId?: string;
+  // rowId?: string;
 }
 
 interface PropertyFormData {
@@ -21,8 +24,9 @@ interface PropertyFormData {
   propertyType: string;
   address: string;
   city: string;
+  clientId: string;
   metadata: {
-    grossArea: number;
+    grossArea: number | null;
   };
   primaryContactName: string;
   email: string;
@@ -46,7 +50,10 @@ const PropertyValidationSchema = Yup.object().shape({
     .email("Invalid email format"),
   phone: Yup.string()
     .required("Phone number is required")
-    .matches(/^[\+]?[1-9][\d]{0,15}$/, "Phone number must be a valid number"),
+    .matches(
+      /^\+?[1-9]\d{9,14}$/,
+      "Phone number must be a valid number with 10–15 digits"
+    ),
   description: Yup.string().required("Description is required"),
 });
 
@@ -56,41 +63,82 @@ const initialValues: PropertyFormData = {
   propertyType: "",
   address: "",
   city: "",
+  clientId: "",
   metadata: {
-    grossArea: 0,
+    grossArea: null,
   },
   primaryContactName: "",
   email: "",
   phone: "",
   description: "",
 };
+// In your modal component, get the client ID from URL
 
 export default function AddPropertyModal({
   show,
   onClose,
-}: AddPropertyModalProps) {
+  clientId,
+}: // rowId,
+AddPropertyModalProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   // Handle form submission
-  const handleSubmit = (
+  
+  const handleSubmit = async (
+    
     values: PropertyFormData,
     { setSubmitting, resetForm }: any
   ) => {
+    setIsLoading(true);
     console.log("Form Data:", values);
+    console.log("Client ID:", clientId);
+    // console.log("Row ID:", rowId);
     // Here you can add your API call logic
-    setSubmitting(false);
-    resetForm();
-    onClose();
+    try {
+      const propertyData = await addProperty({
+        ...values,
+        clientId: clientId,
+        phone: values.phone.toString(),
+        // rowId: rowId,
+      });
+      console.log("Property Data:", propertyData);
+      if (propertyData.success) {
+        setErrorMessage("");
+        setSubmitting(false);
+        resetForm();
+        onClose();
+        setErrorMessage("");
+        setIsLoading(false);
+      } else {
+        setErrorMessage(
+          (propertyData?.details?.[0] as string) || "Something went wrong"
+        );
+        console.log("Error Message:", propertyData.message);
+      }
+    } catch (error) {
+      // console.error("Error adding property:", error);
+      setErrorMessage(
+        ((error as any).response?.data?.details as string) ||
+          "Something went wrong again"
+      );
+      console.log("Error Message by arvind", error as any);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handle cancel
   const handleCancel = (resetForm: () => void) => {
     resetForm();
     onClose();
+    setErrorMessage("");
   };
 
   // Handle close icon
   const handleClose = (resetForm: () => void) => {
     resetForm();
     onClose();
+    setErrorMessage("");
   };
 
   const renderPropertyInfo = (formikProps: any) => {
@@ -212,6 +260,7 @@ export default function AddPropertyModal({
             value={values.primaryContactName}
             onChange={handleChange}
             onBlur={handleBlur}
+            type="text"
             name="primaryContactName"
             placeholder="Enter primary contact name"
             inputStyle={styles.add_property_modal_input_section_input}
@@ -242,6 +291,8 @@ export default function AddPropertyModal({
             placeholder="Enter phone"
             inputStyle={styles.add_property_modal_input_section_input}
             inputContainerClass={styles.add_property_modal_input_container}
+            type="number"
+            minLength={10}
             error={touched.phone && errors.phone ? errors.phone : undefined}
           />
         </div>
@@ -295,6 +346,11 @@ export default function AddPropertyModal({
             </div>
             {renderPropertyInfo(formikProps)}
             <div className={styles.add_property_modal_footer}>
+              {errorMessage && (
+                <p className={styles.add_property_modal_error_message}>
+                  {errorMessage}
+                </p>
+              )}
               <Button
                 title="Cancel"
                 variant="plain"

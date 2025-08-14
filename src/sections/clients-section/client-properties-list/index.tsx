@@ -258,6 +258,7 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
       <AddPropertyModal
         show={showAddPropertyModal}
         onClose={() => setShowAddPropertyModal(false)}
+        clientId={searchParams?.get("id") || ""}
       />
     </div>
   );

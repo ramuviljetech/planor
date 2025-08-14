@@ -1,3 +1,4 @@
+// import { Property } from "@/types/property";
 import apiClient from "./axios-config";
 
 export const getProperties = async () => {
@@ -36,6 +37,16 @@ export const getAllBuildings = async () => {
     return response.data;
   } catch (error) {
     console.error(`❌ PropertiesApiService: Error fetching buildings:`, error);
+    throw error;
+  }
+};
+
+export const addProperty = async (property: any) => {
+  try {
+    const response = await apiClient.post("/properties", property);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ PropertiesApiService: Error adding property:`, error);
     throw error;
   }
 };

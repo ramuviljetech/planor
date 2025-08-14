@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import Button from "@/components/ui/button";
-import ClientDetails from "@/sections/clients-section/client-properties-list";
+//  import ClientDetails from "@/sections/clients-section/client-properties-list";
 import SectionHeader from "@/components/ui/section-header";
 import { filterIcon } from "@/resources/images";
 import Image from "next/image";
@@ -9,7 +9,7 @@ import MetricCard from "@/components/ui/metric-card";
 import CommonTableWithPopover, {
   PopoverAction,
 } from "@/components/ui/common-table-with-popover";
-import { clientsStaticCardTitle, rowsData } from "@/app/constants";
+// import { clientsStaticCardTitle, rowsData } from "@/app/constants";
 import { useRouter } from "next/navigation";
 import AddClientUserModal from "@/components/add-client-user-modal";
 import styles from "./styles.module.css";
@@ -150,7 +150,10 @@ const Clients: React.FC = () => {
     },
     {
       label: "Add Property",
-      onClick: handleAddProperty,
+      onClick: (row: any) => {
+        setSelectedRowId(row.id); // Set the selected row ID first
+        setShowAddPropertyModal(true); // Then open the modal
+      },
     },
   ];
 
@@ -324,6 +327,7 @@ const Clients: React.FC = () => {
       <AddPropertyModal
         show={showAddPropertyModal}
         onClose={() => setShowAddPropertyModal(false)}
+        clientId={selectedRowId as string}
       />
     </div>
   );

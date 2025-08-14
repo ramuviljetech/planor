@@ -396,12 +396,13 @@ export default function DashboardPage() {
     fetchClientsData(page);
   };
 
-  const handleViewDetails = (rowId: string | number) => {
+  const handleViewDetails = (rowData: any) => {
     router.push("/property-details");
   };
 
-  const handleAddProperty = (rowId: string | number) => {
-    console.log("Add Property clicked for row:", rowId);
+  const handleAddProperty = (rowData: any) => {
+    console.log("Add Property clicked for row:", rowData.id);
+    setSelectedRowId(rowData.id); //storing id
     setShowAddPropertyModal(true);
   };
 
@@ -598,6 +599,7 @@ export default function DashboardPage() {
       />
       <AddPropertyModal
         show={showAddPropertyModal}
+        clientId={selectedRowId as string}
         onClose={() => setShowAddPropertyModal(false)}
       />
       <Modal

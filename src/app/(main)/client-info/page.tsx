@@ -344,7 +344,7 @@ const ClientInfo: React.FC = () => {
         <Breadcrumb
           items={[
             {
-              label: "Brunnfast AB",
+              label: clientInfo?.[0]?.value ,
               isActive: true,
             },
           ]}
@@ -550,7 +550,8 @@ const ClientInfo: React.FC = () => {
       <AddPropertyModal
         show={showAddPropertyModal}
         onClose={() => setShowAddPropertyModal(false)}
-      />
+        clientId={searchParams?.get("id") || ""}
+        />
       <AddUserModal
         show={showAddUserModal}
         onClose={() => {
