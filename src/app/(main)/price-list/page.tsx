@@ -16,6 +16,7 @@ import Button from "@/components/ui/button";
 import Modal from "@/components/ui/modal";
 import Avatar from "@/components/ui/avatar";
 import FallbackScreen from "@/components/ui/fallback-screen";
+import CommonTable from "@/components/ui/common-table";
 import { getPriceList, putPriceList } from "@/networking/pricelist-api-service";
 import {
   newObjectsTableHeadings,
@@ -30,7 +31,7 @@ type TableRow = {
   // type: string;
   price: number;
   unit: string;
-  intervals: string;
+  interval: string;
 };
 
 interface NewObjectRow {
@@ -323,72 +324,60 @@ const PriceListPage: React.FC = () => {
     );
   };
 
-  const renderAccordion = (
-    title: string,
-    data: TableRow[],
-    isOpen: boolean,
-    onToggle: () => void
-  ) => {
-    return (
-      <div
-        className={`${styles.accordion_table_full} ${
-          !isOpen ? styles.closed : ""
-        }`}
-      >
-        <div className={styles.accordion_header} onClick={onToggle}>
-          <div className={styles.accordion_header_left}>
-            <p className={styles.accordion_header_left_text}>{title}</p>
-            <p className={styles.accordion_header_left_text_count}>
-              {data.length} Types
-            </p>
+     const renderAccordion = (
+     title: string,
+     data: TableRow[],
+     isOpen: boolean,
+     onToggle: () => void
+   ) => {
+           // Convert data to the format expected by CommonTable
+      const tableRows = data.map((item, index) => ({
+        id: index.toString(),
+        object: item.object || "-",
+        price: item.price || "-",
+        unit: item.unit || "-",
+        interval: item.interval || "-",
+      }));
+
+     // Convert columns to the format expected by CommonTable
+     const tableColumns = allObjectsAccordionTableColumns.map((column: any) => ({
+       key: column.key,
+       title: column.label,
+       width: "25%",
+     }));
+
+     return (
+       <div
+         className={`${styles.accordion_table_full} ${
+           !isOpen ? styles.closed : ""
+         }`}
+       >
+         <div className={styles.accordion_header} onClick={onToggle}>
+           <div className={styles.accordion_header_left}>
+             <p className={styles.accordion_header_left_text}>{title}</p>
+             <p className={styles.accordion_header_left_text_count}>
+               {data.length} Types
+             </p>
+           </div>
+           <Image
+             src={isOpen ? accordianDownPinkIcon : accordianDownBlackIcon}
+             alt="Accordian Icon"
+             className={`${styles.accordion_icon} ${
+               isOpen ? styles.accordion_icon_open : ""
+             }`}
+           />
+         </div>
+          <div className={styles.accordion_table_full_content}>
+            <CommonTable
+              columns={tableColumns}
+              rows={tableRows}
+              className={styles.accordion_table}
+              containerClassName={styles.accordion_table_container}
+            />
           </div>
-          <Image
-            src={isOpen ? accordianDownPinkIcon : accordianDownBlackIcon}
-            alt="Accordian Icon"
-            className={`${styles.accordion_icon} ${
-              isOpen ? styles.accordion_icon_open : ""
-            }`}
-          />
-        </div>
-        <div className={styles.accordion_table_full_content}>
-          <div className={styles.table_container}>
-            <table className={styles.accordion_table_header}>
-              <thead>
-                <tr>
-                  {allObjectsAccordionTableColumns.map((column: any) => (
-                    <th
-                      key={column.key}
-                      className={styles.accordion_table_head_item}
-                    >
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-            </table>
-            <div className={styles.table_body_wrapper}>
-              <table className={styles.accordion_table_body}>
-                <tbody>
-                  {data.map((item, idx) => (
-                    <tr key={idx}>
-                      {allObjectsAccordionTableColumns.map((column: any) => (
-                        <td
-                          key={column.key}
-                          className={styles.accordion_table_body_item}
-                        >
-                          {item[column.key as keyof TableRow] || "-"}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+       </div>
+     );
+   };
 
   // Clients Statistics Data
   const clientsStaticsData = [
