@@ -1,21 +1,13 @@
 "use client";
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "@/components/ui/button";
 import ClientDetails from "@/sections/clients-section/client-properties-list";
-import SectionHeader from "@/components/ui/section-header";
-import { filterIcon } from "@/resources/images";
-import Image from "next/image";
-import MetricCard from "@/components/ui/metric-card";
-import CommonTableWithPopover, {
-  PopoverAction,
-} from "@/components/ui/common-table-with-popover";
-import { clientsStaticCardTitle, rowsData } from "@/app/constants";
-import { useRouter } from "next/navigation";
+import ClientsList from "@/sections/clients-section/clients-list";
 import AddClientUserModal from "@/components/add-client-user-modal";
 import styles from "./styles.module.css";
 import AddPropertyModal from "@/components/add-property-modal";
-import FallbackScreen from "@/components/ui/fallback-screen";
 import { getClients } from "@/networking/client-api-service";
+import { useRouter } from "next/navigation";
 
 // Client data interface matching the API response
 interface ClientData {
@@ -56,11 +48,8 @@ const Clients: React.FC = () => {
   });
 
   const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
-  const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
-  const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(5);
-  const clientsFilterRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [showAddClientUserModal, setShowAddClientUserModal] =
     useState<boolean>(false);
@@ -68,9 +57,15 @@ const Clients: React.FC = () => {
     useState<boolean>(false);
 
   // Fetch clients data
-  const fetchClientsData = async (page: number = 1) => {
+  const fetchClientsData = async (
+    page: number = 1,
+    search?: string,
+    filters?: any
+  ) => {
     try {
       setClientsData((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      // TODO: Update API call to include search and filters when backend supports it
       const response = await getClients(page, itemsPerPage);
 
       if (response.success && response.data) {
@@ -120,85 +115,31 @@ const Clients: React.FC = () => {
     fetchClientsData(1);
   }, []);
 
-  // Transform API clients data to table format
-  const transformedClientsData = useMemo(() => {
-    if (!clientsData.data || clientsData.data.length === 0) {
-      return [];
-    }
-
-    return clientsData.data.map((client) => ({
-      id: client.id,
-      clientName: client.clientName,
-      clientId: client.clientId,
-      properties: client.properties,
-      createdOn: new Date(client.createdOn).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }),
-      maintenanceCost: Object.values(client.totalMaintenanceCost || {}).reduce(
-        (sum, cost) => sum + cost,
-        0
-      ),
-      status: client.status === "active" ? "Active" : "Inactive",
-    }));
-  }, [clientsData.data]);
-
   const handleRetry = () => {
     fetchClientsData(1);
   };
 
-  const totalItems =
-    clientsData.statistics?.totalClients || transformedClientsData.length;
-  const totalPages =
-    clientsData.pagination?.totalPages || Math.ceil(totalItems / itemsPerPage);
-  const currentPageFromApi = clientsData.pagination?.currentPage || currentPage;
+  const handleSearchChange = (value: string) => {
+    setClientsSearchValue(value);
+    // TODO: Implement search functionality when backend supports it
+    // For now, just update the local state
+    console.log("Search value changed:", value);
 
-  // Use the data directly from API response since it's already paginated
-  const currentRows = transformedClientsData;
+    // When backend supports search, uncomment and implement:
+    // if (value.trim()) {
+    //   fetchClientsData(1, value);
+    // } else {
+    //   fetchClientsData(1);
+    // }
+  };
 
-  // Table data and handlers
-  const columns = [
-    {
-      key: "clientName",
-      title: "Client Name",
-      width: "calc(100% / 5)",
-    },
-    {
-      key: "clientId",
-      title: "Client ID",
-      width: "calc(100% / 6)",
-    },
-    {
-      key: "properties",
-      title: "Properties",
-      width: "calc(100% / 7)",
-    },
-    {
-      key: "createdOn",
-      title: "Created On",
-      width: "calc(100% / 7)",
-    },
-    {
-      key: "maintenanceCost",
-      title: "Maintenance Cost",
-      width: "calc(100% / 7)",
-    },
-    {
-      key: "status",
-      title: "Status",
-      width: "calc(100% / 8)",
-      render: (value: any, row: any, index: number) => (
-        <div
-          className={`${styles.statusBadge} ${
-            value === "Active" ? styles.statusActive : styles.statusInactive
-          }`}
-        >
-          {value}
-        </div>
-      ),
-    },
-  ];
+  const handleFilterApply = (filters: any) => {
+    // TODO: Implement filter functionality when backend supports it
+    console.log("Filters applied:", filters);
+
+    // When backend supports filters, uncomment and implement:
+    // fetchClientsData(1, clientsSearchValue, filters);
+  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -218,18 +159,6 @@ const Clients: React.FC = () => {
   const handleRowClick = (rowData: any) => {
     router.push(`/client-info?id=${encodeURIComponent(rowData?.id)}`);
   };
-
-  // Define actions for the popover
-  const actions: PopoverAction[] = [
-    {
-      label: "View Details",
-      onClick: handleViewDetails,
-    },
-    {
-      label: "Add Property",
-      onClick: handleAddProperty,
-    },
-  ];
 
   const renderHeaderSection = () => {
     return (
@@ -252,149 +181,22 @@ const Clients: React.FC = () => {
     );
   };
 
-  const renderClients = () => {
-    // Show error state
-    if (clientsData.error && clientsData.data.length === 0) {
-      return (
-        <div className={styles.clients_details_container}>
-          <FallbackScreen
-            title="Failed to Load Clients"
-            subtitle="There was an error loading your clients data. Please try refreshing the page."
-            className={styles.clients_loading_fallback}
-          />
-          <div className={styles.retry_button_container}>
-            <Button
-              title="Retry"
-              variant="primary"
-              size="sm"
-              onClick={handleRetry}
-            />
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className={styles.clients_details_container}>
-        {/* top container */}
-        <SectionHeader
-          title="Clients"
-          searchValue={clientsSearchValue}
-          onSearchChange={setClientsSearchValue}
-          searchPlaceholder="Search properties..."
-          filterComponent={
-            <div
-              ref={clientsFilterRef}
-              onClick={() => setShowClientsFilter(true)}
-            >
-              <Image src={filterIcon} alt="filter" width={24} height={24} />
-            </div>
-          }
-          searchBarStyle={styles.dashboard_clients_search_bar}
-          actionButtonStyle={styles.dashboard_clients_add_client_button}
-        />
-
-        {clientsData.isLoading && clientsData.data.length === 0 ? (
-          <div className={styles.clients_details_container}>
-            <FallbackScreen
-              title="Loading Clients"
-              subtitle="Please wait while we fetch your clients data..."
-              className={styles.clients_loading_fallback}
-            />
-          </div>
-        ) : (
-          <>
-            {/* middle container */}
-            <div className={styles.dashboard_clients_middle_container}>
-              <MetricCard
-                title="Total Clients"
-                value={
-                  clientsData.isLoading && clientsData.data.length === 0
-                    ? 0
-                    : clientsData.statistics?.totalClients || 0
-                }
-                className={styles.dashboard_clients_static_card}
-                titleStyle={styles.dashboard_clients_static_card_title}
-              />
-              <MetricCard
-                title="New This Month"
-                value={
-                  clientsData.isLoading && clientsData.data.length === 0
-                    ? 0
-                    : clientsData.statistics?.newClientsThisMonth || 0
-                }
-                className={styles.dashboard_clients_static_card}
-                titleStyle={styles.dashboard_clients_static_card_title}
-              />
-              <MetricCard
-                title="Total Buildings"
-                value={
-                  clientsData.isLoading && clientsData.data.length === 0
-                    ? 0
-                    : clientsData.statistics?.totalBuildings || 0
-                }
-                className={styles.dashboard_clients_static_card}
-                titleStyle={styles.dashboard_clients_static_card_title}
-              />
-              <MetricCard
-                title="File Uploads"
-                value={
-                  clientsData.isLoading && clientsData.data.length === 0
-                    ? 0
-                    : clientsData.statistics?.totalFileUploads || 0
-                }
-                className={styles.dashboard_clients_static_card}
-                titleStyle={styles.dashboard_clients_static_card_title}
-              />
-            </div>
-            <div className={styles.table_container_wrapper}>
-              {clientsData.data.length !== 0 ? (
-                <CommonTableWithPopover
-                  key={`clients-table-${currentPageFromApi}-${clientsData.data.length}`}
-                  columns={columns}
-                  rows={currentRows}
-                  selectedRowId={selectedRowId}
-                  pagination={{
-                    currentPage: currentPageFromApi,
-                    totalPages,
-                    totalItems,
-                    itemsPerPage,
-                    onPageChange: handlePageChange,
-                    showItemCount: true,
-                  }}
-                  onRowClick={handleRowClick}
-                  actions={actions}
-                  actionIconClassName={styles.actionIcon}
-                  popoverMenuClassName={styles.action_popoverMenu}
-                  popoverMenuItemClassName={styles.action_popoverMenuItem}
-                  disabled={clientsData.isLoading}
-                />
-              ) : (
-                <div className={styles.no_clients_found_container}>
-                  <p className={styles.no_clients_found_text}>
-                    No clients found
-                  </p>
-                </div>
-              )}
-              {clientsData.isLoading && clientsData.data.length > 0 && (
-                <div className={styles.pagination_loading_overlay}>
-                  <div className={styles.pagination_loading_spinner}>
-                    <div className={styles.spinner}></div>
-                    <span>Loading...</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className={styles.clients_container}>
       {renderHeaderSection()}
-      {renderClients()}
+      <ClientsList
+        clientsData={clientsData}
+        onSearchChange={handleSearchChange}
+        onFilterApply={handleFilterApply}
+        onPageChange={handlePageChange}
+        onRowClick={handleRowClick}
+        onViewDetails={handleViewDetails}
+        onAddProperty={handleAddProperty}
+        onRetry={handleRetry}
+        searchValue={clientsSearchValue}
+        currentPage={currentPage}
+        itemsPerPage={itemsPerPage}
+      />
       <AddClientUserModal
         show={showAddClientUserModal}
         onClose={() => setShowAddClientUserModal(false)}
