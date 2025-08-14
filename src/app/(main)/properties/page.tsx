@@ -5,11 +5,7 @@ import { TableColumn } from "@/components/ui/common-table";
 import CustomTabs, { TabItem } from "@/components/ui/tabs";
 import ClientPropertiesList from "@/sections/clients-section/client-properties-list";
 import MetricCard from "@/components/ui/metric-card";
-import {
-  buildingListColumns,
-  buildingListRowsData,
-  rowsData,
-} from "@/app/constants";
+import { buildingListColumns } from "@/app/constants";
 import CommonTableWithPopover, {
   PopoverAction,
 } from "@/components/ui/common-table-with-popover";
@@ -33,7 +29,12 @@ const PropertiesPage = () => {
   const [activeTab, setActiveTab] = useState<string>("properties");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPropertiesLoading, setIsPropertiesLoading] = useState(true);
+  const [isBuildingsLoading, setIsBuildingsLoading] = useState(true);
+  const [isPaginationLoading, setIsPaginationLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [propertiesError, setPropertiesError] = useState<string | null>(null);
+  const [buildingsError, setBuildingsError] = useState<string | null>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [statistics, setStatistics] = useState<PropertiesStatistics | null>(
     null
@@ -50,14 +51,22 @@ const PropertiesPage = () => {
     { label: "Properties", value: "properties" },
     { label: "Buildings", value: "buildings" },
   ];
-  console.log("propertiesData", properties);
-  // Fetch properties data from API
-  const fetchProperties = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
 
-      const response = await getProperties();
+  // Fetch properties data from API
+  const fetchProperties = async (
+    page: number = 1,
+    limit: number = 5,
+    isPagination: boolean = false
+  ) => {
+    try {
+      // Only set loading state if it's not a pagination request
+      if (!isPagination) {
+        setIsPropertiesLoading(true);
+      }
+      setPropertiesError(null);
+
+      const response = await getProperties(page, limit);
+      console.log("properties response", response);
 
       if (response.success) {
         const {
@@ -72,48 +81,85 @@ const PropertiesPage = () => {
         setPropertiesPagination(pagination || null);
         setBuildingsPagination(pagination || null);
       } else {
-        setError(response.message || "Failed to fetch properties");
+        setPropertiesError(response.message || "Failed to fetch properties");
       }
     } catch (error) {
       console.error("Error fetching properties:", error);
-      setError("Failed to fetch properties. Please try again later.");
+      setPropertiesError("Failed to fetch properties. Please try again later.");
     } finally {
-      setIsLoading(false);
+      setIsPropertiesLoading(false);
+      setIsLoading(false); // Set main loading to false when both are done
     }
   };
 
   const fetchBuildings = async () => {
     try {
+      setIsBuildingsLoading(true);
+      setBuildingsError(null);
+
       const response = await getAllBuildings();
       if (response.success) {
-        setBuildings(response.data);
-        setBuildingsPagination(response.data.pagination);
-        setBuildingsStatistics(response.data.statistics);
-        setTotalBuildings(response.data.count);
+        // Extract data from the nested structure
+        const buildingsData = response.data.buildings || [];
+        const count = response.data.count || 0;
+        const statistics = response.data.statistics || null;
+        const pagination = response.data.pagination || null;
+
+        // Transform pagination to match expected format
+        const transformedPagination = pagination
+          ? {
+              currentPage: pagination.page || 1,
+              itemsPerPage: pagination.limit || 10,
+              totalItems: pagination.total || 0,
+              totalPages: pagination.totalPages || 1,
+              hasNextPage:
+                (pagination.page || 1) < (pagination.totalPages || 1),
+              hasPreviousPage: (pagination.page || 1) > 1,
+            }
+          : null;
+
+        setBuildings(buildingsData);
+        setBuildingsPagination(transformedPagination);
+        setBuildingsStatistics(statistics);
+        setTotalBuildings(count);
       } else {
-        setError(response.message || "Failed to fetch buildings");
+        setBuildingsError(response.message || "Failed to fetch buildings");
       }
     } catch (error) {
       console.error("Error fetching buildings:", error);
+      setBuildingsError("Failed to fetch buildings. Please try again later.");
+    } finally {
+      setIsBuildingsLoading(false);
+      setIsLoading(false); // Set main loading to false when both are done
     }
   };
 
   // Use statistics from API response
   const getStatisticsCards = () => {
-    if (!statistics) return [];
+    if (!buildingsStatistics) return [];
 
     return [
       {
-        title: "Total Properties",
-        value: statistics.totalProperties.toString(),
+        title: "Total Buildings",
+        value: buildingsStatistics.totalBuildings || 0,
       },
-      { title: "Total Area", value: statistics.totalArea.toString() },
-      { title: "Total Buildings", value: statistics.totalBuildings.toString() },
+      {
+        title: "Total Area",
+        value: buildingsStatistics.totalArea || 0,
+      },
       {
         title: "Total Maintenance Cost",
-        value: Object.values(statistics.totalMaintenanceCost)
-          .reduce((sum, cost) => sum + cost, 0)
-          .toString(),
+        value: buildingsStatistics.totalMaintenanceCost
+          ? Object.values(
+              buildingsStatistics.totalMaintenanceCost as Record<string, number>
+            )
+              .reduce((sum: number, cost: number) => sum + cost, 0)
+              .toString()
+          : "0",
+      },
+      {
+        title: "Maintenance Updates",
+        value: buildingsStatistics.totalMaintenanceUpdates || 0,
       },
     ];
   };
@@ -121,9 +167,14 @@ const PropertiesPage = () => {
   const currentRows = properties || [];
 
   useEffect(() => {
-    fetchProperties();
+    fetchProperties(currentPage, 5, false); // Initial load, not pagination
     fetchBuildings();
   }, []); // Empty dependency array since we only want to run this once
+
+  // Handle building row click
+  const handleBuildingRowClick = (row: any, index: number) => {
+    router.push(`/building-details/${row.id}`);
+  };
 
   // Define popover actions
   const actions: PopoverAction[] = [
@@ -137,66 +188,180 @@ const PropertiesPage = () => {
     },
   ];
 
+  // Define building-specific actions
+  const buildingActions: PopoverAction[] = [
+    {
+      label: "View Details",
+      onClick: (rowId: string | number) =>
+        router.push(`/building-details/${rowId}`),
+    },
+    {
+      label: "Edit Building",
+      onClick: (rowId: string | number) => {
+        // TODO: Implement edit building functionality
+        console.log("Edit building:", rowId);
+      },
+    },
+    {
+      label: "View Objects",
+      onClick: (rowId: string | number) => {
+        // TODO: Implement view objects functionality
+        console.log("View objects for building:", rowId);
+      },
+    },
+  ];
+
+  // Handle page change for properties tab
+  const handlePropertiesPageChange = async (page: number) => {
+    console.log("Properties page changed to:", page);
+    setCurrentPage(page);
+    await fetchProperties(page, 5, true); // Fetch properties with new page, mark as pagination
+  };
+
   // Handle page change for buildings tab
   const handleBuildingsPageChange = (page: number) => {
-    // TODO: Implement pagination for buildings when API supports it
-    console.log("Page changed to:", page);
+    console.log("Buildings page changed to:", page);
+    setCurrentPage(page);
+    // TODO: Implement pagination API call when backend supports it
+    // For now, we'll just update the current page state
+  };
+
+  // Handle pagination start/end for properties
+  const handlePaginationStart = () => {
+    setIsPaginationLoading(true);
+  };
+
+  const handlePaginationEnd = () => {
+    setIsPaginationLoading(false);
+  };
+
+  // Fetch buildings with pagination (for future use)
+  const fetchBuildingsWithPagination = async (
+    page: number = 1,
+    limit: number = 10
+  ) => {
+    try {
+      // TODO: Update API call to support pagination parameters
+      // const response = await getAllBuildings(page, limit);
+      // For now, just fetch all buildings
+      await fetchBuildings();
+    } catch (error) {
+      console.error("Error fetching buildings with pagination:", error);
+    }
   };
 
   // ui
 
   const renderHeaderSection = () => {
+    const getCount = () => {
+      if (activeTab === "buildings") {
+        return totalBuildings;
+      }
+      return totalProperties;
+    };
+
+    const getTitle = () => {
+      if (activeTab === "buildings") {
+        return "Buildings";
+      }
+      return "Properties";
+    };
+
+    const getLoadingState = () => {
+      if (activeTab === "buildings") {
+        return isBuildingsLoading;
+      }
+      return isPropertiesLoading;
+    };
+
     return (
       <div className={styles.properties_header_section}>
         <div className={styles.properties_header_section_title_container}>
           <p className={styles.properties_count}>
-            {isLoading ? "..." : totalProperties || 0}
+            {getLoadingState() ? "" : getCount() || 0}
           </p>
-          <p className={styles.properties_header_section_title}>Properties</p>
+          <p className={styles.properties_header_section_title}>{getTitle()}</p>
         </div>
       </div>
     );
   };
 
   const renderBuldingsTab = () => {
-    const statisticsCards = getStatisticsCards();
+    // Transform buildings data for the table
+    const transformedBuildingsData = buildings?.map((building: Building) => ({
+      id: building.id,
+      buildingName: building.buildingName,
+      floors: building.metadata?.floors || 0,
+      builtYear: new Date(building.createdAt).getFullYear(),
+      contactPerson: building.contactPerson,
+      totalObjectsUsed: building.total_objects_used || 0,
+      status: building.isActive ? "Active" : "Inactive",
+      totalArea: building.metadata?.totalArea || 0,
+      buildingObjects: building.buildingObjects,
+      description: building.description,
+    }));
 
     return (
       <div className={styles.properties_buldings_tab_container}>
         {/* building static card */}
         <div className={styles.properties_buldings_static_card_container}>
-          {statisticsCards.map((card, index) => (
-            <MetricCard
-              key={index}
-              title={card.title}
-              value={Number(card.value)}
-              className={styles.properties_buldings_static_card}
-              titleStyle={styles.properties_buldings_static_card_title}
-              valueStyle={styles.properties_buldings_static_card_value}
-              showK={false}
-            />
-          ))}
+          {isBuildingsLoading
+            ? // Show loading skeleton for statistics cards
+              Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className={styles.properties_buldings_static_card}
+                >
+                  <div className={styles.properties_buldings_static_card_title}>
+                    <div className={styles.loading_skeleton_title}></div>
+                  </div>
+                  <div className={styles.properties_buldings_static_card_value}>
+                    <div className={styles.loading_skeleton_value}></div>
+                  </div>
+                </div>
+              ))
+            : getStatisticsCards().map((card, index) => (
+                <MetricCard
+                  key={index}
+                  title={card.title}
+                  value={Number(card.value)}
+                  className={styles.properties_buldings_static_card}
+                  titleStyle={styles.properties_buldings_static_card_title}
+                  valueStyle={styles.properties_buldings_static_card_value}
+                  showK={false}
+                />
+              ))}
         </div>
         {/* building table */}
         <div className={styles.properties_buldings_table_container}>
-          <CommonTableWithPopover
-            columns={buildingListColumns}
-            rows={currentRows}
-            onRowClick={() => {}}
-            selectedRowId={selectedRowId}
-            pagination={{
-              currentPage: buildingsPagination?.currentPage || 1,
-              totalPages: buildingsPagination?.totalPages || 0,
-              totalItems: buildingsPagination?.totalItems || 0,
-              itemsPerPage: buildingsPagination?.itemsPerPage || 10,
-              onPageChange: handleBuildingsPageChange,
-              showItemCount: true,
-            }}
-            actions={actions}
-            actionIconClassName={styles.actionIcon}
-            popoverMenuClassName={styles.action_popoverMenu}
-            popoverMenuItemClassName={styles.action_popoverMenuItem}
-          />
+          {isBuildingsLoading ? (
+            <div className={styles.buildings_table_loading}>
+              <FallbackScreen
+                title="Loading Buildings Table"
+                subtitle="Please wait while we fetch the buildings data..."
+                className={styles.properties_loading_fallback}
+              />
+            </div>
+          ) : (
+            <CommonTableWithPopover
+              columns={buildingListColumns}
+              rows={transformedBuildingsData}
+              onRowClick={handleBuildingRowClick}
+              selectedRowId={selectedRowId}
+              pagination={{
+                currentPage: buildingsPagination?.currentPage || 1,
+                totalPages: buildingsPagination?.totalPages || 0,
+                totalItems: buildingsPagination?.totalItems || 0,
+                itemsPerPage: buildingsPagination?.itemsPerPage || 10,
+                onPageChange: handleBuildingsPageChange,
+                showItemCount: true,
+              }}
+              actions={buildingActions}
+              actionIconClassName={styles.actionIcon}
+              popoverMenuClassName={styles.action_popoverMenu}
+              popoverMenuItemClassName={styles.action_popoverMenuItem}
+            />
+          )}
         </div>
       </div>
     );
@@ -228,23 +393,51 @@ const PropertiesPage = () => {
         />
         {activeTab === "properties" && (
           <>
-            {isLoading ? (
+            {isPropertiesLoading && !isPaginationLoading ? (
               <FallbackScreen
                 title="Loading Properties"
                 subtitle="Please wait while we fetch your properties data..."
+                className={styles.properties_loading_fallback}
+              />
+            ) : propertiesError ? (
+              <FallbackScreen
+                title="Error Loading Properties"
+                subtitle={propertiesError}
                 className={styles.properties_loading_fallback}
               />
             ) : (
               <ClientPropertiesList
                 showPropertyListSection={false}
                 propertiesData={properties}
-                pagination={propertiesPagination}
+                pagination={propertiesPagination || undefined}
                 statistics={statistics}
+                onPageChange={handlePropertiesPageChange}
+                currentPage={currentPage}
+                onPaginationStart={handlePaginationStart}
+                onPaginationEnd={handlePaginationEnd}
               />
             )}
           </>
         )}
-        {activeTab === "buildings" && renderBuldingsTab()}
+        {activeTab === "buildings" && (
+          <>
+            {isBuildingsLoading ? (
+              <FallbackScreen
+                title="Loading Buildings"
+                subtitle="Please wait while we fetch your buildings data..."
+                className={styles.properties_loading_fallback}
+              />
+            ) : buildingsError ? (
+              <FallbackScreen
+                title="Error Loading Buildings"
+                subtitle={buildingsError}
+                className={styles.properties_loading_fallback}
+              />
+            ) : (
+              renderBuldingsTab()
+            )}
+          </>
+        )}
       </div>
     </div>
   );

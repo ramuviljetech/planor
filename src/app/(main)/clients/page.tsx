@@ -215,6 +215,10 @@ const Clients: React.FC = () => {
     setShowAddPropertyModal(true);
   };
 
+  const handleRowClick = (rowData: any) => {
+    router.push(`/client-info?id=${encodeURIComponent(rowData?.id)}`);
+  };
+
   // Define actions for the popover
   const actions: PopoverAction[] = [
     {
@@ -233,7 +237,7 @@ const Clients: React.FC = () => {
         <div className={styles.clients_header_section_title_container}>
           <p className={styles.clients_count}>
             {clientsData.isLoading && clientsData.data.length === 0
-              ? "..."
+              ? ""
               : clientsData.statistics?.totalClients || 0}
           </p>
           <p className={styles.clients_header_section_title}>Clients</p>
@@ -358,6 +362,7 @@ const Clients: React.FC = () => {
                     onPageChange: handlePageChange,
                     showItemCount: true,
                   }}
+                  onRowClick={handleRowClick}
                   actions={actions}
                   actionIconClassName={styles.actionIcon}
                   popoverMenuClassName={styles.action_popoverMenu}

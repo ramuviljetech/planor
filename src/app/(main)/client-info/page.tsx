@@ -30,9 +30,9 @@ import MaintenancePlan from "@/components/maintenance-plan";
 import AddUserModal from "@/components/add-user-modal";
 import {
   getClientInfo,
-  getProperties,
   getUserDetails,
   getMaintancePlan,
+  getPropertiesByClientId,
 } from "@/networking/client-api-service";
 import FallbackScreen from "@/components/ui/fallback-screen";
 
@@ -55,7 +55,7 @@ const ClientInfo: React.FC = () => {
   const [clientInfo, setClientInfo] = useState<any>(null);
   const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
-  const [properties, setProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<any>(null);
 
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -86,7 +86,6 @@ const ClientInfo: React.FC = () => {
   const fetchClientInfo = async (clientId: string) => {
     try {
       const clientResponse = await getClientInfo(clientId);
-      console.log("Client info:", clientResponse.data);
 
       if (clientResponse.data) {
         const transformedData = [
@@ -155,16 +154,16 @@ const ClientInfo: React.FC = () => {
   // Fetch properties
   const fetchProperties = async (clientId: string) => {
     try {
-      const properties = await getProperties(clientId);
+      const properties = await getPropertiesByClientId(clientId);
       if (properties.data) {
         setProperties(properties.data);
-        console.log("Properties:", properties.data);
       } else {
-        console.log("No properties found");
+        setProperties(null);
       }
     } catch (error) {
       console.error("Error fetching properties:", error);
       setHasError(true);
+      setProperties(null);
     }
   };
 
@@ -172,7 +171,6 @@ const ClientInfo: React.FC = () => {
   const fetchMaintancePlan = async (clientId: string) => {
     try {
       const maintancePlan = await getMaintancePlan(clientId);
-      console.log("Maintance plan:", maintancePlan.data);
     } catch (error) {
       console.error("Error fetching maintance plan:", error);
       setHasError(true);
@@ -234,15 +232,6 @@ const ClientInfo: React.FC = () => {
   const currentRows = clinetUsers?.slice(startIndex, endIndex) || [];
 
   const handleRowClick = (row: TableRow, index: number) => {
-    console.log("Row clicked:", {
-      id: row.id,
-      clientName: row.clientName,
-      clientId: row.clientId,
-      properties: row.properties,
-      createdOn: row.createdOn,
-      maintenanceCost: row.maintenanceCost,
-      status: row.status,
-    });
     setSelectedRowId(row.id);
   };
 
@@ -260,8 +249,6 @@ const ClientInfo: React.FC = () => {
 
   // Handle opening modal for edit user
   const handleEditUser = (rowId: string | number) => {
-    console.log("Edit User clicked for row:", rowId);
-
     // Find the user data from the current rows
     const userToEdit = currentRows.find((row: any) => row.id === rowId);
 
@@ -282,8 +269,6 @@ const ClientInfo: React.FC = () => {
 
   // Handle saving user data (both add and edit)
   const handleSaveUser = (userData: any) => {
-    console.log("Saving user data:", userData);
-
     if (isEditMode) {
       // Handle edit logic here
       console.log("Updating user:", userData);
@@ -344,7 +329,7 @@ const ClientInfo: React.FC = () => {
         <Breadcrumb
           items={[
             {
-              label: "Brunnfast AB",
+              label: clientInfo?.[0]?.value || "N/A",
               isActive: true,
             },
           ]}
@@ -380,7 +365,7 @@ const ClientInfo: React.FC = () => {
     }
 
     // Show loading state
-    if (isLoading ) {
+    if (isLoading) {
       return (
         <div className={styles.client_info_overview_section}>
           <FallbackScreen
@@ -453,74 +438,85 @@ const ClientInfo: React.FC = () => {
     );
   };
 
+  // Extract the properties section header to avoid duplication
+  const renderPropertiesHeader = () => (
+    <div className={styles.client_info_properties_section_header}>
+      <Capsule
+        items={tabItems}
+        activeValue={activePropertiesTab}
+        onItemClick={setActivePropertiesTab}
+        className={styles.client_info_properties_section_header_tabs}
+      />
+      <div className={styles.client_info_properties_section_header_right}>
+        <SearchBar
+          placeholder="Search  by object , Reuit id...."
+          value={searchValue}
+          onChange={(e: string) => setSearchValue(e)}
+          className={styles.client_info_properties_section_header_search}
+        />
+        <Avatar
+          image={filterIcon}
+          alt="filter"
+          className={styles.client_info_properties_section_header_filter_icon}
+        />
+      </div>
+    </div>
+  );
+
   const renderPropertiesSection = () => {
+    // Show error state for properties section
+    if (hasError && !properties) {
+      return (
+        <div className={styles.client_info_properties_section}>
+          {renderPropertiesHeader()}
+          <div className={styles.client_info_properties_section_tabs_data}>
+            <FallbackScreen
+              title="Failed to Load Properties"
+              subtitle="There was an error loading the properties data. Please try refreshing the page."
+              className={styles.client_info_loading_fallback}
+            />
+          </div>
+        </div>
+      );
+    }
+
     // Show loading state for properties section
     if (isLoading) {
       return (
         <div className={styles.client_info_properties_section}>
-          <div className={styles.client_info_properties_section_header}>
-            <Capsule
-              items={tabItems}
-              activeValue={activePropertiesTab}
-              onItemClick={setActivePropertiesTab}
-              className={styles.client_info_properties_section_header_tabs}
-            />
-            <div className={styles.client_info_properties_section_header_right}>
-              <SearchBar
-                placeholder="Search  by object , Reuit id...."
-                value={searchValue}
-                onChange={(e: string) => setSearchValue(e)}
-                className={styles.client_info_properties_section_header_search}
-              />
-              <Avatar
-                image={filterIcon}
-                alt="filter"
-                className={
-                  styles.client_info_properties_section_header_filter_icon
-                }
-              />
-            </div>
-          </div>
+          {renderPropertiesHeader()}
           {/* Loading overlay for properties */}
-          <div className={styles.properties_loading_overlay}>
-            <div className={styles.properties_loading_spinner}>
-              <div className={styles.spinner}></div>
-              <span>Loading properties...</span>
-            </div>
-          </div>
+          <FallbackScreen
+            title="Loading Properties"
+            subtitle="Please wait while we fetch the properties data..."
+            className={styles.client_info_loading_fallback}
+          />
         </div>
       );
     }
 
     return (
       <div className={styles.client_info_properties_section}>
-        <div className={styles.client_info_properties_section_header}>
-          <Capsule
-            items={tabItems}
-            activeValue={activePropertiesTab}
-            onItemClick={setActivePropertiesTab}
-            className={styles.client_info_properties_section_header_tabs}
-          />
-          <div className={styles.client_info_properties_section_header_right}>
-            <SearchBar
-              placeholder="Search  by object , Reuit id...."
-              value={searchValue}
-              onChange={(e: string) => setSearchValue(e)}
-              className={styles.client_info_properties_section_header_search}
-            />
-            <Avatar
-              image={filterIcon}
-              alt="filter"
-              className={
-                styles.client_info_properties_section_header_filter_icon
-              }
-            />
-          </div>
-        </div>
+        {renderPropertiesHeader()}
         {/* property list tabs data */}
         <div className={styles.client_info_properties_section_tabs_data}>
           {activePropertiesTab === "propertyList" && (
-            <ClientPropertiesList showPropertyListSection={false} />
+            <>
+              {properties?.properties && properties.properties.length === 0 ? (
+                <div className={styles.no_properties_found_container}>
+                  <p className={styles.no_properties_found_text}>
+                    No properties found for this client
+                  </p>
+                </div>
+              ) : (
+                <ClientPropertiesList
+                  showPropertyListSection={false}
+                  propertiesData={properties?.properties || []}
+                  statistics={properties?.statistics}
+                  pagination={properties?.pagination}
+                />
+              )}
+            </>
           )}
           {activePropertiesTab === "maintenancePlan" && <MaintenancePlan />}
         </div>

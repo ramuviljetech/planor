@@ -1,8 +1,10 @@
 import apiClient from "./axios-config";
 
-export const getProperties = async () => {
+export const getProperties = async (page: number = 1, limit: number = 5) => {
   try {
-    const response = await apiClient.get("/properties");
+    const response = await apiClient.get(
+      `/properties?page=${page}&limit=${limit}`
+    );
     return response.data;
   } catch (error) {
     console.error(`❌ PropertiesApiService: Error fetching properties:`, error);

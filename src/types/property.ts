@@ -92,7 +92,23 @@ export interface Building {
   };
   propertyId: string;
   buildingObjects: {
-    floors: Array<{
+    walls?: Array<{
+      id: string;
+      type: string;
+      object: string;
+      pricelistId: string;
+      area: number;
+      count: number;
+    }>;
+    areas?: Array<{
+      id: string;
+      type: string;
+      object: string;
+      pricelistId: string;
+      area: number;
+      count: number;
+    }>;
+    floors?: Array<{
       id: string;
       type: string;
       object: string;

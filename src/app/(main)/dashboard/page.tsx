@@ -26,9 +26,13 @@ import Modal from "@/components/ui/modal";
 import ClientsFilter from "@/sections/clients-section/clients-filter";
 import { useAuth } from "@/providers";
 import FallbackScreen from "@/components/ui/fallback-screen";
-import styles from "./styles.module.css";
 import { getMaintenanceSummaryData } from "@/networking/dashboard-api-service";
-import { getClients } from "@/networking/client-api-service";
+import {
+  getClients,
+  getPropertiesByClientId,
+} from "@/networking/client-api-service";
+import styles from "./styles.module.css";
+import { getPropertyDetailsById } from "@/networking/properties-api-service";
 
 // Fixed colors for metric cards based on title
 const titleColorMap: Record<string, string> = {
@@ -112,11 +116,13 @@ export default function DashboardPage() {
     useState<boolean>(false);
   const [showBottomSheet, setShowBottomSheet] = useState<boolean>(false);
   const [clientsSearchValue, setClientsSearchValue] = useState<string>("");
-  const [selectedRowId, setSelectedRowId] = useState<string | number>("");
+  const [selectedRowId, setSelectedRowId] = useState<string>("");
   const itemsPerPage = 5;
   const router = useRouter();
   const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
-
+  const [clientProperties, setClientProperties] = useState<any>([]);
+  const [loderForClientProperties, setLoderForClientProperties] =
+    useState<boolean>(false);
   // Fetch maintenance summary data
   const fetchMaintenanceSummaryData = async () => {
     try {
@@ -150,7 +156,7 @@ export default function DashboardPage() {
     try {
       setClientsData((prev) => ({ ...prev, isLoading: true, error: null }));
       const response = await getClients(page, itemsPerPage);
-
+      console.log("clients response", response);
       if (response.success && response.data) {
         // Transform the API response to match our expected format
         const transformedClients =
@@ -334,7 +340,7 @@ export default function DashboardPage() {
   }, [dashboardData.maintenanceSummary]);
 
   // Table data and handlers
-  const columns: TableColumn[] = [
+  const ClientsTableColumns: TableColumn[] = [
     {
       key: "clientName",
       title: "Client Name",
@@ -385,9 +391,39 @@ export default function DashboardPage() {
   // Use the data directly from API response since it's already paginated
   const currentRows = transformedClientsData;
 
-  const handleRowClick = (row: TableRow, index: number) => {
+  const ClientStatistics = [
+    {
+      title: "Total Clients",
+      value: clientsData.statistics?.totalClients || 0,
+    },
+    {
+      title: "New This Month",
+      value: clientsData.statistics?.newClientsThisMonth || 0,
+    },
+    {
+      title: "Total Buildings",
+      value: clientsData.statistics?.totalBuildings || 0,
+    },
+    {
+      title: "File Uploads",
+      value: clientsData.statistics?.totalFileUploads || 0,
+    },
+  ];
+
+  const handleRowClick = async (row: TableRow, index: number) => {
     setShowBottomSheet(true);
-    setSelectedRowId(row.id);
+    setLoderForClientProperties(true);
+    try {
+      let response = await getPropertiesByClientId(row.id.toString());
+      if (response.success && response.data) {
+        console.log("response", response.data);
+        setClientProperties(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching client properties:", error);
+    } finally {
+      setLoderForClientProperties(false);
+    }
   };
 
   const handlePageChange = (page: number) => {
@@ -396,13 +432,15 @@ export default function DashboardPage() {
     fetchClientsData(page);
   };
 
-  const handleViewDetails = (rowId: string | number) => {
-    router.push("/property-details");
+  const handleViewDetails = (rowData: any) => {
+    router.push(`/property-details?id=${rowData.id}`);
   };
 
-  const handleAddProperty = (rowId: string | number) => {
-    console.log("Add Property clicked for row:", rowId);
-    setShowAddPropertyModal(true);
+  const handleAddProperty = (rowData: any) => {
+    setSelectedRowId(rowData.id);
+    setTimeout(() => {
+      setShowAddPropertyModal(true);
+    }, 100);
   };
 
   // Define actions for the popover
@@ -424,13 +462,6 @@ export default function DashboardPage() {
     // TODO: Trigger API call here to fetch new data based on the selected filters
     // For now, we can refresh the dashboard data when filters change
     // fetchMaintenanceSummaryData();
-  };
-
-  // Manual refresh function for dashboard data
-  const handleRefreshDashboard = () => {
-    console.log("🔄 Dashboard: Manual refresh requested");
-    fetchMaintenanceSummaryData();
-    fetchClientsData(1);
   };
 
   const renderClients = () => {
@@ -470,37 +501,21 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {/* middle container */}
             <div className={styles.dashboard_clients_middle_container}>
-              <MetricCard
-                title="Total Clients"
-                value={clientsData.statistics?.totalClients || 0}
-                className={styles.dashboard_clients_static_card}
-                titleStyle={styles.dashboard_clients_static_card_title}
-              />
-              <MetricCard
-                title="New This Month"
-                value={clientsData.statistics?.newClientsThisMonth || 0}
-                className={styles.dashboard_clients_static_card}
-                titleStyle={styles.dashboard_clients_static_card_title}
-              />
-              <MetricCard
-                title="Total Buildings"
-                value={clientsData.statistics?.totalBuildings || 0}
-                className={styles.dashboard_clients_static_card}
-                titleStyle={styles.dashboard_clients_static_card_title}
-              />
-              <MetricCard
-                title="File Uploads"
-                value={clientsData.statistics?.totalFileUploads || 0}
-                className={styles.dashboard_clients_static_card}
-                titleStyle={styles.dashboard_clients_static_card_title}
-              />
+              {ClientStatistics.map((statistic, index) => (
+                <MetricCard
+                  key={index}
+                  title={statistic.title}
+                  value={statistic.value}
+                  className={styles.dashboard_clients_static_card}
+                  titleStyle={styles.dashboard_clients_static_card_title}
+                />
+              ))}
             </div>
             <div className={styles.table_container_wrapper}>
               {clientsData.data.length !== 0 ? (
                 <CommonTableWithPopover
-                  columns={columns}
+                  columns={ClientsTableColumns}
                   rows={currentRows}
                   onRowClick={handleRowClick}
                   selectedRowId={selectedRowId}
@@ -587,9 +602,26 @@ export default function DashboardPage() {
           setSelectedRowId("");
         }}
       >
+        {loderForClientProperties && (
+          <div className={styles.client_properties_loading}>
+            <FallbackScreen
+              title="Loading Client Properties"
+              subtitle="Please wait while we fetch your client properties..."
+              className={styles.client_properties_loading_fallback}
+            />
+          </div>
+        )}
         <ClientPropertiesList
-          propertiesData={mockPropertiesData}
-          pagination={mockPropertiesPagination}
+          propertiesData={clientProperties?.properties || []}
+          statistics={clientProperties?.statistics}
+          pagination={
+            clientProperties?.pagination || {
+              currentPage: 1,
+              totalPages: 1,
+              totalItems: 0,
+              itemsPerPage: 10,
+            }
+          }
         />
       </BottomSheet>
       <AddClientUserModal

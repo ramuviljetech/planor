@@ -40,7 +40,6 @@ const ForgotPassword: React.FC = () => {
     setErrorMessage("");
     setSuccessMessage("");
 
-    console.log(values);
     router.push(`/verify-user`);
 
     // try {

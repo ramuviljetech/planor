@@ -51,7 +51,7 @@ export const getUserDetails = async (id: string) => {
 
 //  properties
 
-export const getProperties = async (id: string) => {
+export const getPropertiesByClientId = async (id: string) => {
   try {
     const response = await apiClient.get(`/properties?clientId=${id}`);
     console.log("Properties:", response.data);

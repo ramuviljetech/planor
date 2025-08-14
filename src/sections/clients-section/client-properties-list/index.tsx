@@ -13,12 +13,17 @@ import { TableColumn, TableRow } from "@/components/ui/common-table";
 import styles from "./styles.module.css";
 import AddPropertyModal from "@/components/add-property-modal";
 import { Property } from "@/types/property";
+import { PropertiesPagination } from "@/types/property";
 
 interface ClientPropertiesListProps {
   showPropertyListSection?: boolean;
   propertiesData?: Property[];
-  pagination?: any;
+  pagination?: PropertiesPagination;
   statistics?: any;
+  onPageChange?: (page: number) => void;
+  currentPage?: number;
+  onPaginationStart?: () => void;
+  onPaginationEnd?: () => void;
 }
 
 const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
@@ -26,6 +31,10 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
   propertiesData,
   statistics,
   pagination,
+  onPageChange,
+  currentPage: externalCurrentPage,
+  onPaginationStart,
+  onPaginationEnd,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,10 +42,15 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const itemsPerPage = 10;
   const [showAddPropertyModal, setShowAddPropertyModal] = useState(false);
 
-  console.log("statistics", statistics);
+  // Use external currentPage if provided (for server-side pagination)
+  const effectiveCurrentPage = externalCurrentPage || currentPage;
+
+  // Use server-side pagination if available, otherwise fall back to client-side
+  const useServerPagination = pagination && onPageChange;
 
   // Table columns updated to match property data
   const columns: TableColumn[] = [
@@ -100,31 +114,45 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
     );
   }, [transformedRows, searchValue]);
 
-  const totalItems = filteredRows.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalItems = useServerPagination
+    ? pagination.totalItems
+    : filteredRows.length;
+  const totalPages = useServerPagination
+    ? pagination.totalPages
+    : Math.ceil(filteredRows.length / itemsPerPage);
 
-  // Get current page data
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  // Get current page data - use server data or client-side slicing
+  const startIndex = (effectiveCurrentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentRows = filteredRows.slice(startIndex, endIndex);
+  const currentRows = useServerPagination
+    ? filteredRows
+    : filteredRows.slice(startIndex, endIndex);
 
   const handleRowClick = (row: TableRow, index: number) => {
-    console.log("Property row clicked:", {
-      id: row.id,
-      propertyName: row.propertyName,
-      propertyCode: row.propertyCode,
-      propertyType: row.propertyType,
-      city: row.city,
-      metadata: row.metadata,
-      numOfBuildings: row.numOfBuildings,
-      originalData: row.originalData,
-    });
-    setSelectedRowId(row.id);
+    router.push(`/property-details?id=${encodeURIComponent(row.id)}`);
   };
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = async (page: number) => {
     setCurrentPage(page);
     setSelectedRowId("");
+
+    // Show loading state for server-side pagination
+    if (useServerPagination) {
+      setIsLoading(true);
+      // Notify parent component that pagination has started
+      onPaginationStart?.();
+    }
+
+    try {
+      await onPageChange?.(page);
+    } finally {
+      // Hide loading state after page change completes
+      if (useServerPagination) {
+        setIsLoading(false);
+        // Notify parent component that pagination has ended
+        onPaginationEnd?.();
+      }
+    }
   };
 
   const handleViewDetails = (rowData: any) => {
@@ -237,24 +265,53 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
           actionButtonStyle={styles.client_details_add_property_button}
         />
       )}
-      <CommonTableWithPopover
-        columns={columns}
-        rows={currentRows}
-        onRowClick={handleRowClick}
-        selectedRowId={selectedRowId}
-        pagination={{
-          currentPage,
-          totalPages,
-          totalItems,
-          itemsPerPage,
-          onPageChange: handlePageChange,
-          showItemCount: true,
-        }}
-        actions={actions}
-        actionIconClassName={styles.actionIcon}
-        popoverMenuClassName={styles.action_popoverMenu}
-        popoverMenuItemClassName={styles.action_popoverMenuItem}
-      />
+      <div className={styles.table_container_wrapper}>
+        {propertiesData && propertiesData.length === 0 ? (
+          <div className={styles.no_properties_found_container}>
+            <p className={styles.no_properties_found_text}>
+              No properties found for this client
+            </p>
+          </div>
+        ) : (
+          <CommonTableWithPopover
+            columns={columns}
+            rows={currentRows}
+            onRowClick={handleRowClick}
+            selectedRowId={selectedRowId}
+            pagination={{
+              currentPage: effectiveCurrentPage,
+              totalPages: useServerPagination
+                ? pagination.totalPages
+                : totalPages,
+              totalItems: useServerPagination
+                ? pagination.totalItems
+                : totalItems,
+              itemsPerPage: useServerPagination
+                ? pagination.itemsPerPage
+                : itemsPerPage,
+              onPageChange: handlePageChange,
+              showItemCount: true,
+            }}
+            actions={actions}
+            actionIconClassName={styles.actionIcon}
+            popoverMenuClassName={styles.action_popoverMenu}
+            popoverMenuItemClassName={styles.action_popoverMenuItem}
+            disabled={isLoading}
+          />
+        )}
+        {/* Loading overlay for pagination */}
+        {isLoading &&
+          useServerPagination &&
+          propertiesData &&
+          propertiesData.length > 0 && (
+            <div className={styles.pagination_loading_overlay}>
+              <div className={styles.pagination_loading_spinner}>
+                <div className={styles.spinner}></div>
+                <span>Loading...</span>
+              </div>
+            </div>
+          )}
+      </div>
       <AddPropertyModal
         show={showAddPropertyModal}
         onClose={() => setShowAddPropertyModal(false)}

@@ -17,6 +17,7 @@
   line-height: 100%;
   letter-spacing: 0px;
   transition: color 0.2s ease;
+  text-transform: capitalize;
 }
 
 .breadcrumb_item.active {

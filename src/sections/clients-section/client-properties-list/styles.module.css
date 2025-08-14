@@ -54,7 +54,7 @@
   width: 210px;
   height: 36px;
 }
-.dashboard_clients_add_client_button {
+.dashboard_clients_add_property_button {
   border-radius: 24px;
 }
 
@@ -93,4 +93,70 @@
 
 .action_popoverMenuItem:hover {
   background-color: #f3f4f6;
+}
+
+/* Table container wrapper for loading overlay */
+.table_container_wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 200px; /* Add minimum height to ensure overlay is visible */
+}
+
+/* Pagination loading overlay styles */
+.pagination_loading_overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 8px;
+}
+
+.pagination_loading_spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-lato-regular);
+  font-size: 14px;
+  color: var(--dark-slate);
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--concrete);
+  border-top: 2px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.no_properties_found_container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  width: 100%;
+}
+
+.no_properties_found_text {
+  font-family: var(--font-lato-regular);
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--dark-slate-gray);
 }

@@ -236,13 +236,13 @@
   display: flex;
   cursor: pointer;
 }
-.client_info_loading_fallback{
+.client_info_loading_fallback {
   position: relative;
-  min-height: 400px;
+  height: 100% !important;
   align-items: center;
   justify-content: center;
 }
-.no_users_found_container{
+.no_users_found_container {
   width: 100%;
   height: auto;
   display: flex;
@@ -251,7 +251,23 @@
   justify-content: center;
   height: 100%;
 }
-.no_users_found_text{
+.no_users_found_text {
+  font-family: var(--font-lato-bold);
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: var(--granite-gray);
+}
+
+.no_properties_found_container {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.no_properties_found_text {
   font-family: var(--font-lato-bold);
   font-size: 16px;
   line-height: 100%;
