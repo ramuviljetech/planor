@@ -294,3 +294,20 @@
   letter-spacing: 0px;
   color: var(--dark-slate);
 }
+
+/* Client properties loading fallback */
+.client_properties_loading {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.client_properties_loading_fallback {
+  height: 100% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

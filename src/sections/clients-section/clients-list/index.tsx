@@ -52,6 +52,8 @@ interface ClientsListProps {
   searchValue: string;
   currentPage: number;
   itemsPerPage: number;
+  addClient?: boolean;
+  onAddClient?: () => void;
 }
 
 const ClientsList: React.FC<ClientsListProps> = ({
@@ -66,6 +68,8 @@ const ClientsList: React.FC<ClientsListProps> = ({
   searchValue,
   currentPage,
   itemsPerPage,
+  addClient = false,
+  onAddClient,
 }) => {
   const [showClientsFilter, setShowClientsFilter] = useState<boolean>(false);
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
@@ -220,6 +224,8 @@ const ClientsList: React.FC<ClientsListProps> = ({
               <Image src={filterIcon} alt="filter" width={24} height={24} />
             </div>
           }
+          actionButtonTitle={addClient ? "Add Client" : undefined}
+          onActionButtonClick={onAddClient}
           searchBarStyle={styles.dashboard_clients_search_bar}
           actionButtonStyle={styles.dashboard_clients_add_client_button}
         />

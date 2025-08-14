@@ -4,7 +4,7 @@ import Image from "next/image";
 import { filterIcon, propertiesBlueIcon } from "@/resources/images";
 import { clientDetailsCardsData } from "@/app/constants";
 import SectionHeader from "@/components/ui/section-header";
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import CommonTableWithPopover, {
   PopoverAction,
@@ -24,6 +24,7 @@ interface ClientPropertiesListProps {
   currentPage?: number;
   onPaginationStart?: () => void;
   onPaginationEnd?: () => void;
+  isPaginationLoading?: boolean; // Add external pagination loading state
 }
 
 const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
@@ -35,6 +36,7 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
   currentPage: externalCurrentPage,
   onPaginationStart,
   onPaginationEnd,
+  isPaginationLoading: externalPaginationLoading,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -138,19 +140,33 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
 
     // Show loading state for server-side pagination
     if (useServerPagination) {
-      setIsLoading(true);
-      // Notify parent component that pagination has started
-      onPaginationStart?.();
+      // Use external loading state if available, otherwise use internal state
+      if (externalPaginationLoading !== undefined) {
+        // Let parent handle the loading state
+        onPaginationStart?.();
+      } else {
+        setIsLoading(true);
+        onPaginationStart?.();
+      }
     }
 
     try {
-      await onPageChange?.(page);
+      // Call the parent's onPageChange and wait for it to complete
+      if (onPageChange) {
+        await onPageChange(page);
+      }
+    } catch (error) {
+      console.error("❌ ClientPropertiesList: Error in onPageChange", error);
     } finally {
       // Hide loading state after page change completes
       if (useServerPagination) {
-        setIsLoading(false);
-        // Notify parent component that pagination has ended
-        onPaginationEnd?.();
+        if (externalPaginationLoading !== undefined) {
+          // Let parent handle the loading state
+          onPaginationEnd?.();
+        } else {
+          setIsLoading(false);
+          onPaginationEnd?.();
+        }
       }
     }
   };
@@ -300,7 +316,7 @@ const ClientPropertiesList: React.FC<ClientPropertiesListProps> = ({
           />
         )}
         {/* Loading overlay for pagination */}
-        {isLoading &&
+        {(externalPaginationLoading || isLoading) &&
           useServerPagination &&
           propertiesData &&
           propertiesData.length > 0 && (

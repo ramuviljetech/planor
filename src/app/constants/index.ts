@@ -907,10 +907,10 @@ export const mockPropertiesStatistics = {
 
 export const mockPropertiesPagination = {
   currentPage: 1,
-  itemsPerPage: 10,
+  itemsPerPage: 3,
   totalItems: 6,
-  totalPages: 1,
-  hasNextPage: false,
+  totalPages: 2,
+  hasNextPage: true,
   hasPreviousPage: false,
 };
 export const allObjectsAccordionTableColumns = [

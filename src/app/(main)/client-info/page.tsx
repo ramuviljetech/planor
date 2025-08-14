@@ -6,12 +6,7 @@ import Button from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import CustomTabs, { TabItem } from "@/components/ui/tabs";
 import Info from "@/components/ui/info";
-import {
-  clientInfoItems,
-  clientInfoUsersRowsData,
-  mockPropertiesData,
-  mockPropertiesPagination,
-} from "@/app/constants";
+import { clientInfoItems, clientInfoUsersRowsData } from "@/app/constants";
 import CommonTableWithPopover, {
   PopoverAction,
 } from "@/components/ui/common-table-with-popover";
@@ -56,6 +51,10 @@ const ClientInfo: React.FC = () => {
   const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
   const [properties, setProperties] = useState<any>(null);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(5);
+  const [propertiesCurrentPage, setPropertiesCurrentPage] = useState<number>(1);
+  const [propertiesItemsPerPage, setPropertiesItemsPerPage] =
+    useState<number>(5);
 
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -78,10 +77,10 @@ const ClientInfo: React.FC = () => {
 
   const [selectedRowId, setSelectedRowId] = useState<string | number>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
-
+  const [isPaginationLoading, setIsPaginationLoading] =
+    useState<boolean>(false);
   // Fetch client information
   const fetchClientInfo = async (clientId: string) => {
     try {
@@ -152,18 +151,64 @@ const ClientInfo: React.FC = () => {
   };
 
   // Fetch properties
-  const fetchProperties = async (clientId: string) => {
+  const fetchProperties = async (
+    clientId: string,
+    page: number = 1,
+    limit: number = 10,
+    isPaginationRequest: boolean = false
+  ) => {
     try {
-      const properties = await getPropertiesByClientId(clientId);
+      // Set pagination loading state if this is a pagination request
+      if (isPaginationRequest) {
+        setIsPaginationLoading(true);
+      }
+
+      const properties = await getPropertiesByClientId(clientId, page, limit);
       if (properties.data) {
-        setProperties(properties.data);
+        // Ensure pagination data is properly formatted
+        if (properties.data.pagination) {
+          const paginationData = {
+            currentPage: properties.data.pagination.currentPage || page,
+            itemsPerPage: properties.data.pagination.itemsPerPage || limit,
+            totalItems: properties.data.pagination.totalItems || 0,
+            totalPages: properties.data.pagination.totalPages || 1,
+            hasNextPage: properties.data.pagination.hasNextPage || false,
+            hasPreviousPage:
+              properties.data.pagination.hasPreviousPage || false,
+          };
+
+          setProperties({
+            ...properties.data,
+            pagination: paginationData,
+          });
+        } else {
+          // Create fallback pagination data
+          const fallbackPagination = {
+            currentPage: page,
+            itemsPerPage: limit,
+            totalItems: properties.data.properties?.length || 0,
+            totalPages: Math.ceil(
+              (properties.data.properties?.length || 0) / limit
+            ),
+            hasNextPage: false,
+            hasPreviousPage: false,
+          };
+
+          setProperties({
+            ...properties.data,
+            pagination: fallbackPagination,
+          });
+        }
       } else {
         setProperties(null);
       }
+      // Reset pagination loading on successful completion
+      setIsPaginationLoading(false);
     } catch (error) {
       console.error("Error fetching properties:", error);
       setHasError(true);
       setProperties(null);
+      setIsPaginationLoading(false); // Reset pagination loading on error
     }
   };
 
@@ -177,20 +222,28 @@ const ClientInfo: React.FC = () => {
     }
   };
 
-  // Main data fetching effect
+  // Main data fetching effect - only for initial load and search params change
   useEffect(() => {
     const clientId = searchParams?.get("id");
     if (!clientId) return;
 
     setHasError(false);
     setIsLoading(true);
+    // Reset pagination state when client changes
+    setPropertiesCurrentPage(1);
+    setIsPaginationLoading(false);
 
     const fetchAllData = async () => {
       try {
         await Promise.all([
           fetchClientInfo(clientId),
           fetchUserDetails(clientId),
-          fetchProperties(clientId),
+          fetchProperties(
+            clientId,
+            1, // Always start with page 1 for initial load
+            propertiesItemsPerPage,
+            false // Not a pagination request
+          ),
           // fetchMaintancePlan(clientId),
         ]);
       } catch (error) {
@@ -202,7 +255,17 @@ const ClientInfo: React.FC = () => {
     };
 
     fetchAllData();
-  }, [searchParams]);
+  }, [searchParams, propertiesItemsPerPage]); // Removed propertiesCurrentPage from dependencies
+
+  // Note: Pagination is now handled directly in handlePropertiesPageChange
+  // to ensure proper loading state management
+
+  // Cleanup effect to reset pagination loading state
+  useEffect(() => {
+    return () => {
+      setIsPaginationLoading(false);
+    };
+  }, []);
 
   // Table data and handlers
   const columns: TableColumn[] = [
@@ -323,6 +386,25 @@ const ClientInfo: React.FC = () => {
     },
   ];
 
+  // Handle properties pagination
+  const handlePropertiesPageChange = async (page: number) => {
+    const clientId = searchParams?.get("id");
+    if (!clientId) return;
+
+    setPropertiesCurrentPage(page);
+    // Directly fetch properties for pagination to ensure proper loading state management
+    await fetchProperties(clientId, page, propertiesItemsPerPage, true);
+  };
+
+  const handlePropertiesPaginationStart = () => {
+    setIsPaginationLoading(true);
+  };
+
+  const handlePropertiesPaginationEnd = () => {
+    setIsPaginationLoading(false);
+  };
+
+  // Table data and handlers
   const renderHeaderSection = () => {
     return (
       <div className={styles.client_info_header_section}>
@@ -502,7 +584,34 @@ const ClientInfo: React.FC = () => {
         <div className={styles.client_info_properties_section_tabs_data}>
           {activePropertiesTab === "propertyList" && (
             <>
-              {properties?.properties && properties.properties.length === 0 ? (
+              {isLoading ? (
+                <FallbackScreen
+                  title="Loading Properties"
+                  subtitle="Please wait while we fetch your properties data..."
+                  className={styles.properties_loading_fallback}
+                />
+              ) : hasError ? (
+                <FallbackScreen
+                  title="Error Loading Properties"
+                  subtitle={hasError.toString()}
+                  className={styles.properties_loading_fallback}
+                />
+              ) : (
+                <>
+                  <ClientPropertiesList
+                    showPropertyListSection={false}
+                    propertiesData={properties?.properties || []}
+                    pagination={properties?.pagination || undefined}
+                    statistics={properties?.statistics}
+                    onPageChange={handlePropertiesPageChange}
+                    currentPage={propertiesCurrentPage}
+                    onPaginationStart={handlePropertiesPaginationStart}
+                    onPaginationEnd={handlePropertiesPaginationEnd}
+                    isPaginationLoading={isPaginationLoading}
+                  />
+                </>
+              )}
+              {/* {properties?.properties && properties.properties.length === 0 ? (
                 <div className={styles.no_properties_found_container}>
                   <p className={styles.no_properties_found_text}>
                     No properties found for this client
@@ -514,8 +623,12 @@ const ClientInfo: React.FC = () => {
                   propertiesData={properties?.properties || []}
                   statistics={properties?.statistics}
                   pagination={properties?.pagination}
+                  onPageChange={handlePropertiesPageChange}
+                  currentPage={propertiesCurrentPage}
+                  onPaginationStart={handlePropertiesPaginationStart}
+                  onPaginationEnd={handlePropertiesPaginationEnd}
                 />
-              )}
+              )} */}
             </>
           )}
           {activePropertiesTab === "maintenancePlan" && <MaintenancePlan />}

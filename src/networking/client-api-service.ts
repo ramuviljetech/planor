@@ -51,9 +51,15 @@ export const getUserDetails = async (id: string) => {
 
 //  properties
 
-export const getPropertiesByClientId = async (id: string) => {
+export const getPropertiesByClientId = async (
+  id: string,
+  page: number,
+  limit: number
+) => {
   try {
-    const response = await apiClient.get(`/properties?clientId=${id}`);
+    const response = await apiClient.get(
+      `/properties?clientId=${id}&page=${page}&limit=${limit}`
+    );
     console.log("Properties:", response.data);
     return response.data;
   } catch (error) {
