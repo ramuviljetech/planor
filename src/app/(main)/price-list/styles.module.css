@@ -269,6 +269,23 @@
   /* padding-top: 16px; */
 }
 
+.error_message {
+  width: 50%;
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+}
+
+.error_text {
+  font-family: var(--font-lato-regular);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 100%;
+  letter-spacing: 0px;
+  color: red;
+  margin: 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .table_header_cell_object,

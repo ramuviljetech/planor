@@ -11,18 +11,16 @@ import {
   focusBlackIcon,
 } from "@/resources/images";
 import MetricCard from "@/components/ui/metric-card";
-// import { clientsStaticCardTitle } from "@/app/constants";
 import Input from "@/components/ui/input";
 import Button from "@/components/ui/button";
 import Modal from "@/components/ui/modal";
 import Avatar from "@/components/ui/avatar";
 import FallbackScreen from "@/components/ui/fallback-screen";
-import { getPriceList } from "@/networking/pricelist-api-service";
+import { getPriceList, putPriceList } from "@/networking/pricelist-api-service";
 import {
   newObjectsTableHeadings,
   allObjectsAccordionTableColumns,
 } from "@/app/constants";
-
 import styles from "./styles.module.css";
 
 type TabType = "all" | "new";
@@ -30,7 +28,7 @@ type TabType = "all" | "new";
 type TableRow = {
   object: string;
   // type: string;
-  price: string;
+  price: number;
   unit: string;
   intervals: string;
 };
@@ -39,9 +37,9 @@ interface NewObjectRow {
   id: string;
   object: string;
   type: string;
-  price: string;
+  price: number;
   unit: string;
-  intervals: string;
+  interval: string;
 }
 
 const PriceListPage: React.FC = () => {
@@ -66,6 +64,8 @@ const PriceListPage: React.FC = () => {
   const [itemsWithoutPrice, setItemsWithoutPrice] = useState<any[]>([]);
   const [filteredAccordionData, setFilteredAccordionData] = useState<any[]>([]);
   const [newObjectsData, setNewObjectsData] = useState<NewObjectRow[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   // Fetch price list api call
 
@@ -78,7 +78,6 @@ const PriceListPage: React.FC = () => {
     } catch (error) {
       console.error("❌ PriceListPage: Error fetching price list:", error);
     } finally {
-      // setIsLoading(true);//
       setIsLoading(false);
     }
   };
@@ -87,18 +86,36 @@ const PriceListPage: React.FC = () => {
     fetchPriceList();
   }, []);
 
+  console.log("🔄 Price list data:", priceListData);
+
+  const putPriceListApiCall = async (priceEnteredItems: NewObjectRow[]): Promise<void> => {
+    try {
+      setIsSubmitting(true);
+      setErrorMessage(""); // Clear any previous errors
+      const response = await putPriceList(priceEnteredItems);
+      console.log("🔄 Price list data:", response);
+      // Refresh the price list data after successful update
+      await fetchPriceList();
+      setActiveTab("all");
+    } catch (error: any) {
+      console.error("❌ PriceListPage: Error putting price list:", error);
+      setErrorMessage(error?.response?.data?.error?.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Filter items with and without prices when priceListData changes
   useEffect(() => {
     if (priceListData) {
       const allItemsWithoutPrice: any[] = [];
-
       const accordionData = [
         {
           key: "walls",
           title: "Walls",
           data: (priceListData.wall || []).filter((item: any) => {
             if (!item.price || item.price === null || item.price === "") {
-              allItemsWithoutPrice.push({ ...item, category: "Walls" });
+              allItemsWithoutPrice.push({ ...item, });
               return false;
             }
             return true;
@@ -109,7 +126,7 @@ const PriceListPage: React.FC = () => {
           title: "Doors",
           data: (priceListData.door || []).filter((item: any) => {
             if (!item.price || item.price === null || item.price === "") {
-              allItemsWithoutPrice.push({ ...item, category: "Doors" });
+              allItemsWithoutPrice.push({ ...item, });
               return false;
             }
             return true;
@@ -120,7 +137,7 @@ const PriceListPage: React.FC = () => {
           title: "Floors",
           data: (priceListData.floor || []).filter((item: any) => {
             if (!item.price || item.price === null || item.price === "") {
-              allItemsWithoutPrice.push({ ...item, category: "Floors" });
+              allItemsWithoutPrice.push({ ...item, });
               return false;
             }
             return true;
@@ -131,7 +148,7 @@ const PriceListPage: React.FC = () => {
           title: "Roof",
           data: (priceListData.roof || []).filter((item: any) => {
             if (!item.price || item.price === null || item.price === "") {
-              allItemsWithoutPrice.push({ ...item, category: "Roof" });
+              allItemsWithoutPrice.push({ ...item, });
               return false;
             }
             return true;
@@ -142,7 +159,7 @@ const PriceListPage: React.FC = () => {
           title: "Windows",
           data: (priceListData.window || []).filter((item: any) => {
             if (!item.price || item.price === null || item.price === "") {
-              allItemsWithoutPrice.push({ ...item, category: "Windows" });
+              allItemsWithoutPrice.push({ ...item, });
               return false;
             }
             return true;
@@ -153,7 +170,7 @@ const PriceListPage: React.FC = () => {
           title: "Area",
           data: (priceListData.area || []).filter((item: any) => {
             if (!item.price || item.price === null || item.price === "") {
-              allItemsWithoutPrice.push({ ...item, category: "Area" });
+              allItemsWithoutPrice.push({ ...item, });
               return false;
             }
             return true;
@@ -188,10 +205,10 @@ const PriceListPage: React.FC = () => {
         (item) => ({
           id: item.id || "", // Use original ID or fallback
           object: item.object || "",
-          type: item.category || "",
-          price: "",
+          type: item.type || "",
+          price: 0,
           unit: item.unit || "",
-          intervals: "",
+          interval: "",
         })
       );
       setNewObjectsData(newObjectsFromItemsWithoutPrice);
@@ -205,7 +222,6 @@ const PriceListPage: React.FC = () => {
     }
   }, [priceListData]);
 
-  console.log("🔄 Price list data:", priceListData);
 
   const toggleAccordion = (accordionKey: string) => {
     setAccordionStates((prev) => {
@@ -224,39 +240,48 @@ const PriceListPage: React.FC = () => {
 
   const handleInputChange = (
     id: string,
-    field: "price" | "intervals",
+    field: "price" | "interval",
     value: string
   ) => {
     setNewObjectsData((prev) =>
-      prev.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+      prev.map((row) => 
+        row.id === id 
+          ? { 
+              ...row, 
+              [field]: field === "price" ? Number(value) || 0 : value 
+            } 
+          : row
+      )
     );
   };
 
   const handleSubmit = () => {
     // Filter items that have both price and intervals filled
-    const completedItems = newObjectsData.filter(
-      (row) => row.price && row.intervals
+    const priceEnteredItems = newObjectsData.filter(
+      (row) => row.price > 0 && row.interval
     );
 
-    if (completedItems.length === 0) {
+    if (priceEnteredItems.length === 0) {
       console.log("No items with complete price and intervals data");
       return;
     }
 
     // Console log each completed item with price and intervals
-    completedItems.forEach((item) => {
+    priceEnteredItems.forEach((item) => {
       console.log("Completed Item:", {
         object: item.object,
         type: item.type,
         price: item.price,
         unit: item.unit,
-        intervals: item.intervals,
-        category: item.type,
+        interval: item.interval,
       });
     });
 
-    console.log("Total completed items:", completedItems.length);
-    console.log("All completed items data:", completedItems);
+    console.log("Total completed items:", priceEnteredItems.length);
+    console.log("All completed items data:", priceEnteredItems);
+
+    // Call the API to update the price list
+    putPriceListApiCall(priceEnteredItems);
   };
 
   const handleCancel = () => {
@@ -264,8 +289,8 @@ const PriceListPage: React.FC = () => {
     setNewObjectsData((prev) =>
       prev.map((item) => ({
         ...item,
-        price: "",
-        intervals: "",
+        price: 0,
+        interval: "",
       }))
     );
   };
@@ -430,13 +455,7 @@ const PriceListPage: React.FC = () => {
                   </div>
                 );
               }
-              //  if(itemsWithoutPrice.length === 0){
-              //   return (
-              //     <div className={styles.price_list_content_accordion_no_data}>
-              //       <p className={styles.price_list_content_accordion_no_data_text}>No Data Found</p>
-              //     </div>
-              //   );
-              //  }
+
               return accordionsWithData.map((accordion) => (
                 <React.Fragment key={accordion.key}>
                   {renderAccordion(
@@ -494,7 +513,7 @@ const PriceListPage: React.FC = () => {
                   <Input
                     label=""
                     type="number"
-                    value={row.price}
+                    value={row.price.toString()}
                     onChange={(e) =>
                       handleInputChange(row.id, "price", e.target.value)
                     }
@@ -507,9 +526,9 @@ const PriceListPage: React.FC = () => {
                 <td className={styles.table_cell_intervals}>
                   <Input
                     label=""
-                    value={row.intervals}
+                    value={row.interval}
                     onChange={(e) =>
-                      handleInputChange(row.id, "intervals", e.target.value)
+                      handleInputChange(row.id, "interval", e.target.value)
                     }
                     placeholder="Enter Intervals"
                     inputStyle={styles.inputContainerClass}
@@ -520,11 +539,26 @@ const PriceListPage: React.FC = () => {
             ))}
           </tbody>
         </table>
-
         {/* Action Buttons */}
         <div className={styles.action_buttons}>
-          <Button title="Cancel" variant="plain" onClick={handleCancel} />
-          <Button title="Submit" variant="primary" onClick={handleSubmit} />
+          {errorMessage && (
+            <div className={styles.error_message}>
+              <p className={styles.error_text}>{errorMessage}</p>
+            </div>
+          )}
+          <Button 
+            title="Cancel" 
+            variant="plain" 
+            onClick={handleCancel} 
+            disabled={isSubmitting}
+          />
+          <Button 
+            title={isSubmitting ? "Submitting..." : "Submit"} 
+            variant="primary" 
+            onClick={handleSubmit}
+            disabled={newObjectsData.filter(row => row.price > 0 && row.interval).length === 0 || isSubmitting}
+            loading={isSubmitting}
+          />
         </div>
       </div>
     );
